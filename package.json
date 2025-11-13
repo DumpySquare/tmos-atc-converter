@@ -19,17 +19,18 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@automation-toolchain/f5-appsvcs-classic-schema": "1.4.0",
-    "@automation-toolchain/f5-do": "1.43.0",
+    "@automation-toolchain/f5-appsvcs-classic-schema": "file:deps/f5-appsvcs-classic-schema-1.4.0.tgz",
+    "@automation-toolchain/f5-do": "file:deps/f5-declarative-onboarding-for-f5-acc-dev-1.43.0.tgz",
     "ajv": "^8.17.1",
     "deepmerge": "^4.3.1",
     "lodash": "^4.17.21",
-    "tar": "^7.4.3"
+    "tar": "^7.4.3",
+    "winston": "^3.18.3"
   },
   "devDependencies": {
-    "mocha": "^10.8.2",
     "chai": "^4.5.0",
-    "chai-as-promised": "^8.0.0"
+    "chai-as-promised": "^8.0.0",
+    "mocha": "^10.8.2"
   },
   "engines": {
     "node": ">=18.0.0"

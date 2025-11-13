@@ -18,11 +18,11 @@
 
 /* eslint-disable no-continue */
 
-const as3Validator = require('../lib/validators/as3Classic');
-const deleteProperties = require('../util/convert/deleteProperties');
-const log = require('../util/log');
-const objectUtil = require('../util/object');
-const globalObjectUtil = require('../util/globalRenameAndSkippedObject');
+const as3Validator = require('../../validators/as3');
+const deleteProperties = require('../../utils/deleteProperties');
+const log = require('../../utils/log');
+const objectUtil = require('../../utils/object');
+const globalObjectUtil = require('../../utils/globalRenameAndSkippedObject');
 
 /**
  * split path in object into two parts: the parent path and the property name itself

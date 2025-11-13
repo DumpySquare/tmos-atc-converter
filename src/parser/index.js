@@ -16,13 +16,13 @@
 
 'use strict';
 
-const arrToMultilineStr = require('../util/parse/arrToMultilineStr');
-const countIndent = require('../util/parse/countIndent');
-const getTitle = require('../util/parse/getTitle');
-const objToArr = require('../util/parse/objToArr');
-const log = require('../util/log');
-const removeIndent = require('../util/parse/removeIndent');
-const strToObj = require('../util/parse/strToObj');
+const arrToMultilineStr = require('./utils/arrToMultilineStr');
+const countIndent = require('./utils/countIndent');
+const getTitle = require('./utils/getTitle');
+const objToArr = require('./utils/objToArr');
+const log = require('../utils/log');
+const removeIndent = require('./utils/removeIndent');
+const strToObj = require('./utils/strToObj');
 
 // return true if the string contains the header of ltm/gtm/pem rule
 function isRule(str) {
