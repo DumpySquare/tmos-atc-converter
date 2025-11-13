@@ -1,0 +1,10 @@
+node_modules/
+*.tgz
+*.log
+coverage/
+.nyc_output/
+*.swp
+*.swo
+.DS_Store
+test_certs/
+dist/

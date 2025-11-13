@@ -1,0 +1,119 @@
+{
+  "name": "f5-automation-config-converter",
+  "version": "1.126.0",
+  "author": "F5 Networks",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/f5devcentral/f5-automation-config-converter.git"
+  },
+  "description": "F5 Automation Config Converter",
+  "scripts": {
+    "build": "scripts/build/image-build.sh",
+    "copyright": "node scripts/dev/write-copyright.js cicd",
+    "coverage": "nyc npm test",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "lint": "eslint .",
+    "prepare": "[ -d scripts ] && scripts/dev/install-git-hooks.sh || echo 'githooks not installed'",
+    "prepack": "scripts/prepack.sh",
+    "start": "node init.js serve",
+    "test": "scripts/misc/gen-test-certs.sh && NODE_ENV=test mocha test --recursive --timeout 60000 --exit",
+    "test-mutation": "scripts/misc/gen-test-certs.sh && NODE_ENV=test stryker run",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch",
+    "watch": "NODE_ENV=test mocha test --recursive --watch --timeout 30000 --exit"
+  },
+  "files": [
+    "CHANGELOG.md",
+    "init.js",
+    "LICENSE",
+    "node_modules/@automation-toolchain",
+    "package.json",
+    "README.md",
+    "src",
+    "SUPPORT.md"
+  ],
+  "bundleDependencies": [
+    "@automation-toolchain/f5-appsvcs-classic-schema",
+    "@automation-toolchain/f5-appsvcs-schema",
+    "@automation-toolchain/f5-do"
+  ],
+  "dependencies": {
+    "@automation-toolchain/f5-appsvcs-classic-schema": "1.4.0",
+    "@automation-toolchain/f5-appsvcs-schema": "0.52.2",
+    "@automation-toolchain/f5-do": "1.43.0",
+    "@f5devcentral/f5-teem": "^1.6.1",
+    "ajv": "^8.17.1",
+    "commander": "^12.1.0",
+    "deepmerge": "^4.3.1",
+    "express": "^4.21.2",
+    "lodash": "^4.17.21",
+    "multer": "^1.4.5-lts.1",
+    "semver": "^7.6.3",
+    "tar": "^7.4.3",
+    "uuid": "^11.0.2",
+    "winston": "^3.16.0"
+  },
+  "devDependencies": {
+    "@automation-toolchain/f5-do-dev": "file:./deps/f5-declarative-onboarding-for-f5-acc-dev-1.43.0.tgz",
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@commitlint/prompt-cli": "19.5.0",
+    "@f5devcentral/atg-shared-utilities-dev": "^0.2.20",
+    "@f5devcentral/eslint-config-f5-atg": "0.1.8",
+    "@stryker-mutator/core": "^8.6.0",
+    "@stryker-mutator/mocha-runner": "^8.6.0",
+    "chai": "^4.5.0",
+    "chai-as-promised": "^8.0.0",
+    "chai-http": "5.0.0",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-plugin-import": "^2.31.0",
+    "husky": "^9.1.6",
+    "is-ci": "^3.0.1",
+    "mocha": "^10.8.2",
+    "nunjucks": "^3.2.4",
+    "nyc": "^17.1.0",
+    "sinon": "^19.0.2"
+  },
+  "eslintConfig": {
+    "extends": [
+      "@f5devcentral/eslint-config-f5-atg"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2023
+    },
+    "settings": {
+      "import/resolver": {
+        "alias": true
+      }
+    }
+  },
+  "eslintIgnore": [
+    "scripts"
+  ],
+  "nyc": {
+    "check-coverage": true,
+    "statements": 95,
+    "branches": 85,
+    "functions": 95,
+    "lines": 95,
+    "reporter": [
+      "html",
+      "text",
+      "json-summary"
+    ],
+    "include": "src"
+  },
+  "bugs": {
+    "url": "https://github.com/f5devcentral/f5-automation-config-converter/issues"
+  },
+  "homepage": "https://github.com/f5devcentral/f5-automation-config-converter#readme",
+  "main": "init.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "githash": "05b0737713ef54caaf20da09524d10fa8a4ee86d"
+}

@@ -1,0 +1,437 @@
+#########################
+# RULES:
+# 1) Keep jobs in following order
+#   - by stage
+#   - by job's name (A-Z order)
+#
+# NOTES:
+# - jobs with rules:changes will work as expected for branch pipelines or merge request pipelines
+#   for other types of pipelines (e.g. tag) it will always evualate to 'true' and a job
+#   will be added to pipeline (that actually is good - e.g. run all linting and etc. for releases)
+#########################
+
+stages:
+  - lint
+  - atg-shared-checks
+  - test:unit
+  - build
+  - container_scan
+  - test:docker
+  - test:migration_testing_tool
+  - docs
+  - publish
+  - release
+
+image: ${ATG_IMG_REGISTRY_URL}/node:lts
+
+variables:
+  ACC_DOCKER_PUBLISH_IMAGE: ${ATG_ARTIFACTORY_PUBLISH_URL}/${ATG_ARTIFACTORY_DOCKER_REPO}/f5-acc-base-publish-image:v1.3
+  DEFAULT_ARTIFACT_NAME: $CI_PROJECT_NAME-$CI_JOB_NAME_SLUG-$CI_COMMIT_SHORT_SHA
+  SEC_ALLOW_FAILURE: "true"
+  SEC_NO_GIT_HISTORY: "true"
+  SECRET_DETECTION_EXCLUDED_PATHS: "package.json,package-lock.json"
+  MIGRATION_TEST_BRANCH: "main"
+
+include:
+  - project: automation-toolchain/atg-shared-templates
+    file:
+      - workflows/oneof-mr-or-branch.gitlab-ci.yml
+      - code_quality/base.gitlab-ci.yml
+      - compliance/base.gitlab-ci.yml
+      - security/base.gitlab-ci.yml
+      - security/container.gitlab-ci.yml
+      - security/lookout.gitlab-ci.yml
+      - test/base.gitlab-ci.yml
+
+#########################
+# Job execution rules
+# - Always run jobs
+#   - some feature branch push (see note in documentation section at the bottom)
+#   - always on main branch (include later a LTS, hotfix and other branches - e.g. vX.Y-main)
+#   - always on tags
+#   - always on merge request pipelines
+#   - always on pipeline run manually from WebUI - CI/CD -> Pipelines -> Run pipeline
+#   - .gitignore or .gitlab-ci.yml changed - jobs, stages change - run everything
+# - Code related jobs
+#   - same as "Always run all jobs"
+#   - run when source code or unit tests or package.json or package-lock.json changed
+# - Build related jobs
+#   - same as "Always run all jobs"
+#   - same as "Code related jobs"
+#   - build new images when image related files were changed
+# - Docs related jobs
+#   - same as "Always run all jobs"
+#   - when files in "docs" dir changed
+#########################
+.rules_config:
+  always_run:
+    rules:
+      - if: $CI_COMMIT_TAG
+      - if: $CI_COMMIT_BRANCH == "main"
+      - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      - if: $CI_PIPELINE_SOURCE == "web"
+      - if: $CI_PIPELINE_SOURCE == "webide"
+      - changes:
+        - .gitignore
+        - .gitlab-ci.yml
+  build_jobs:
+    rules:
+      - !reference [.rules_config, always_run, rules]
+      - !reference [.rules_config, code_jobs, rules]
+      - changes:
+        - "scripts/**/*"
+        - CHANGELOG.md
+        - Dockerfile
+        - LICENSE
+        - README.md
+        - SUPPORT.md
+  code_jobs:
+    rules:
+      - !reference [.rules_config, always_run, rules]
+      - changes:
+        - "src/**/*"
+        - "test/**/*"
+        - "*.js"
+        - "*.json"
+        - package-lock.json # explicit is better than hidden
+        - package.json # explicit is better than hidden
+  doc_jobs:
+    rules:
+      - !reference [.rules_config, always_run, rules]
+      - changes:
+        - "docs/**/*"
+  migration_testing_tool:
+    rules:
+      - if: $RUN_MIGRATION_TESTING_TOOL == "true"
+      - if: $CI_COMMIT_BRANCH == "main"
+
+# LINT STAGE #
+check_certs:
+  stage: lint
+  script:
+    - ./scripts/misc/check-certs.sh
+  rules:
+    - !reference [.rules_config, always_run, rules]
+    - changes:
+      - "**/*.crt"
+
+lint:
+  stage: lint
+  allow_failure: false
+  rules:
+    - !reference [.rules_compliance, lint_base, rules]
+    - !reference [.rules_config, code_jobs, rules]
+
+shellcheck:
+  stage: lint
+  image: ${ATG_IMG_REGISTRY_URL}/koalaman/shellcheck-alpine
+  script:
+    - shellcheck -V
+    - shellcheck scripts/**/*.sh
+  rules:
+    - !reference [.rules_config, always_run, rules]
+    - changes:
+      - "**/*.sh"
+
+# ATG-SHARED-CHECKS STAGE #
+code_quality:
+  tags: [acc-test-docker-executor]
+  rules:
+    - !reference [.rules_config, code_jobs, rules]
+
+# The following jobs will always run whenever a pipeline is created
+# NOTE: uncomment job definition only when there are properties that are being overridden
+
+# audit:
+
+# check_copyrights:
+
+# dependency_scanning:
+# this also enables license_scanning
+# language-dependent job(s) dynamically created
+# overriding rules can cause invalid configurations so we'll leave as is
+
+# sast:
+# language-dependent job(s) dynamically created
+# overriding rules can cause invalid configurations so we'll leave as is
+
+# secret_detection:
+# End ATG-SHARED-CHECKS STAGE #
+
+# TEST:UNIT STAGE #
+coverage:
+  stage: test:unit
+  needs:
+    - job: secret_detection
+      optional: true
+    - job: lint
+      optional: true
+    - job: shellcheck
+      optional: true
+  allow_failure: false
+  coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
+  rules:
+    - !reference [.rules_config, code_jobs, rules]
+
+unit_test:
+  stage: test:unit
+  needs:
+    - !reference [coverage, needs]
+  allow_failure: false
+  rules:
+    - !reference [.rules_config, code_jobs, rules]
+
+# BUILD STAGE #
+build_docs:
+  stage: build
+  image: ${CONTAINTHEDOCS_IMAGE}
+  needs: []
+  script:
+    - cd docs
+    - pip3 install -r requirements.txt
+    - >
+      if [ "${CI_COMMIT_REF_NAME}" = "docs-staging" ] || [ "${CI_COMMIT_REF_NAME}" = "docs-latest" ]; then
+        rm -r _templates
+      fi
+    - make html
+    - make test
+  artifacts:
+    expire_in: 1 week
+    name: sphinx-docs-${CI_COMMIT_SHORT_SHA}
+    paths: [docs/_build/html]
+  tags: [cm-official-docker-executor]
+  rules:
+    - !reference [.rules_config, doc_jobs, rules]
+
+build_image:
+  stage: build
+  needs:
+    - job: coverage
+      optional: true
+    - job: unit_test
+      optional: true
+  image: ${ACC_DOCKER_PUBLISH_IMAGE}
+  services:
+    - name: ${ACC_DOCKER_PUBLISH_IMAGE}
+      alias: docker
+  variables:
+    DOCKER_BUILDKIT: 1
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - sh scripts/build/image-build.sh
+    - sh scripts/build/artifacts-publish.sh
+    - cat dist/docker-build.txt
+    - cat dist/published-artifacts.txt
+  artifacts:
+    name: $DEFAULT_ARTIFACT_NAME
+    paths: [dist/]
+  rules:
+    - !reference [.rules_config, build_jobs, rules]
+
+# CONTAINER SCAN STAGE #
+# SCAN FOR CONTAINER VULNERABLITIES #
+# jobs inherited from atg-shared-templates with some overrides here #
+
+container_scanning:
+  stage: container_scan
+  needs: [build_image]
+  rules:
+    - !reference [.rules_config, build_jobs, rules]
+  before_script:
+    - CS_IMAGE=$(sh scripts/build/get-image-name.sh)
+
+lookout:
+  stage: container_scan
+  needs: [build_image]
+  allow_failure: false
+  before_script:
+    - !reference [.lookout, before_script]
+    - IMAGE=$(sh scripts/build/get-image-name.sh)
+  rules:
+    - !reference [.rules_config, build_jobs, rules]
+
+# TEST:DOCKER STAGE #
+docker_test:
+  stage: test:docker
+  needs: [build_image]
+  image: ${ACC_DOCKER_PUBLISH_IMAGE}
+  services:
+    - name: ${ACC_DOCKER_PUBLISH_IMAGE}
+      alias: docker
+  tags: [acc-test-docker-executor]
+  allow_failure: false
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - sh scripts/test/docker-test.sh
+  rules:
+    - !reference [.rules_config, build_jobs, rules]
+
+# TEST:MIGRATION_TESTING_TOOL STAGE #
+migration_testing_tool:
+  stage: test:migration_testing_tool
+  script:
+    - ACC_IMAGE_TAG=$(sh scripts/build/get-image-name.sh tag)
+    - curl --get --request POST
+        --data "token=${CI_JOB_TOKEN}"
+        --data "ref=${MIGRATION_TEST_BRANCH}"
+        --data-urlencode "variables[MIGRATION_TEST_ACC_VERSION]=${ACC_IMAGE_TAG}"
+        --data "variables[MIGRATION_TEST_BRANCH]=${MIGRATION_TEST_BRANCH}"
+        "${CI_API_V4_URL}/projects/21060/trigger/pipeline"
+  rules:
+    - !reference [.rules_config, migration_testing_tool, rules]
+
+# DOCS STAGE #
+pages:
+  stage: docs
+  needs: [build_docs, coverage]
+  tags: [cm-official-docker-executor]
+  script:
+    - PUBLIC_DIR='./public'
+    - PUBLIC_DOCS=${PUBLIC_DIR}/public-docs
+    - COVERAGE_DOCS=${PUBLIC_DIR}/coverage-docs
+    - mkdir -p ${PUBLIC_DIR}
+    - mkdir -p ${PUBLIC_DOCS}
+    - mkdir -p ${COVERAGE_DOCS}
+    - cp docs/index.html ${PUBLIC_DIR}/index.html
+    - cp -R docs/_build/html/* ${PUBLIC_DOCS}
+    - cp -R coverage/* ${COVERAGE_DOCS}
+  artifacts:
+    paths: [public]
+  rules:
+    - if: "$CI_COMMIT_BRANCH == 'main'"
+
+# PUBLISH STAGE #
+publish_docs:
+  image: ${CONTAINTHEDOCS_IMAGE}
+  stage: publish
+  needs: [build_docs]
+  environment:
+    name: production
+    url: https://clouddocs.f5.com/products/extensions/f5-automation-config-converter/latest
+  script:
+    - aws s3 sync docs/_build/html s3://clouddocs.f5.com/products/extensions/f5-automation-config-converter/latest
+    # create invalidation to clear cloudfront cache
+    - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-automation-config-converter/latest
+  tags: [cm-official-docker-executor]
+  rules:
+    - if: "$CI_COMMIT_BRANCH == 'docs-latest'"
+
+publish_image:
+  retry: 2
+  image: ${ACC_DOCKER_PUBLISH_IMAGE}
+  stage: publish
+  needs: [build_image, docker_test]
+  services:
+    - name: ${ACC_DOCKER_PUBLISH_IMAGE}
+      alias: docker
+  script:
+    - sh scripts/publish/artifacts-publish.sh
+    - cat dist/published-artifacts.txt
+  tags: [cm-official-docker-executor]
+  artifacts:
+    name: $DEFAULT_ARTIFACT_NAME
+    paths: [dist/published-artifacts.txt]
+  rules:
+    - !reference [.rules_config, build_jobs, rules]
+
+publish_staging_docs:
+  image: ${CONTAINTHEDOCS_IMAGE}
+  stage: publish
+  needs: [build_docs]
+  environment:
+    name: staging
+    url: https://clouddocs.f5networks.net/products/extensions/f5-automation-config-converter/latest/
+  script:
+    - aws s3 sync docs/_build/html s3://clouddocs.f5networks.net/products/extensions/f5-automation-config-converter/latest
+    # create invalidation to clear cloudfront cache
+    - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-automation-config-converter/latest
+  tags: [cm-official-docker-executor]
+  rules:
+    - if: "$CI_COMMIT_BRANCH == 'docs-staging'"
+
+# RELEASE STAGE #
+release:
+  stage: release
+  image: ${ATG_ARTIFACTORY_BASE_URL}/f5-f5dev-docker/tc-rpm:latest
+  script:
+    - sh scripts/release/release.sh
+  tags: [acc-gitlab-runner-semver]
+  rules:
+    # run on 'main' branch 'on_success' (all jobs should succeed)
+    - if: "$CI_COMMIT_BRANCH == 'main'"
+    # never run release process for tagged builds
+    - if: $CI_COMMIT_TAG
+      when: never
+    # for feature/dev branches only - add the job to the pipeline as a manual job
+    # the pipeline continues running even if the job is not triggered
+    - when: manual
+      allow_failure: true
+
+release-links:
+  stage: release
+  script:
+    - sh scripts/release/add-release-links.sh
+  rules:
+    # run on tags only (so, released builds only)
+    - if: $CI_COMMIT_TAG
+
+###################################
+# DOCUMENTATION SECTION
+###################################
+.DESCRIPTION: >
+  F5 Automation Config Converter GitLab CI/CD explanation.
+
+  RULES:
+
+  `.rules_config` defines set of rules for almost all jobs in CI/CD pipeline.
+
+  Exceptions are:
+    - pages
+    - publish_docs
+    - publish_staging_docs
+
+  Those jobs run on particular branches only (see job definition).
+
+  Different stages of development produce different pipelines.
+
+  1.  Develop in feature branch, no MR opened yet:
+      In this scenario every commit to the branch will produce
+      pipeline with jobs depending on affected files. If source code changed
+      then linting, coverage, unit_tests and other jobs will be created.
+      If docs changed then only basic checks from atg-shared-templates will run.
+      It should speed up development a bit.
+      -> This pipeline runs on the feature branch source only.
+
+  2.  Develop in feature branch with opened MR:
+      A new pipeline with "merged results" label will be created with the applicable jobs
+      There will be more jobs pipeline with no MR).
+      If for some reason you'd like to include a branch pipeline along with the mr pipeline, you can temporarily comment
+      out the line `- workflows/oneof-mr-or-branch.gitlab-ci.yml` at the top of this config.
+      You can still trigger a manual branch pipeline using the Pipelines tab (project level),
+      or a manual merge request pipeline using the Merge Request Pipelines tab.
+      -> This pipeline is run on combined source and target branches (to simulate run when MR is merged).
+
+  3.  Changes merged to the 'main' branch:
+      The pipeline contains all existing jobs - verify all.
+
+  4.  Tag/Release created:
+      The pipeline contains all existing jobs - verify all.
+
+  STAGES/JOBS:
+
+  - `build_image` job generates following artifacts:
+    - NPM archive (source code)
+    - Container Image
+  
+    Both artifacts are `dev` artifacts (has unique sequence) at that stage and published to Artifactory's apropriate dev directories
+
+  - `container_scan` stage uses Container Image artifact to verify image content
+
+  - `docker_test` and `MTT` jobs use Container Image artifact to run some tests
+
+  - `publish` stage publishes all artifacts to Artifactory's apropriate directories - makes the `official`
+
+  - `release` stage uses `official` artifacts to create GitLab Release entry

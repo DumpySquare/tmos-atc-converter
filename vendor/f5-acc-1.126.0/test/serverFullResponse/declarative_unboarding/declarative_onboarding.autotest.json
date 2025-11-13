@@ -1,0 +1,59 @@
+{
+  "conversionType": "DO",
+  "title": "Declarative OnBoarding",
+  "type": "testcase",
+  "expectedData": {
+    "config": {
+      "as3NotRecognized": false,
+      "container": false,
+      "controls": false,
+      "declarativeOnboarding": true,
+      "disableAnalytics": true,
+      "jsonLogs": true,
+      "next": false,
+      "nextNotConverted": false,
+      "safeMode": false,
+      "server": true,
+      "showExtended": false
+    },
+    "jsonLogs": [],
+    "logs": [
+      "2024-03-19 21:46:15 INFO Pre-compile schema validator for AS3 Classic",
+      "2024-03-19 21:46:16 INFO Pre-compile schema validator for AS3 Next",
+      "2024-03-19 21:46:16 INFO Server listening on http://localhost:8080",
+      "2024-03-19 21:47:27 INFO -------------------------------------",
+      "2024-03-19 21:47:27 INFO ACC version:\t\t\t1.49.0",
+      "2024-03-19 21:47:27 INFO AS3 core schema version:\t3.49.0",
+      "2024-03-19 21:47:27 INFO Shared schema version:\t\t3.49.0",
+      "2024-03-19 21:47:27 INFO Shared schema package version:\t0.29.1",
+      "2024-03-19 21:47:27 INFO -------------------------------------",
+      "2024-03-19 21:47:27 INFO 2 BIG-IP objects detected total",
+      "2024-03-19 21:47:27 INFO 2 DO stanzas generated"
+    ],
+    "output": {
+      "schemaVersion": "1.0.0",
+      "class": "Device",
+      "async": true,
+      "Common": {
+        "class": "Tenant",
+        "internal": {
+          "class": "VLAN",
+          "mtu": 1501,
+          "tag": 4093,
+          "interfaces": [
+            {
+              "name": "1.2",
+              "tagged": false
+            }
+          ]
+        },
+        "SelfIp_internalSelf": {
+          "class": "SelfIp",
+          "address": "10.10.0.100/24",
+          "vlan": "internal",
+          "allowService": "default"
+        }
+      }
+    }
+  }
+}

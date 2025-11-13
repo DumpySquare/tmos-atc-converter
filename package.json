@@ -1,0 +1,37 @@
+{
+  "name": "tmos-converter",
+  "version": "1.0.0",
+  "description": "Convert F5 TMOS configuration to AS3 Classic and Declarative Onboarding declarations",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test --recursive --timeout 30000",
+    "test:upstream": "mocha test/upstream --recursive --timeout 30000"
+  },
+  "keywords": [
+    "f5",
+    "bigip",
+    "tmos",
+    "as3",
+    "as3-classic",
+    "declarative-onboarding",
+    "config-converter"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@automation-toolchain/f5-appsvcs-classic-schema": "1.4.0",
+    "@automation-toolchain/f5-do": "1.43.0",
+    "ajv": "^8.17.1",
+    "deepmerge": "^4.3.1",
+    "lodash": "^4.17.21",
+    "tar": "^7.4.3"
+  },
+  "devDependencies": {
+    "mocha": "^10.8.2",
+    "chai": "^4.5.0",
+    "chai-as-promised": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

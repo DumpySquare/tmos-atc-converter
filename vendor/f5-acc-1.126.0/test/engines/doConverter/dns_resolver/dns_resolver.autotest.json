@@ -1,0 +1,38 @@
+{
+    "schemaVersion": "1.0.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "customDnsResolver": {
+            "class": "DNS_Resolver",
+            "answerDefaultZones": true,
+            "cacheSize": 12000,
+            "forwardZones": [
+                {
+                    "name": "testZone1",
+                    "nameservers": [
+                        "10.184.216.34:44",
+                        "10.184.216.34:48",
+                        "10.184.216.34:52"
+                    ]
+                },
+                {
+                    "name": "testZone2",
+                    "nameservers": [
+                        "10.231.210.103:53",
+                        "10.231.210.103:77"
+                    ]
+                }
+            ],
+            "randomizeQueryNameCase": false,
+            "routeDomain": "rd_56",
+            "useIpv6": false,
+            "useUdp": false
+        },
+        "rd_56": {
+            "class": "RouteDomain",
+            "id": 56
+        }
+    }
+}

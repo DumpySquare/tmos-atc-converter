@@ -1,0 +1,813 @@
+{
+  "conversionType": "next",
+  "title": "Simple HTTP Application Full Response Comparison",
+  "type": "testcase",
+  "expectedData": {
+    "as3Converted": {
+      "ltm pool /Common/Shared/web_pool": {
+        "members": {
+          "/Common/Shared/192.168.3.1:80": {
+            "address": "192.168.3.1",
+            "metadata": {
+              "source": {
+                "value": "declaration"
+              }
+            }
+          },
+          "/Common/Shared/192.168.2.1:80": {
+            "address": "192.168.2.1",
+            "metadata": {
+              "source": {
+                "value": "declaration"
+              }
+            }
+          }
+        },
+        "min-active-members": "1",
+        "monitor min 1 of": [
+          "/Common/http"
+        ]
+      },
+      "ltm virtual /Common/Shared/service": {
+        "creation-time": "2021-08-17:05:30:42",
+        "description": "Shared",
+        "destination": "/Common/Shared/10.0.1.10:80",
+        "ip-protocol": "tcp",
+        "last-modified-time": "2021-08-17:05:30:42",
+        "mask": "255.255.255.255",
+        "persist": {
+          "/Common/cookie": {
+            "default": "yes"
+          }
+        },
+        "pool": "/Common/Shared/web_pool",
+        "profiles": {
+          "/Common/f5-tcp-progressive": {},
+          "/Common/http": {}
+        },
+        "source": "0.0.0.0/0",
+        "source-address-translation": {
+          "type": "automap"
+        },
+        "translate-address": "enabled",
+        "translate-port": "enabled"
+      },
+      "ltm virtual-address /Common/Shared/10.0.1.10": {
+        "address": "10.0.1.10",
+        "arp": "enabled",
+        "inherited-traffic-group": "true",
+        "mask": "255.255.255.255",
+        "traffic-group": "/Common/traffic-group-1"
+      },
+      "ltm data-group internal /Common/____appsvcs_declaration-1629203444678": {
+        "description": "\"f5 AS3 declaration (see info in record 0)\"",
+        "records": {
+          "0": {
+            "data": "\"date^2021-08-17T12:30:44.678Z|id^urn:uuid:33045210-3ab8-4636-9b2a-c98d22ab915d|tenants^Common|blocks^1\""
+          },
+          "1": {
+            "data": "eNpVUUFugzAQ/AryGZBtSEK4Remhl0pRgnpoFUXGXgmrBiPbJIeIv3cBpUlvu7OzM7P2nUgjvCcl2b3tSUy8bKAVn+C8th2iWUpTirhW2AyuK4dBqzLLaL7ijCaZqIskX2frZFtzkchtoTgX9ZatFC4ZUYPBvZNoewMRQ8ihuvuZMD1j71V1iETfGy1FQMvopkMTHY9Rb61B/t627RTk/pezgk50AUenRjhQr6PdUwfnAdBBBMCBX6h4HrirlvC6dFqgy5QEGVftwiDMTikH3gMyvgnDN0hZyig5x2QOVpIb1Je5HONn/SJ7WPJjeB2sm2WaEPpJoYW2hhm6PwIdrAukLOiSENx/+y1/+MfPhpHzeB5HtB96hWd+WDWfCgZk0FdArrRdcNb4KZdwskG00i34gP+BVE45S2iRsE3FeJnRMs/T9Wb1RcbxF1SbqG0="
+          }
+        },
+        "type": "integer"
+      },
+      "ltm data-group internal /Common/__appsvcs_update": {
+        "type": "string"
+      },
+      "ltm data-group internal /Common/appsvcs/dataStore": {
+        "records": {
+          "as3_async_records0": {
+            "data": "eNqdU02PmzAQ/SuIc4hsQ0jgtkoPvVSKNqiHlmhl7Oli1djImOxhxX+vP8hudiv1UG4z897Mm+ch/fnapooO0KZ1m2IGHSIFyfYHKLICU8g6jrus+4VZgVG562jZpps2tWKAydJhdDRckoqgvMgdsXI1l7fzFPoxPYwSLASOgWmW1hde70AEoVgbtZogFt+RXh3THN6AbuxEn6PaaWbMhaG5FAqOelbWI3OX6PVkA0pqRmWMvHBQVMXCUQ+DVlHarBoRPKgKgpbNv6YqnbCeque41H+OwcWuXC4uxYFJaqgVHuJ3d+EUzXv4cgysifUw0O9gpghq03yLtijUBA+J2ah6ngWv8xwVO4JRltPukBVlXmZVR2jGqgMnhHYV3vHoF+1ABu6Z+jdK8PpGAzW/Y16E/NemOSV0HKVgQWXyImyfPD4mo9YycG4LflTfrA44wLmnBvhf6733XC1z86hdn3al+PXBXAWDz/RzTD95fQF3FcbOVD5w7s5ngnA97qKdU1u8xc4ub3cU7egv0D3FYNncRx+HnG47ugWF1WZt2ls7xn4DDB2Y26WuUk/a+Kc/oFU9mM+iKvKmanMXuje4LJdl8ZLmkTszvsUr9H0kMCuu8eqYVtZouf5L1LDeVZq7f7JNCSI4Q4cM7xtM6hzVRbEt97sfbmH/XdI/L+5HRw=="
+          }
+        },
+        "type": "string"
+      },
+      "ltm data-group internal /Common/appsvcs/settings": {
+        "records": {
+          "asyncTaskStorage0": {
+            "data": "eNpTSkksSdRNL8ovLVACABrSBDk="
+          },
+          "burstHandlingEnabled0": {
+            "data": "eNpLS8wpTgUABhYCDA=="
+          },
+          "serviceDiscoveryEnabled0": {
+            "data": "eNorKSpNBQAEeQHB"
+          }
+        },
+        "type": "string"
+      },
+      "ltm data-group internal /Common/atgTeem/datastore": {
+        "type": "string"
+      }
+    },
+    "as3NextNotConverted": {
+      "ltm data-group internal /Common/atgTeem/datastore": {
+        "type": "string"
+      }
+    },
+    "as3NotConverted": {},
+    "as3NotRecognized": {
+      "apm oauth db-instance /Common/oauthdb": {
+        "description": "\"Default OAuth DB.\""
+      },
+      "apm report default-report": {
+        "report-name": "sessionReports/sessionSummary",
+        "user": "/Common/admin"
+      },
+      "ilx global-settings": {
+        "debug-port-blacklist": [
+          "47019",
+          "54321",
+          "60000"
+        ]
+      },
+      "ltm default-node-monitor": {
+        "rule": "none"
+      },
+      "ltm node /Common/Shared/192.168.3.1": {
+        "address": "192.168.3.1"
+      },
+      "ltm node /Common/Shared/192.168.2.1": {
+        "address": "192.168.2.1"
+      },
+      "ltm classification auto-update settings": {
+        "auto-update-interval": "weekly",
+        "enabled": "no"
+      },
+      "net ipsec ike-daemon /Common/ikedaemon": {},
+      "pem global-settings analytics": {},
+      "pem global-settings gx": {},
+      "pem global-settings policy": {},
+      "security dos ipv6-ext-hdr /Common/dos-ipv6-ext-hdr": {
+        "frame-types": [
+          "auth",
+          "dstopt",
+          "esp",
+          "frag",
+          "hbh",
+          "mobility",
+          "route"
+        ]
+      },
+      "security dos udp-portlist /Common/dos-udp-portlist": {
+        "list-type": "exclude-listed-ports"
+      },
+      "security firewall config-change-log": {
+        "log-publisher": "/Common/local-db-publisher"
+      },
+      "security scrubber profile /Common/scrubber-profile-default": {
+        "advertisement-ttl": "300"
+      },
+      "sys compatibility-level": {
+        "level": "0"
+      },
+      "sys management-ovsdb": {
+        "bfd-disabled": "",
+        "bfd-route-domain": "none",
+        "ca-cert-file": "none",
+        "cert-file": "none",
+        "cert-key-file": "none",
+        "disabled": "",
+        "flooding-type": "replicator",
+        "log-level": "info",
+        "logical-routing-type": "none",
+        "tunnel-maintenance-mode": "active"
+      },
+      "sys diags ihealth": {
+        "expiration": "30",
+        "options": "none",
+        "password": "none",
+        "user": "none"
+      },
+      "sys ecm cloud-provider /Common/aws-ec2": {
+        "description": "\"The aws-ec2 parameters\"",
+        "property-template": {
+          "account": {},
+          "availability-zone": {
+            "valid-values": [
+              "a",
+              "b",
+              "c",
+              "d"
+            ]
+          },
+          "instance-type": {
+            "valid-values": [
+              "t2.micro",
+              "t2.small",
+              "t2.medium",
+              "m3.medium",
+              "m3.large",
+              "m3.xlarge",
+              "m3.2xlarge",
+              "c3.large",
+              "c3.xlarge",
+              "c3.2xlarge",
+              "c3.4xlarge",
+              "c3.8xlarge",
+              "r3.large",
+              "r3.xlarge",
+              "r3.2xlarge",
+              "r3.4xlarge",
+              "r3.8xlarge"
+            ]
+          },
+          "region": {
+            "valid-values": [
+              "us-east-1",
+              "us-west-1",
+              "us-west-2",
+              "sa-east-1",
+              "eu-west-1",
+              "eu-central-1",
+              "ap-southeast-2",
+              "ap-southeast-1",
+              "ap-northeast-1"
+            ]
+          }
+        }
+      },
+      "sys ecm cloud-provider /Common/dnet": {
+        "description": "\"The dnet parameters\""
+      },
+      "sys ecm cloud-provider /Common/vsphere": {
+        "description": "\"The vsphere parameters\"",
+        "property-template": {
+          "cloud-host-ip": {},
+          "dhcp-network-name": {},
+          "end-point-url": {},
+          "node-name": {}
+        }
+      },
+      "sys software update": {
+        "auto-check": "enabled",
+        "auto-phonehome": "enabled",
+        "frequency": "weekly"
+      },
+      "wom endpoint-discovery": {}
+    },
+    "as3Recognized": {
+      "ltm node /Common/Shared/192.168.3.1": {
+        "address": "192.168.3.1"
+      },
+      "ltm node /Common/Shared/192.168.2.1": {
+        "address": "192.168.2.1"
+      },
+      "ltm pool /Common/Shared/web_pool": {
+        "members": {
+          "/Common/Shared/192.168.3.1:80": {
+            "address": "192.168.3.1",
+            "metadata": {
+              "source": {
+                "value": "declaration"
+              }
+            }
+          },
+          "/Common/Shared/192.168.2.1:80": {
+            "address": "192.168.2.1",
+            "metadata": {
+              "source": {
+                "value": "declaration"
+              }
+            }
+          }
+        },
+        "min-active-members": "1",
+        "monitor min 1 of": [
+          "/Common/http"
+        ]
+      },
+      "ltm virtual /Common/Shared/service": {
+        "creation-time": "2021-08-17:05:30:42",
+        "description": "Shared",
+        "destination": "/Common/Shared/10.0.1.10:80",
+        "ip-protocol": "tcp",
+        "last-modified-time": "2021-08-17:05:30:42",
+        "mask": "255.255.255.255",
+        "persist": {
+          "/Common/cookie": {
+            "default": "yes"
+          }
+        },
+        "pool": "/Common/Shared/web_pool",
+        "profiles": {
+          "/Common/f5-tcp-progressive": {},
+          "/Common/http": {}
+        },
+        "source": "0.0.0.0/0",
+        "source-address-translation": {
+          "type": "automap"
+        },
+        "translate-address": "enabled",
+        "translate-port": "enabled"
+      },
+      "ltm virtual-address /Common/Shared/10.0.1.10": {
+        "address": "10.0.1.10",
+        "arp": "enabled",
+        "inherited-traffic-group": "true",
+        "mask": "255.255.255.255",
+        "traffic-group": "/Common/traffic-group-1"
+      },
+      "ltm data-group internal /Common/____appsvcs_declaration-1629203444678": {
+        "description": "\"f5 AS3 declaration (see info in record 0)\"",
+        "records": {
+          "0": {
+            "data": "\"date^2021-08-17T12:30:44.678Z|id^urn:uuid:33045210-3ab8-4636-9b2a-c98d22ab915d|tenants^Common|blocks^1\""
+          },
+          "1": {
+            "data": "eNpVUUFugzAQ/AryGZBtSEK4Remhl0pRgnpoFUXGXgmrBiPbJIeIv3cBpUlvu7OzM7P2nUgjvCcl2b3tSUy8bKAVn+C8th2iWUpTirhW2AyuK4dBqzLLaL7ijCaZqIskX2frZFtzkchtoTgX9ZatFC4ZUYPBvZNoewMRQ8ihuvuZMD1j71V1iETfGy1FQMvopkMTHY9Rb61B/t627RTk/pezgk50AUenRjhQr6PdUwfnAdBBBMCBX6h4HrirlvC6dFqgy5QEGVftwiDMTikH3gMyvgnDN0hZyig5x2QOVpIb1Je5HONn/SJ7WPJjeB2sm2WaEPpJoYW2hhm6PwIdrAukLOiSENx/+y1/+MfPhpHzeB5HtB96hWd+WDWfCgZk0FdArrRdcNb4KZdwskG00i34gP+BVE45S2iRsE3FeJnRMs/T9Wb1RcbxF1SbqG0="
+          }
+        },
+        "type": "integer"
+      },
+      "ltm data-group internal /Common/__appsvcs_update": {
+        "type": "string"
+      },
+      "ltm data-group internal /Common/appsvcs/dataStore": {
+        "records": {
+          "as3_async_records0": {
+            "data": "eNqdU02PmzAQ/SuIc4hsQ0jgtkoPvVSKNqiHlmhl7Oli1djImOxhxX+vP8hudiv1UG4z897Mm+ch/fnapooO0KZ1m2IGHSIFyfYHKLICU8g6jrus+4VZgVG562jZpps2tWKAydJhdDRckoqgvMgdsXI1l7fzFPoxPYwSLASOgWmW1hde70AEoVgbtZogFt+RXh3THN6AbuxEn6PaaWbMhaG5FAqOelbWI3OX6PVkA0pqRmWMvHBQVMXCUQ+DVlHarBoRPKgKgpbNv6YqnbCeque41H+OwcWuXC4uxYFJaqgVHuJ3d+EUzXv4cgysifUw0O9gpghq03yLtijUBA+J2ah6ngWv8xwVO4JRltPukBVlXmZVR2jGqgMnhHYV3vHoF+1ABu6Z+jdK8PpGAzW/Y16E/NemOSV0HKVgQWXyImyfPD4mo9YycG4LflTfrA44wLmnBvhf6733XC1z86hdn3al+PXBXAWDz/RzTD95fQF3FcbOVD5w7s5ngnA97qKdU1u8xc4ub3cU7egv0D3FYNncRx+HnG47ugWF1WZt2ls7xn4DDB2Y26WuUk/a+Kc/oFU9mM+iKvKmanMXuje4LJdl8ZLmkTszvsUr9H0kMCuu8eqYVtZouf5L1LDeVZq7f7JNCSI4Q4cM7xtM6hzVRbEt97sfbmH/XdI/L+5HRw=="
+          }
+        },
+        "type": "string"
+      },
+      "ltm data-group internal /Common/appsvcs/settings": {
+        "records": {
+          "asyncTaskStorage0": {
+            "data": "eNpTSkksSdRNL8ovLVACABrSBDk="
+          },
+          "burstHandlingEnabled0": {
+            "data": "eNpLS8wpTgUABhYCDA=="
+          },
+          "serviceDiscoveryEnabled0": {
+            "data": "eNorKSpNBQAEeQHB"
+          }
+        },
+        "type": "string"
+      },
+      "ltm data-group internal /Common/atgTeem/datastore": {
+        "type": "string"
+      }
+    },
+    "config": {
+      "as3NotRecognized": false,
+      "container": false,
+      "controls": false,
+      "declarativeOnboarding": false,
+      "disableAnalytics": true,
+      "jsonLogs": true,
+      "next": true,
+      "nextNotConverted": false,
+      "safeMode": false,
+      "server": true,
+      "showExtended": false
+    },
+    "jsonLogs": [
+      {
+        "reason": "'monitor min 1 of' of 'ltm pool' is not an AS3 Core recognized property",
+        "tmshHeader": "ltm pool /Common/Shared/web_pool",
+        "tmshPath": {
+          "monitor min 1 of": null
+        },
+        "fix_text": "Contact F5 Support",
+        "action": "SKIP-TMSH-PROPERTY"
+      },
+      {
+        "tmshHeader": "ltm pool /Common/Shared/web_pool",
+        "property": "minimumMembersActive",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "min-active-members": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm virtual /Common/Shared/service",
+        "property": "remark",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "description": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm virtual /Common/Shared/service",
+        "property": "layer4",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "ip-protocol": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm virtual /Common/Shared/service",
+        "property": "persistenceMethods",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "persist": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm virtual /Common/Shared/service",
+        "property": "translateServerAddress",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "translate-address": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm virtual /Common/Shared/service",
+        "property": "translateServerPort",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "translate-port": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "path": "/Common/Shared/service/vlansDisabled",
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "This property is not supported",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/service/bwcPolicy",
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "This property is not supported",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/service/policy",
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "This property is not supported",
+        "action": "REMOVE"
+      },
+      {
+        "reason": "'inherited-traffic-group' of 'ltm virtual-address' is not an AS3 Core recognized property",
+        "tmshHeader": "ltm virtual-address /Common/Shared/10.0.1.10",
+        "tmshPath": {
+          "inherited-traffic-group": null
+        },
+        "fix_text": "Contact F5 Support",
+        "action": "SKIP-TMSH-PROPERTY"
+      },
+      {
+        "tmshHeader": "ltm virtual-address /Common/Shared/10.0.1.10",
+        "property": "virtualAddress",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "address": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm virtual-address /Common/Shared/10.0.1.10",
+        "property": "arpEnabled",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "arp": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm virtual-address /Common/Shared/10.0.1.10",
+        "property": "netmask",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "mask": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm virtual-address /Common/Shared/10.0.1.10",
+        "property": "trafficGroup",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "traffic-group": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "path": "/Common/Shared/10.0.1.10/arpEnabled",
+        "tmshHeader": "ltm virtual-address /Common/Shared/10.0.1.10",
+        "tmshPath": {
+          "arp": null
+        },
+        "reason": "arpEnabled property of virtual-address is not supported in Next",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "arpEnabled property of virtual-address is not supported in Next",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/10.0.1.10/trafficGroup",
+        "tmshHeader": "ltm virtual-address /Common/Shared/10.0.1.10",
+        "tmshPath": {
+          "traffic-group": null
+        },
+        "reason": "trafficGroup property of virtual-address is not supported in Next",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "trafficGroup property of virtual-address is not supported in Next",
+        "action": "REMOVE"
+      },
+      {
+        "tmshHeader": "ltm data-group internal /Common/____appsvcs_declaration-1629203444678",
+        "property": "remark",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "description": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm data-group internal /Common/____appsvcs_declaration-1629203444678",
+        "property": "keyDataType",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "type": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm data-group internal /Common/__appsvcs_update",
+        "property": "keyDataType",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "type": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm data-group internal /Common/appsvcs/dataStore",
+        "property": "keyDataType",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "type": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm data-group internal /Common/appsvcs/settings",
+        "property": "keyDataType",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "type": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm data-group internal /Common/atgTeem/datastore",
+        "property": "keyDataType",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "type": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm data-group internal /Common/____appsvcs_declaration-1629203444678",
+        "property": "remark",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "description": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm data-group internal /Common/____appsvcs_declaration-1629203444678",
+        "property": "keyDataType",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "type": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm data-group internal /Common/____appsvcs_declaration-1629203444678",
+        "property": "remark",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "description": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "tmshHeader": "ltm data-group internal /Common/____appsvcs_declaration-1629203444678",
+        "property": "keyDataType",
+        "reason": "reverse translation of an AS3 Core property to comply with the schema",
+        "tmshPath": {
+          "type": null
+        },
+        "action": "RENAME"
+      },
+      {
+        "path": "/Common/Shared/web_pool/monitors/0/bigip",
+        "tmshHeader": "ltm pool /Common/Shared/web_pool",
+        "tmshPath": {
+          "monitor min 1 of": null
+        },
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "Deleted path from declaration: /Common/Shared/web_pool/monitors/0/bigip (reason - JSON Next Schema validator)",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/web_pool/monitors/0",
+        "tmshHeader": "ltm pool /Common/Shared/web_pool",
+        "tmshPath": {
+          "monitor min 1 of": null
+        },
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "Deleted path from declaration: /Common/Shared/web_pool/monitors/0 (reason - JSON Next Schema validator)",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/web_pool/monitors",
+        "tmshHeader": "ltm pool /Common/Shared/web_pool",
+        "tmshPath": {
+          "monitor min 1 of": null
+        },
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "Deleted path from declaration: /Common/Shared/web_pool/monitors (reason - JSON Next Schema validator)",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/service/profileTCP/bigip",
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "Deleted path from declaration: /Common/Shared/service/profileTCP/bigip (reason - JSON Next Schema validator)",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/service/profileTCP",
+        "tmshHeader": "ltm virtual /Common/Shared/service",
+        "tmshPath": {
+          "profiles": {
+            "/Common/f5-tcp-progressive": null
+          }
+        },
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "Deleted path from declaration: /Common/Shared/service/profileTCP (reason - JSON Next Schema validator)",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/service/profileHTTP/bigip",
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "Deleted path from declaration: /Common/Shared/service/profileHTTP/bigip (reason - JSON Next Schema validator)",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/service/profileHTTP",
+        "tmshHeader": "ltm virtual /Common/Shared/service",
+        "tmshPath": {
+          "profiles": {
+            "/Common/http": null
+          }
+        },
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "Deleted path from declaration: /Common/Shared/service/profileHTTP (reason - JSON Next Schema validator)",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/web_pool/minimumMonitors",
+        "tmshHeader": "ltm pool /Common/Shared/web_pool",
+        "tmshPath": {
+          "monitor min 1 of": null
+        },
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "Deleted path from declaration: /Common/Shared/web_pool/minimumMonitors (reason - JSON Next Schema validator)",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/service/translateServerPort",
+        "tmshHeader": "ltm virtual /Common/Shared/service",
+        "tmshPath": {
+          "translate-port": null
+        },
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "Deleted path from declaration: /Common/Shared/service/translateServerPort (reason - JSON Next Schema validator)",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/service/persistenceMethods",
+        "tmshHeader": "ltm virtual /Common/Shared/service",
+        "tmshPath": {
+          "persist": null
+        },
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "Deleted default schema value cookie for: Service_HTTP.persistenceMethods",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/service/translateServerAddress",
+        "tmshHeader": "ltm virtual /Common/Shared/service",
+        "tmshPath": {
+          "translate-address": null
+        },
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "Deleted default schema value true for: Service_HTTP.translateServerAddress",
+        "action": "REMOVE"
+      },
+      {
+        "path": "/Common/Shared/service/virtualPort",
+        "tmshHeader": "ltm virtual /Common/Shared/service",
+        "tmshPath": {
+          "virtualPort": null
+        },
+        "reason": "This property is not supported",
+        "fix_text": "Contact F5 Support",
+        "internal_reason": "Deleted default schema value 80 for: Service_HTTP.virtualPort",
+        "action": "REMOVE"
+      }
+    ],
+    "keyNextConverted": [
+      "ltm pool /Common/Shared/web_pool",
+      "ltm virtual /Common/Shared/service",
+      "ltm virtual-address /Common/Shared/10.0.1.10",
+      "ltm data-group internal /Common/____appsvcs_declaration-1629203444678",
+      "ltm data-group internal /Common/__appsvcs_update",
+      "ltm data-group internal /Common/appsvcs/dataStore",
+      "ltm data-group internal /Common/appsvcs/settings"
+    ],
+    "logs": [],
+    "output": {
+      "class": "ADC",
+      "schemaVersion": "3.0.0",
+      "id": "urn:uuid:8155efa9-1453-4aa8-b29b-f48d10a12bd2",
+      "label": "F5 BIG-IP Next Converted Declaration",
+      "remark": "Generated by Automation Config Converter",
+      "Common": {
+        "class": "Tenant",
+        "Shared": {
+          "class": "Application",
+          "template": "shared",
+          "web_pool": {
+            "members": [
+              {
+                "addressDiscovery": "static",
+                "servicePort": 80,
+                "serverAddresses": [
+                  "192.168.3.1",
+                  "192.168.2.1"
+                ],
+                "shareNodes": true
+              }
+            ],
+            "minimumMembersActive": 1,
+            "class": "Pool"
+          },
+          "service": {
+            "remark": "Shared",
+            "pool": "web_pool",
+            "class": "Service_HTTP",
+            "virtualAddresses": [
+              "10.0.1.10"
+            ],
+            "snat": "auto"
+          },
+          "dataStore": {
+            "keyDataType": "string",
+            "records": [
+              {
+                "key": "as3_async_records0",
+                "value": "eNqdU02PmzAQ/SuIc4hsQ0jgtkoPvVSKNqiHlmhl7Oli1djImOxhxX+vP8hudiv1UG4z897Mm+ch/fnapooO0KZ1m2IGHSIFyfYHKLICU8g6jrus+4VZgVG562jZpps2tWKAydJhdDRckoqgvMgdsXI1l7fzFPoxPYwSLASOgWmW1hde70AEoVgbtZogFt+RXh3THN6AbuxEn6PaaWbMhaG5FAqOelbWI3OX6PVkA0pqRmWMvHBQVMXCUQ+DVlHarBoRPKgKgpbNv6YqnbCeque41H+OwcWuXC4uxYFJaqgVHuJ3d+EUzXv4cgysifUw0O9gpghq03yLtijUBA+J2ah6ngWv8xwVO4JRltPukBVlXmZVR2jGqgMnhHYV3vHoF+1ABu6Z+jdK8PpGAzW/Y16E/NemOSV0HKVgQWXyImyfPD4mo9YycG4LflTfrA44wLmnBvhf6733XC1z86hdn3al+PXBXAWDz/RzTD95fQF3FcbOVD5w7s5ngnA97qKdU1u8xc4ub3cU7egv0D3FYNncRx+HnG47ugWF1WZt2ls7xn4DDB2Y26WuUk/a+Kc/oFU9mM+iKvKmanMXuje4LJdl8ZLmkTszvsUr9H0kMCuu8eqYVtZouf5L1LDeVZq7f7JNCSI4Q4cM7xtM6hzVRbEt97sfbmH/XdI/L+5HRw=="
+              }
+            ],
+            "class": "Data_Group"
+          },
+          "settings": {
+            "keyDataType": "string",
+            "records": [
+              {
+                "key": "asyncTaskStorage0",
+                "value": "eNpTSkksSdRNL8ovLVACABrSBDk="
+              },
+              {
+                "key": "burstHandlingEnabled0",
+                "value": "eNpLS8wpTgUABhYCDA=="
+              },
+              {
+                "key": "serviceDiscoveryEnabled0",
+                "value": "eNorKSpNBQAEeQHB"
+              }
+            ],
+            "class": "Data_Group"
+          }
+        }
+      }
+    }
+  }  
+}

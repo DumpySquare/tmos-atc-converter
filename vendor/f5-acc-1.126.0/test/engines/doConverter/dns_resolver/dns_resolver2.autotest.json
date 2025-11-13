@@ -1,0 +1,26 @@
+{
+    "schemaVersion": "1.0.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "custom": {
+            "class": "DNS_Resolver",
+            "routeDomain": "0",
+            "forwardZones": [
+                {
+                    "name": "example.test",
+                    "nameservers": [
+                        "10.8.8.8:53"
+                    ]
+                },
+                {
+                    "name": "idservice.test",
+                    "nameservers": [
+                        "10.8.8.8:53"
+                    ]
+                }
+            ]
+        }
+    }
+}

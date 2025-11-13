@@ -1,0 +1,172 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "prototype.schema.json",
+    "title": "ACC Processing Log Messages",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "action": {
+                "description": "Type of action performed on the data",
+                "type": "string",
+                "minLength": 1
+            },
+            "path": {
+                "description": "Path to the data",
+                "type": "string",
+                "minLength": 1
+            },
+            "reason": {
+                "description": "Descriptive reason for the action performed on the data",
+                "type": "string",
+                "minLength": 1
+            }
+        },
+        "unevaluatedProperties": false,
+        "allOf": [
+            { "$ref": "#/$defs/messages" }
+        ]
+    },
+    "$defs": {
+        "messages": {
+            "oneOf": [
+                {
+                    "description": "A new object was created. The 'path' property consists of the object's location and name.",
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "const": "ADD_OBJECT"
+                        },
+                        "class": {
+                            "description": "Class of the added object",
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    }
+                },
+                {
+                    "description": "TMSH property was skipped (not an AS3 Core recognized property)",
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "const": "SKIP-TMSH-PROPERTY"
+                        },
+                        "tmshHeader": {
+                            "description": "tmsh object type and name",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "tmshPath": {
+                            "description": "tmsh property name",
+                            "type": "object"
+                        },
+                        "fix_text": {
+                            "description": "fix text",
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    },
+                    "required": ["tmshHeader", "tmshPath"]
+                },
+                {
+                    "description": "Property was removed from the parent object",
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "const": "REMOVE"
+                        },
+                        "fix_text": {
+                            "description": "fix text",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "internal_reason": {
+                            "description": "internal reason",
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    }
+                },
+                {
+                    "description": "Property was renamed. New name was written to the 'path' property",
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "const": "RENAME AS3"
+                        },
+                        "origin": {
+                            "description": "Original name",
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    },
+                    "required": ["origin"]
+                },
+                {
+                    "description": "Property was renamed. New name was written to the 'path' property",
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "const": "RENAME"
+                        },
+                        "property": {
+                            "description": "property name",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "tmshHeader": {
+                            "description": "tmsh header",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "tmshPath": {
+                            "description": "path of tmsh object",
+                            "type": "object"
+                        }
+                    },
+                    "required": ["property"]
+                },
+                {
+                    "description": "New value was assigned to the property",
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "const": "VALUE"
+                        },
+                        "origin": {
+                            "description": "Original value",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "new": {
+                            "description": "New value",
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    },
+                    "required": ["origin", "new"]
+                },
+                {
+                    "description": "Some data in the property was substituted with the new one",
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "const": "VALUE_SUBSTRING"
+                        },
+                        "origin": {
+                            "description": "Original value that was substituted",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "new": {
+                            "description": "New value that was used as substitution",
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    },
+                    "required": ["origin", "new"]
+                }
+            ]
+        }
+    }
+}

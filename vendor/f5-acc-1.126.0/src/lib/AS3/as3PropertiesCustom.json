@@ -1,0 +1,126 @@
+{
+  "gtm monitor external": [
+    { "accMergeMode": "inherit",      "inheritFrom": "gtm monitor" }
+  ],
+  "gtm monitor gateway-icmp": [
+    { "accMergeMode": "inherit",      "inheritFrom": "gtm monitor" }
+  ],
+  "gtm monitor http": [
+    { "accMergeMode": "inherit",      "inheritFrom": "gtm monitor" }
+  ],
+  "gtm monitor https": [
+    { "accMergeMode": "inherit",      "inheritFrom": "gtm monitor" }
+  ],
+  "gtm monitor tcp": [
+    { "accMergeMode": "inherit",      "inheritFrom": "gtm monitor" }
+  ],
+  "gtm monitor udp": [
+    { "accMergeMode": "inherit",      "inheritFrom": "gtm monitor" }
+  ],
+  "gtm pool a": [
+    { "accMergeMode": "inherit",      "inheritFrom": "gtm pool" }
+  ],
+  "gtm pool aaaa": [
+    { "accMergeMode": "inherit",      "inheritFrom": "gtm pool" }
+  ],
+  "gtm pool cname": [
+    { "accMergeMode": "inherit",      "inheritFrom": "gtm pool" }
+  ],
+  "gtm pool mx": [
+    { "accMergeMode": "inherit",      "inheritFrom": "gtm pool" }
+  ],
+  "ltm monitor dns": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor external": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor ftp": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor http": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor http2": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor https": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor gateway-icmp": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor icmp": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor ldap": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor mysql": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor postgresql": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor radius": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor sip": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor smtp": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor tcp": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor tcp-half-open": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm monitor udp": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm monitor" }
+  ],
+  "ltm persistence cookie": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm persistence" }
+  ],
+  "ltm persistence dest-addr": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm persistence" }
+  ],
+  "ltm persistence hash": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm persistence" }
+  ],
+  "ltm persistence msrdp": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm persistence" }
+  ],
+  "ltm persistence sip": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm persistence" }
+  ],
+  "ltm persistence source-addr": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm persistence" }
+  ],
+  "ltm persistence ssl": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm persistence" }
+  ],
+  "ltm persistence universal": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm persistence" }
+  ],
+  "ltm profile ocsp-stapling-params": [
+    { "id": "dns-resolver" },
+    { "id": "responder-url" },
+    { "id": "timeout" }
+  ],
+  "ltm profile sip": [
+    { "accMergeMode": "inherit",      "inheritFrom": "ltm profile" }
+  ],
+  "ltm profile websocket": [
+    { "id": "masking",          "altId": "webSocketMasking",  "quotedString": true, "accMergeMode": "extend" }
+  ],
+  "pem forwarding-endpoint persistence hash-settings": [
+    { "id": "tcl-value",        "altId": "tclScript",  "quotedString": true, "accMergeMode": "extend" }
+  ],
+  "sys application service": [
+    { "id": "variables",      "extend": "objArray",     "default": null },
+    { "id": "description",    "altId": "remark",        "quotedString": true },
+    { "id": "template" }
+  ]
+}

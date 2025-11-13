@@ -1,0 +1,26 @@
+# npm use this file as well instead of .npmignore
+
+*.ucs
+**/*.crt
+.f5-acc
+.DS_Store
+.husky
+.misc
+.nyc_output
+.idea
+.vscode
+api-bundle.js
+bundle.js
+coverage
+dependencies
+dist
+docs/_build
+docs/_static/apidocs.html
+node_modules
+presentation
+output.json
+rpmbuild
+test_certs
+venv
+in.conf
+out.json

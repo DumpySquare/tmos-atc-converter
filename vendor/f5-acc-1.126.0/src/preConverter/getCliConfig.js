@@ -1,0 +1,93 @@
+/**
+ * Copyright 2024 F5, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* eslint-disable no-console */
+
+'use strict';
+
+const { program } = require('commander');
+const constants = require('../constants');
+
+module.exports = (isServer) => {
+    program
+        .version([
+            `ACC version:\t\t\t${constants.PACKAGE.VERSION.ACC}`,
+            `AS3 core schema version:\t${constants.PACKAGE.VERSION.AS3_SCHEMA}`,
+            `Shared schema version:\t\t${constants.PACKAGE.VERSION.SHARED_SCHEMA}`,
+            `Shared schema package version:\t${constants.PACKAGE.VERSION.SHARED_SCHEMA_PACKAGE}`
+        ].join('\n'))
+        .usage('[options] <file ...>')
+        .option('-a, --application-target <application_target>', 'Put virtual server to specific application. Works only if --vs-name specified. Original VS application used if option not specified.')
+        .option('-c, --conf <path>', 'Specify path to input conf/SCF file or AS3 core declaration.')
+        .option('-d, --debug', 'Log generated declaration to console.')
+        .option('-e, --extended', 'Show default values in converted stanzas.')
+        .option('-o, --output <path>', 'Specify output file for the converted declaration.')
+        .option('-t, --tenant-target <tenant_target>', 'Put virtual server to specific tenant. Works only if --vs-name specified. Original VS tenant used if option not specified.')
+        .option('-u, --ucs <path>', 'Specify path to input UCS file.')
+        .option('-v, --vs-name <tenant/application/vs_name>', 'Filter output by the virtual server name.')
+        .option('--as3-converted', 'Log ACC/AS3-converted tmsh objects to console.')
+        .option('--as3-not-converted', 'Log tmsh that were not directly converted (usually due some error).')
+        .option('--as3-recognized', 'Log list of AS3-recognized BIG-IP object types to console.')
+        .option('--as3-not-recognized', 'Log tmsh that were not recognized.')
+        .option('--controls', 'Add debugging "Controls" stanza to declaration.')
+        .option('--declarative-onboarding', 'Enable DO conversion instead of AS3.')
+        .option('--disable-analytics', 'Disable analytics and reporting.')
+        .option('--json-logs', 'Log changed/removed properties in json.')
+        .option('--log <file>', 'Output log to the specified file.')
+        .option('--next', 'Enable conversion for AS3 Next.')
+        .option('--next-not-converted', 'Enable conversion for AS3 Next and provide list of not supported.')
+        .option('--safe-mode <bool>', 'Enable to skip post-conversion processing.')
+        .option('--summary', 'Display summary of generated declaration.');
+
+    program.parse(process.argv);
+    const options = program.opts();
+    const config = {
+        applicationTarget: options.applicationTarget,
+        as3Converted: options.as3Converted,
+        as3NotConverted: options.as3NotConverted,
+        as3Recognized: options.as3Recognized,
+        as3NotRecognized: options.as3NotRecognized,
+        conf: options.conf,
+        container: process.env.DOCKER_CONTAINER === 'true',
+        controls: options.controls,
+        debug: options.debug,
+        declarativeOnboarding: options.declarativeOnboarding,
+        disableAnalytics: options.disableAnalytics,
+        jsonLogs: options.jsonLogs,
+        logFile: options.log,
+        next: options.next,
+        nextNotConverted: options.nextNotConverted,
+        output: options.output || 'output.json',
+        safeMode: options.safeMode === 'true',
+        showExtended: options.extended,
+        summary: options.summary,
+        tenantTarget: options.tenantTarget,
+        ucs: options.ucs,
+        vsName: options.vsName
+    };
+
+    if (config.debug) {
+        process.env.LOG_LEVEL = 'debug';
+    } else {
+        process.env.LOG_LEVEL = 'info';
+    }
+    // eslint-disable-next-line no-bitwise
+    if (!isServer && !(!!config.ucs ^ !!config.conf)) {
+        console.error('Invalid option, please select one input type: UCS or conf/SCF/AS3 Core declaration.');
+        process.exit(1);
+    }
+    return config;
+};
