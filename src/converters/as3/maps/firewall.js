@@ -1,0 +1,281 @@
+/**
+ * Copyright 2024 F5, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+'use strict';
+
+const uuid = require('uuid').v4;
+const handleObjectRef = require('../../../util/convert/handleObjectRef');
+const hyphensToCamel = require('../../../util/convert/hyphensToCamel');
+const unquote = require('../../../util/convert/unquote');
+const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+
+module.exports = {
+
+    // Firewall_Address_List
+    'security firewall address-list': {
+        class: 'Firewall_Address_List',
+
+        keyValueRemaps: {
+            addressLists: (key, val) => ({ addressLists: Object.keys(val).map((x) => handleObjectRef(x)) }),
+
+            addresses: (key, val) => ({ addresses: Object.keys(val) }),
+
+            fqdns: (key, val) => ({ fqdns: Object.keys(val) }),
+
+            geo: (key, val) => ({ geo: Object.keys(val) })
+        }
+    },
+
+    // Firewall_Policy
+    'security firewall policy': {
+        class: 'Firewall_Policy',
+
+        customHandling: (rootObj, loc) => {
+            const newObj = {};
+            const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
+            const rulesProperty = 'rules';
+            const irules = 'iRule';
+            const iruleOld = 'irule';
+            const irulesRate = 'iRuleSampleRate';
+            if (rootObj.rules) {
+                GlobalObject.addProperty(globalPath, rulesProperty, loc.original, { [rulesProperty]: null });
+                const rules = Object.keys(rootObj.rules).map((rule, index) => {
+                    const rulesPath = `${globalPath}/${rulesProperty}/${index}`;
+                    let ruleObj = rootObj.rules[rule];
+                    if (ruleObj['rule-list']) {
+                        ruleObj = handleObjectRef(ruleObj['rule-list']);
+                        GlobalObject.addProperty(rulesPath, 'use', loc.original, { [rulesProperty]: { [rule]: { 'rule-list': null } } });
+                    } else {
+                        ruleObj.name = rule;
+                        if (ruleObj['ip-protocol']) {
+                            ruleObj.protocol = ruleObj['ip-protocol'];
+                            GlobalObject.addProperty(rulesPath, 'protocol', loc.original, { [rulesProperty]: { [rule]: { 'ip-protocol': null } } });
+                            delete ruleObj['ip-protocol'];
+                        } else {
+                            ruleObj.protocol = 'any';
+                            GlobalObject.addProperty(rulesPath, 'protocol', loc.original, { [rulesProperty]: { [rule]: { 'ip-protocol': null } } });
+                        }
+                        if (ruleObj.irule) {
+                            ruleObj.iRule = handleObjectRef(ruleObj.irule);
+                            GlobalObject.addProperty(
+                                rulesPath,
+                                irules,
+                                loc.original,
+                                { [rulesProperty]: { [rule]: { [iruleOld]: null } } }
+                            );
+                            delete ruleObj.irule;
+                        }
+                        if (ruleObj['irule-sample-rate']) {
+                            ruleObj.iRuleSampleRate = parseInt(ruleObj['irule-sample-rate'], 10);
+                            GlobalObject.addProperty(
+                                rulesPath,
+                                irulesRate,
+                                loc.original,
+                                { [rulesProperty]: { [rule]: { [iruleOld]: null } } }
+                            );
+                            delete ruleObj['irule-sample-rate'];
+                        }
+                        ['source', 'destination'].forEach((prop) => {
+                            GlobalObject.addProperty(
+                                rulesPath,
+                                prop,
+                                loc.original,
+                                { [rulesProperty]: { [rule]: { [prop]: null } } }
+                            );
+                            ['address-lists', 'port-lists'].forEach((list) => {
+                                if (ruleObj[prop]) {
+                                    if (ruleObj[prop][list]) {
+                                        ruleObj[prop][hyphensToCamel(list)] = Object.keys(ruleObj[prop][list])
+                                            .map((x) => handleObjectRef(x));
+                                        GlobalObject.addProperty(`${rulesPath}/${prop}`, hyphensToCamel(list), loc.original, { [rulesProperty]: { [rule]: { [prop]: { [list]: null } } } });
+                                        delete ruleObj[prop][list];
+                                    }
+                                }
+                            });
+                        });
+                    }
+                    return ruleObj;
+                });
+
+                rootObj.rules = rules;
+            }
+
+            newObj[loc.profile] = rootObj;
+            return newObj;
+        }
+    },
+
+    // Firewall_Port_List
+    'security firewall port-list': {
+        class: 'Firewall_Port_List',
+
+        keyValueRemaps: {
+            portLists: (key, val) => ({ portLists: Object.keys(val).map((x) => handleObjectRef(x)) }),
+
+            ports: (key, val) => ({
+                ports: Object.keys(val).map(
+                    (x) => (parseInt(x, 10) && !x.includes('-') ? parseInt(x, 10) : unquote(x))
+                )
+            })
+        }
+    },
+
+    // Firewall_Rule_List
+    'security firewall rule-list': {
+        class: 'Firewall_Rule_List',
+
+        customHandling: (rootObj, loc) => {
+            const newObj = {};
+            const rules = [];
+            const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
+            const rulePropName = 'rules';
+            if (rootObj.rules) {
+                // eslint-disable-next-line quote-props
+                GlobalObject.addProperty(globalPath, 'rules', loc.original, { 'rules': null });
+                Object.keys(rootObj.rules).forEach((rule, index) => {
+                    const ruleObj = rootObj.rules[rule];
+                    const rulePath = `${globalPath}/rules/${index}`;
+                    const addresList = 'addressLists';
+                    const portList = 'portLists';
+                    const vlan = 'vlans';
+                    const logProperty = 'log';
+                    const iruleProperty = 'iRule';
+                    const protocolProperty = 'protocol';
+                    const iruleRate = 'iRuleSampleRate';
+                    const iruleName = 'irule';
+                    ['destination', 'source'].forEach((property) => {
+                        if (ruleObj[property]) {
+                            GlobalObject.addProperty(
+                                rulePath,
+                                property,
+                                loc.original,
+                                { [rulePropName]: { [rule]: { [property]: null } } }
+                            );
+                            const addresses = ruleObj[property]['address-lists'];
+                            if (addresses) {
+                                ruleObj[property].addressLists = Object.keys(addresses).map((x) => handleObjectRef(x));
+                                GlobalObject.addProperty(
+                                    `${rulePath}/${property}`,
+                                    addresList,
+                                    loc.original,
+                                    { [rulePropName]: { [rule]: { [property]: { 'address-lists': null } } } }
+                                );
+                                delete ruleObj[property]['address-lists'];
+                            }
+                            if (ruleObj[property].addresses) {
+                                const id = `autogen_${uuid()}`.replace(/-/g, '_');
+                                const idRef = handleObjectRef(id);
+                                newObj[id] = {
+                                    class: 'Firewall_Address_List',
+                                    addresses: Object.keys(ruleObj[property].addresses)
+                                };
+                                if (ruleObj[property].addressLists) {
+                                    ruleObj[property].addressLists.push(idRef);
+                                } else {
+                                    ruleObj[property].addressLists = [idRef];
+                                }
+                                delete ruleObj[property].addresses;
+                            }
+
+                            const ports = ruleObj[property]['port-lists'];
+                            if (ports) {
+                                ruleObj[property].portLists = Object.keys(ports).map((x) => handleObjectRef(x));
+                                GlobalObject.addProperty(
+                                    `${rulePath}/${property}`,
+                                    portList,
+                                    loc.original,
+                                    { [rulePropName]: { [rule]: { [property]: { 'port-lists': null } } } }
+                                );
+                                delete ruleObj[property]['port-lists'];
+                            }
+                            if (ruleObj[property].ports) {
+                                const id = `autogen_${uuid()}`.replace(/-/g, '_');
+                                const idRef = handleObjectRef(id);
+                                newObj[id] = {
+                                    class: 'Firewall_Port_List',
+                                    ports: Object.keys(ruleObj[property].ports).map((x) => (!x.includes('-') ? parseInt(x, 10) : x))
+                                };
+                                if (ruleObj[property].portLists) {
+                                    ruleObj[property].portLists.push(idRef);
+                                } else {
+                                    ruleObj[property].portLists = [idRef];
+                                }
+                                delete ruleObj[property].ports;
+                            }
+
+                            // Add vlans in firewall if they were used
+                            const vlans = ruleObj[property].vlans;
+                            if (vlans) {
+                                const bigip = (str) => ({ bigip: str });
+                                ruleObj[property].vlans = Object.keys(vlans).map((x) => bigip(x));
+                                GlobalObject.addProperty(
+                                    `${rulePath}/${property}`,
+                                    vlan,
+                                    loc.original,
+                                    { [rulePropName]: { [rule]: { [property]: { [vlan]: null } } } }
+                                );
+                            }
+                        }
+                    });
+                    if (ruleObj.description) {
+                        ruleObj.remark = unquote(ruleObj.description);
+                        delete ruleObj.description;
+                    }
+                    const protocol = ruleObj['ip-protocol'];
+                    if (protocol) {
+                        if (protocol === 'any' || protocol === 'tcp' || protocol === 'udp') {
+                            ruleObj.protocol = protocol;
+                            GlobalObject.addProperty(rulePath, protocolProperty, loc.original, { [rulePropName]: { [rule]: { 'ip-protocol': null } } });
+                        }
+                        delete ruleObj['ip-protocol'];
+                    }
+                    if (ruleObj.log) {
+                        ruleObj.log = ruleObj.log === 'yes';
+                        GlobalObject.addProperty(
+                            rulePath,
+                            logProperty,
+                            loc.original,
+                            { [rulePropName]: { [rule]: { [logProperty]: null } } }
+                        );
+                        delete ruleObj.log;
+                    }
+                    if (ruleObj.irule) {
+                        ruleObj.iRule = handleObjectRef(ruleObj.irule);
+                        GlobalObject.addProperty(
+                            rulePath,
+                            iruleProperty,
+                            loc.original,
+                            { [rulePropName]: { [rule]: { [iruleName]: null } } }
+                        );
+                        delete ruleObj.irule;
+                    }
+                    if (ruleObj['irule-sample-rate']) {
+                        ruleObj.iRuleSampleRate = parseInt(ruleObj['irule-sample-rate'], 10);
+                        // eslint-disable-next-line quote-props
+                        GlobalObject.addProperty(rulePath, iruleRate, loc.original, { [rulePropName]: { [rule]: { 'irule': null } } });
+                        delete ruleObj['irule-sample-rate'];
+                    }
+                    ruleObj.name = rule;
+                    rules.push(ruleObj);
+                });
+
+                rootObj.rules = rules;
+            }
+            newObj[loc.profile] = rootObj;
+            return newObj;
+        }
+    }
+};
