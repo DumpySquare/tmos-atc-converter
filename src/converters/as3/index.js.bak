@@ -19,22 +19,22 @@
 const path = require('path');
 const deepmerge = require('deepmerge');
 
-const as3ClassicCleanUp = require('./cleanup');
-// const as3NextCleanUp = require('./as3NextCleanUp'); // REMOVED: NEXT support excluded
-const CIPHER_SUFFIX = require('../../constants').CIPHER_SUFFIX;
-const customDict = require('./dict');
-const declarationBase = require('../../utils/declarationBase');
-const dedupeArray = require('../../utils/dedupeArray');
-const filterConf = require('../../utils/filterConf');
-const findLocation = require('../../utils/findLocation');
-const getKey = require('../../utils/getKey');
-const GlobalObject = require('../../utils/globalRenameAndSkippedObject');
-const handleObjectRef = require('../../utils/handleObjectRef');
-const ipUtils = require('../../utils/ipUtils');
-const log = require('../../utils/log');
-const objectUtil = require('../../utils/object');
-const createConvertEngine = require('./engine');
-const defaults = require('../../data/defaults.json');
+const as3ClassicCleanUp = require('./as3ClassicCleanUp');
+const as3NextCleanUp = require('./as3NextCleanUp');
+const CIPHER_SUFFIX = require('../constants').CIPHER_SUFFIX;
+const customDict = require('../lib/AS3/customDict');
+const declarationBase = require('../util/convert/declarationBase');
+const dedupeArray = require('../util/convert/dedupeArray');
+const filterConf = require('../preConverter/filterConf');
+const findLocation = require('../util/convert/findLocation');
+const getKey = require('../util/getKey');
+const GlobalObject = require('../util/globalRenameAndSkippedObject');
+const handleObjectRef = require('../util/convert/handleObjectRef');
+const ipUtils = require('../util/convert/ipUtils');
+const log = require('../util/log');
+const objectUtil = require('../util/object');
+const createConvertEngine = require('../lib/AS3/convertEngine');
+const defaults = require('../lib/bigipDefaults.json');
 
 let retryFlag = false;
 /**
@@ -991,11 +991,19 @@ module.exports = async (json, config) => {
 
         let declaration = ret?.declaration ?? json;
         const keyClassicNotSupported = [];
+        const keyNextNotSupported = [];
 
-        // AS3 Classic cleanUp (NEXT support removed)
-        const resultsAS3 = await as3ClassicCleanUp(declaration, config);
-        declaration = resultsAS3.declaration;
-        keyClassicNotSupported.push(...resultsAS3.keyClassicNotSupported);
+        // AS3 Next conversion
+        if (config && config.next) {
+            const resultsNext = await as3NextCleanUp(declaration, ret?.promotedObjects ?? {}, config, json);
+            declaration = resultsNext.declarationNext;
+            keyNextNotSupported.push(...resultsNext.keyNextNotSupported);
+        } else {
+            // AS3 Classic cleanUp
+            const resultsAS3 = await as3ClassicCleanUp(declaration, config);
+            declaration = resultsAS3.declaration;
+            keyClassicNotSupported.push(...resultsAS3.keyClassicNotSupported);
+        }
 
         // count occurrences of unsupported tmsh keys
         const unsupportedStats = {};
@@ -1012,6 +1020,7 @@ module.exports = async (json, config) => {
             as3NotConverted: ret?.as3NotConverted ?? {},
             as3NotRecognized: ret?.as3NotRecognized ?? {},
             keyClassicNotSupported,
+            keyNextNotSupported,
             renamedDict: ret?.renamedDict ?? {},
             unsupportedStats
         };
