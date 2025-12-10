@@ -2,9 +2,15 @@
   "name": "tmos-converter",
   "version": "1.0.0",
   "description": "Convert F5 TMOS configuration to AS3 Classic and Declarative Onboarding declarations",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "mocha test --recursive --timeout 30000",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "test": "mocha --require ts-node/register 'test/**/*-spec.ts' 'test/**/*-spec.js' --recursive --timeout 30000",
+    "test:js": "mocha test --recursive --timeout 30000",
     "test:upstream": "mocha test/upstream --recursive --timeout 30000"
   },
   "keywords": [
@@ -28,11 +34,15 @@
     "winston": "^3.18.3"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.21",
+    "@types/node": "^24.10.2",
     "chai": "^4.5.0",
     "chai-as-promised": "^8.0.0",
     "mocha": "^10.8.2",
     "nunjucks": "^3.2.4",
-    "sinon": "^21.0.0"
+    "sinon": "^21.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=18.0.0"

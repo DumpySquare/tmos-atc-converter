@@ -5,7 +5,7 @@
 'use strict';
 
 const { expect } = require('chai');
-const tmos = require('../index');
+const tmos = require('../dist');
 
 describe('TMOS Converter - Basic Extraction Test', () => {
     describe('API exports', () => {
