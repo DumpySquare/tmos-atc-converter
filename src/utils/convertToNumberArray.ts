@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-'use strict';
+// '"100 101 102 200"' => [ 100, 101, 102, 200 ]
+/**
+ * Convert a space-separated string of numbers to an array of numbers
+ *
+ * @param str - space-separated string of numbers
+ * @returns array of numbers
+ */
+function convertToNumberArray(str: string): number[] {
+    return str.trim().split(' ').map(Number);
+}
 
-// {'test-key': {'test-sub-key': true}} => { testKey: { testSubKey: true } }
-
-const camelize = (s) => s.replace(/-./g, (x) => x.toUpperCase()[1]);
-const recursiveCamelize = (obj) => {
-    const newObj = {};
-    Object.keys(obj).forEach((key) => {
-        newObj[camelize(key)] = typeof obj[key] === 'object' ? recursiveCamelize(obj[key]) : obj[key];
-    });
-    return newObj;
-};
-
-module.exports = recursiveCamelize;
+export default convertToNumberArray;
+module.exports = convertToNumberArray;

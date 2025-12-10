@@ -14,59 +14,73 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import lodashIsEmpty from 'lodash/isEmpty';
+import lodashGet from 'lodash/get';
+import lodashUpdate from 'lodash/update';
+import lodashSet from 'lodash/set';
+import lodashUnset from 'lodash/unset';
+import lodashConcat from 'lodash/concat';
+import lodashCloneDeep from 'lodash/cloneDeep';
+import lodashIsArray from 'lodash/isArray';
+import lodashHas from 'lodash/has';
+import lodashSome from 'lodash/some';
+import lodashArray from 'lodash/isArray';
+import lodashObject from 'lodash/isObject';
+import lodashEntries from 'lodash/entries';
 
-const lodashIsEmpty = require('lodash/isEmpty');
-const lodashGet = require('lodash/get');
-const lodashUpdate = require('lodash/update');
-const lodashSet = require('lodash/set');
-const lodashUnset = require('lodash/unset');
-const lodashConcat = require('lodash/concat');
-const lodashCloneDeep = require('lodash/cloneDeep');
-const lodashIsArray = require('lodash/isArray');
-const lodashHas = require('lodash/has');
-const lodashSome = require('lodash/some');
-const lodashArray = require('lodash/isArray');
-const lodashObject = require('lodash/isObject');
-const lodashEntries = require('lodash/entries');
+export interface TmshInfo {
+    tmshHeader?: string;
+    tmshPath?: any;
+    internalArray?: TmshInfo[];
+}
+
+export interface GlobalConfig {
+    jsonLogs?: boolean;
+    requestContext?: {
+        logRemoveProperty: (info: {
+            path: string;
+            reason: string;
+            fix_text: string;
+            internal_reason: string;
+            tmshHeader?: string;
+            tmshPath?: any;
+        }) => void;
+    };
+}
 
 class GlobalRenameAndSkippedObject {
-    #obj;
-
-    #config;
+    #obj: Record<string, any>;
+    #config: GlobalConfig;
 
     constructor() {
         this.#obj = {};
         this.#config = {};
     }
 
-    getGlobalObj() {
+    getGlobalObj(): Record<string, any> {
         return this.#obj;
     }
 
-    setConfig(config) {
+    setConfig(config: GlobalConfig): void {
         this.#config = config;
     }
 
     /**
      * Get the path array without '/' and '[]'
      *
-     * @param {string | Array} path
-     * e.g. /tenant/application_1/obj[0], /tenant/application_2/smth
-     *
+     * @param path - e.g. /tenant/application_1/obj[0], /tenant/application_2/smth
      * @param deleteOperation - if the function is called from deleteProperty
-     *
-     * @returns {Array} resolved path
-     * e.g. ['tenant', 'application_1', 'obj', '0'], ['tenant', 'application_2', 'smth']
+     * @returns resolved path e.g. ['tenant', 'application_1', 'obj', '0'], ['tenant', 'application_2', 'smth']
      */
-    #getResolvedPath(path, deleteOperation = false) {
+    #getResolvedPath(path: string | string[], deleteOperation = false): string[] {
         if (Array.isArray(path) && path[0] === '') {
             path.shift();
             return path;
         }
-        let pathArr = path.split('/');
+        let pathArr = (path as string).split('/');
         pathArr.shift();
-        const currentPath = [];
+        const currentPath: string[][] = [];
         pathArr = pathArr.flatMap((arrPath) => {
             if (arrPath.includes('[') && arrPath.includes(']')) {
                 const bracelessStr = arrPath.replace('[', '/').replace(']', '/');
@@ -81,12 +95,13 @@ class GlobalRenameAndSkippedObject {
             // as3NextCleanup sending the path without square brackets
             // e.g. /members/0/hostname
             // so we need to add "internalArray" word manually
-            if (lodashHas(this.#obj, [...currentPath, arrPath, 'internalArray']) && deleteOperation) {
+            const flatPath = currentPath.flat();
+            if (lodashHas(this.#obj, [...flatPath, arrPath, 'internalArray']) && deleteOperation) {
                 const pathWithArray = [arrPath, 'internalArray'];
-                currentPath.push(...pathWithArray);
+                currentPath.push(pathWithArray);
                 return pathWithArray;
             }
-            currentPath.push(arrPath);
+            currentPath.push([arrPath]);
             return arrPath;
         });
         return pathArr;
@@ -95,13 +110,12 @@ class GlobalRenameAndSkippedObject {
     /**
      * Get tmshInfo with tmshHeader and tmshPath for the property (primitive or not)
      *
-     * @param {string | Array} parentPath
-     * @param {string} propertyName
-     *
-     * @param {boolean} bypassPropCheck
-     * @returns {Object | undefined} tmshInfo
+     * @param parentPath
+     * @param propertyName
+     * @param bypassPropCheck
+     * @returns tmshInfo
      */
-    getTmshInfo(parentPath, propertyName, bypassPropCheck = false) {
+    getTmshInfo(parentPath: string | string[], propertyName: string, bypassPropCheck = false): TmshInfo | undefined {
         if (bypassPropCheck) {
             // Temporary workaround to allow getting tmsh info of props that contain slashes in their name e.g.
             // /Common/http, which will be the case of nested properties like profiles in Virtual Servers , etc.
@@ -138,13 +152,13 @@ class GlobalRenameAndSkippedObject {
     /**
      * Set tmshHeader and tmshPath for an existing property (primitive or not)
      *
-     * @param {string} parentPath
-     * @param {string} propertyName
-     * @param {string} tmshHeader
-     * @param {string} tmshPath
+     * @param parentPath
+     * @param propertyName
+     * @param tmshHeader
+     * @param tmshPath
      */
-    setTmshInfo(parentPath, propertyName, tmshHeader, tmshPath) {
-        let pathArr;
+    setTmshInfo(parentPath: string, propertyName: string, tmshHeader: string, tmshPath: any): void {
+        let pathArr: string[];
         if (parentPath !== '/') {
             if (propertyName.includes('[') && propertyName.includes(']')) {
                 parentPath += `/${propertyName}`;
@@ -164,13 +178,13 @@ class GlobalRenameAndSkippedObject {
     /**
      * Moves existing object, including the nested props
      *
-     * @param {string} oldParentPath
-     * @param {string} oldPropertyName
-     * @param {string} newParentPath
-     * @param {string} newPropertyName
-     * @param {boolean} isArray
+     * @param oldParentPath
+     * @param oldPropertyName
+     * @param newParentPath
+     * @param newPropertyName
+     * @param isArray
      */
-    moveAll(oldParentPath, oldPropertyName, newParentPath, newPropertyName, isArray = false) {
+    moveAll(oldParentPath: string, oldPropertyName: string, newParentPath: string, newPropertyName: string, isArray = false): void {
         const oldObj = this.getTmshInfo(oldParentPath, oldPropertyName);
         const pathArr = this.#getResolvedPath(newParentPath);
         const oldPathArr = this.#getResolvedPath(oldParentPath);
@@ -194,13 +208,13 @@ class GlobalRenameAndSkippedObject {
      * Used to avoid duplicates entries in shadow object,
      * especially when dealing with customMaps
      *
-     * @param {string} oldParentPath
-     * @param {string} oldPropertyName
-     * @param {string} newParentPath
-     * @param {string} newPropertyName
-     * @param {boolean} isArray
+     * @param oldParentPath
+     * @param oldPropertyName
+     * @param newParentPath
+     * @param newPropertyName
+     * @param isArray
      */
-    checkAndMoveAllToArray(oldParentPath, oldPropertyName, newParentPath, newPropertyName, isArray = false) {
+    checkAndMoveAllToArray(oldParentPath: string, oldPropertyName: string, newParentPath: string, newPropertyName: string, isArray = false): void {
         const newFullPath = this.#getResolvedPath(newParentPath).concat(newPropertyName);
         const currentArray = lodashGet(this.#obj, newFullPath, []);
 
@@ -215,34 +229,35 @@ class GlobalRenameAndSkippedObject {
     /**
      * Adds a new object, array, primitive property, empty object or empty array
      *
-     * @param {string} parentPath
-     * @param {string} propertyName
-     * @param {string | object} tmshHeader
-     * @param {string} tmshPath
-     * @param {boolean} isArray
+     * @param parentPath
+     * @param propertyName
+     * @param tmshHeader
+     * @param tmshPath
+     * @param objArray
+     * @param movableObject
      */
-    addProperty(parentPath, propertyName, tmshHeader, tmshPath, objArray = null, movableObject = null) {
+    addProperty(parentPath: string, propertyName: string | null, tmshHeader: string | TmshInfo, tmshPath: any, objArray: string[] | null = null, movableObject: any = null): void {
         if (parentPath !== '/') {
             const pathArr = this.#getResolvedPath(parentPath);
             let newTmshPath = '';
             if (propertyName) {
                 pathArr.push(propertyName);
             }
-            if (!(parentPath)) {
-                parentPath = propertyName;
+            let workingParentPath = parentPath;
+            if (!parentPath) {
+                workingParentPath = propertyName ?? '';
             }
             if (objArray) {
-                const internalArrayObj = [];
-                // eslint-disable-next-line no-restricted-syntax
+                const internalArrayObj: TmshInfo[] = [];
                 for (const obj of objArray) {
                     if (obj[0] === '/') {
                         newTmshPath = `${tmshPath}${obj}`;
                     } else {
                         newTmshPath = `${tmshPath}/${obj}`;
                     }
-                    internalArrayObj.push({ tmshHeader, tmshPath: newTmshPath });
+                    internalArrayObj.push({ tmshHeader: tmshHeader as string, tmshPath: newTmshPath });
                 }
-                if (!(lodashGet(this.#obj, pathArr)) && (lodashIsEmpty(this.getTmshInfo(parentPath, propertyName)))) {
+                if (!(lodashGet(this.#obj, pathArr)) && (lodashIsEmpty(this.getTmshInfo(workingParentPath, propertyName ?? '')))) {
                     lodashSet(this.#obj, pathArr, {
                         tmshHeader,
                         tmshPath
@@ -265,7 +280,7 @@ class GlobalRenameAndSkippedObject {
                 lodashSet(this.#obj, pathArr, tmshPath);
                 pathArr.pop();
             }
-            if (parentPath === '' || lodashIsEmpty(this.getTmshInfo(parentPath, propertyName))) {
+            if (workingParentPath === '' || lodashIsEmpty(this.getTmshInfo(workingParentPath, propertyName ?? ''))) {
                 lodashSet(this.#obj, pathArr, {
                     tmshHeader,
                     tmshPath
@@ -273,15 +288,15 @@ class GlobalRenameAndSkippedObject {
             }
         }
     }
-    /**
-     *  Search tmsshpath variable in json conf and log only if it is there
-     * @param {object} tmshPath
-     *  @param {object} jsonDetails
-     */
 
-    searchInJsonConfUsingTmshPath(tmshPath, jsonDetails) {
+    /**
+     *  Search tmshpath variable in json conf and log only if it is there
+     * @param tmshPath
+     * @param jsonDetails
+     */
+    searchInJsonConfUsingTmshPath(tmshPath: any, jsonDetails: any): boolean {
         let keyExists = false;
-        const search = (tmshProp, jsonDetailsObj) => {
+        const search = (tmshProp: any, jsonDetailsObj: any): boolean => {
             lodashSome(lodashEntries(tmshProp), ([key, val]) => {
                 if (lodashObject(val) && val !== null) {
                     if (search(val, jsonDetailsObj)) {
@@ -296,6 +311,7 @@ class GlobalRenameAndSkippedObject {
                 }
                 return keyExists;
             });
+            return keyExists;
         };
 
         search(tmshPath, jsonDetails);
@@ -304,25 +320,24 @@ class GlobalRenameAndSkippedObject {
 
     /**
      * search the key in json and return true if found
-     *  @param {object} obj
-     *  @param {string} keyToFind
+     * @param jsonObj
+     * @param searchString
      */
-
-    keyExistsInJson(jsonObj, searchString) {
+    keyExistsInJson(jsonObj: any, searchString: string): boolean {
         let found = false;
 
-        const search = (obj) => {
+        const search = (obj: any): boolean => {
             if (found) return true; // Exit early if already found
 
             if (lodashArray(obj)) {
-                found = lodashSome(obj, (item) => {
+                found = lodashSome(obj, (item: any) => {
                     if (lodashObject(item) && item !== null) {
                         return search(item); // Recursively search within the nested object
                     }
                     return item === searchString;
                 });
             } else if (lodashObject(obj) && obj !== null) {
-                found = lodashSome(obj, (value, key) => {
+                found = lodashSome(obj, (value: any, key: string) => {
                     if (key === searchString || value === searchString) {
                         return true; // Exit as soon as the searchString is found
                     }
@@ -339,35 +354,46 @@ class GlobalRenameAndSkippedObject {
         search(jsonObj);
         return found;
     }
+
     /**
      * Deletes an object (empty or not), array, or primitive property
      *
-     * @param {string} parentPath
-     * @param {string} propertyName
-     * @param {string} customReason
-     * @param {boolean} onlyLog
-     * @param {object} jsonObj
-     * @param {string} internalReason
+     * @param parentPath
+     * @param propertyName
+     * @param customReason
+     * @param onlyLog
+     * @param jsonObj
+     * @param fixText
+     * @param internalReason
      */
-
-    deleteProperty(parentPath, propertyName, customReason = 'This property is not supported', onlyLog = false, jsonObj = null, fixText = 'Contact F5 Support', internalReason = customReason) {
-        let tmshHeader;
-        let tmshPath;
-        let tmshInfo;
-        let pathArr;
+    deleteProperty(
+        parentPath: string,
+        propertyName: string,
+        customReason = 'This property is not supported',
+        onlyLog = false,
+        jsonObj: any = null,
+        fixText = 'Contact F5 Support',
+        internalReason: string = customReason
+    ): void {
+        let tmshHeader: string | undefined;
+        let tmshPath: any;
+        let tmshInfo: TmshInfo | undefined;
+        let pathArr: string[];
         let propExistsInJson = true;
+        let workingParentPath = parentPath;
+
         if (propertyName.includes('[') && propertyName.includes(']')) {
-            parentPath += `/${propertyName}`;
-            pathArr = this.#getResolvedPath(parentPath);
+            workingParentPath += `/${propertyName}`;
+            pathArr = this.#getResolvedPath(workingParentPath);
             pathArr = pathArr.filter((path) => path);
             tmshInfo = lodashGet(this.#obj, pathArr);
             tmshHeader = tmshInfo?.tmshHeader;
             tmshPath = tmshInfo?.tmshPath;
-            const index = pathArr.pop();
-            const property = pathArr.pop();
-            const arr = this.getTmshInfo(`/${pathArr.join('/')}`, property);
+            const index = pathArr.pop()!;
+            const property = pathArr.pop()!;
+            const arr = this.getTmshInfo(`/${pathArr.join('/')}`, property) as any[];
             if (!onlyLog) {
-                arr.splice(index, 1);
+                arr.splice(Number(index), 1);
                 lodashSet(this.#obj, [...pathArr, property], arr);
             }
         } else {
@@ -395,7 +421,7 @@ class GlobalRenameAndSkippedObject {
                 }
             }
 
-            this.#config.requestContext.logRemoveProperty({
+            this.#config.requestContext?.logRemoveProperty({
                 path: `${parentPath}/${propertyName}`,
                 reason: customReason,
                 fix_text: fixText,
@@ -409,20 +435,20 @@ class GlobalRenameAndSkippedObject {
     /**
      * Moves and renames an object, array or primitive property
      *
-     * @param {string} oldParentPath
-     * @param {string} oldPropertyName
-     * @param {string} newParentPath
-     * @param {string} newPropertyName
-     * @param {string} modifiedPathName
+     * @param oldParentPath
+     * @param oldPropertyName
+     * @param newParentPath
+     * @param newPropertyName
+     * @param modifiedPathName
      */
-    moveProperty(oldParentPath, oldPropertyName, newParentPath, newPropertyName, modifiedPathName = false) {
+    moveProperty(oldParentPath: string, oldPropertyName: string, newParentPath: string, newPropertyName: string, modifiedPathName = false): void {
         const oldObj = this.getTmshInfo(oldParentPath, oldPropertyName);
         const customReason = 'RenamedProperty';
         if (!lodashIsEmpty(oldObj)) {
-            if ('internalArray' in oldObj) {
+            if (oldObj && 'internalArray' in oldObj) {
                 this.addProperty(newParentPath, newPropertyName, oldObj, null, null, oldObj);
-            } else {
-                this.addProperty(newParentPath, newPropertyName, oldObj.tmshHeader, oldObj.tmshPath);
+            } else if (oldObj) {
+                this.addProperty(newParentPath, newPropertyName, oldObj.tmshHeader!, oldObj.tmshPath);
             }
             if (!modifiedPathName) {
                 this.deleteProperty(oldParentPath, oldPropertyName, customReason);
@@ -433,26 +459,26 @@ class GlobalRenameAndSkippedObject {
     /**
      * Resets the global object for tests
      */
-    reset() {
+    reset(): void {
         Object.keys(this.#obj).forEach((key) => {
             delete this.#obj[key];
         });
         Object.keys(this.#config).forEach((key) => {
-            delete this.#config[key];
+            delete (this.#config as any)[key];
         });
     }
 
     /**
      * Wrapper function to get tmshHeader and tmshPath for a property
      *
-     * @param {string} objPath
-     * @param {string} prop
-     * @param {boolean} bypassPropCheck
-     * @returns {Object} tmshInfo containing tmshHeader and tmshPath
+     * @param objPath
+     * @param prop
+     * @param bypassPropCheck
+     * @returns tmshInfo containing tmshHeader and tmshPath
      */
-    getTmshInfoWrapper(objPath, prop, bypassPropCheck = false) {
+    getTmshInfoWrapper(objPath: string, prop: string, bypassPropCheck = false): { tmshHeader: string; tmshPath: any } {
         let tmshHeader = 'unknown tmsh header';
-        let tmshPath = { unknownTmshPath: null };
+        let tmshPath: any = { unknownTmshPath: null };
         const source = this.getTmshInfo(objPath, prop, bypassPropCheck);
         if (source && source.tmshHeader) {
             tmshHeader = source.tmshHeader;
@@ -464,7 +490,7 @@ class GlobalRenameAndSkippedObject {
     }
 }
 
-let singletonGlobalObj = null;
-singletonGlobalObj = Object.freeze(new GlobalRenameAndSkippedObject());
+const singletonGlobalObj = Object.freeze(new GlobalRenameAndSkippedObject());
 
+export default singletonGlobalObj;
 module.exports = singletonGlobalObj;

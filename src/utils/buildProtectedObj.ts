@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-'use strict';
+export interface ProtectedObject {
+    ciphertext: string;
+    protected: string;
+    ignoreChanges: boolean;
+}
 
 // <(protected) property> =>
 // {ciphertext: 'foo', protected: 'bar', ignoreChanges: true}
-module.exports = (val) => {
+/**
+ * Build a protected object from a value
+ *
+ * @param val - value to protect
+ * @returns protected object
+ */
+function buildProtectedObj(val: string): ProtectedObject {
     const ciphertext = Buffer.from(val).toString('base64');
     const enc = Buffer.from(val).toString().startsWith('$M$') ? 'f5sv' : 'none';
     const alg = Buffer.from(JSON.stringify({ alg: 'dir', enc })).toString('base64');
@@ -27,4 +37,7 @@ module.exports = (val) => {
         protected: alg,
         ignoreChanges: true
     };
-};
+}
+
+export default buildProtectedObj;
+module.exports = buildProtectedObj;

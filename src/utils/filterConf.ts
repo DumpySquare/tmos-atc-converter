@@ -14,24 +14,29 @@
  * limitations under the License.
  */
 
-'use strict';
+import getKey from './getKey';
 
-const getKey = require('./getKey');
+export interface FilterConfOptions {
+    excluded?: boolean;
+}
 
 /**
  * Filter object using TMOS keys
  *
- * @param {object} json - parsed TMOS config
- * @param {object} dict - supported TMOS keys
- * @param {object} [options] - options
- * @param {boolean} [options.excluded = false] - keep excluded data only
- *
- * @returns {object} filtered config
+ * @param json - parsed TMOS config
+ * @param dict - supported TMOS keys
+ * @param options - options
+ * @param options.excluded - keep excluded data only (default: false)
+ * @returns filtered config
  */
-module.exports = (json, dict, options) => {
+function filterConf(
+    json: Record<string, unknown>,
+    dict: Record<string, unknown>,
+    options?: FilterConfOptions
+): Record<string, unknown> {
     const op = options?.excluded
-        ? (val) => !val
-        : (val) => val;
+        ? (val: boolean): boolean => !val
+        : (val: boolean): boolean => val;
 
     return Object.fromEntries(
         Object.entries(json)
@@ -39,4 +44,7 @@ module.exports = (json, dict, options) => {
                 Object.hasOwn(dict, getKey(key))
             ))
     );
-};
+}
+
+export default filterConf;
+module.exports = filterConf;

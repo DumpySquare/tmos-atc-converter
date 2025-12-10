@@ -69,37 +69,37 @@ This document tracks the progress of converting the codebase from JavaScript to 
 
 | File | Status | Notes |
 |------|--------|-------|
-| `buildProtectedObj.js` | [ ] | |
-| `cleanupRD.js` | [ ] | Route domain cleanup |
-| `convertToNameValueObj.js` | [ ] | |
-| `convertToNumberArray.js` | [ ] | |
-| `countObjects.js` | [ ] | |
-| `declarationBase.js` | [ ] | AS3/DO declaration templates |
+| `buildProtectedObj.js` → `buildProtectedObj.ts` | [x] | |
+| `cleanupRD.js` → `cleanupRD.ts` | [x] | Route domain cleanup |
+| `convertToNameValueObj.js` → `convertToNameValueObj.ts` | [x] | |
+| `convertToNumberArray.js` → `convertToNumberArray.ts` | [x] | |
+| `countObjects.js` → `countObjects.ts` | [x] | |
+| `declarationBase.js` → `declarationBase.ts` | [x] | AS3/DO declaration templates |
 | `dedupeArray.js` → `dedupeArray.ts` | [x] | |
-| `deleteProperties.js` | [ ] | |
+| `deleteProperties.js` → `deleteProperties.ts` | [x] | Complex class with ItemCtx |
 | `enabledToEnable.js` → `enabledToEnable.ts` | [x] | |
-| `filterConf.js` | [ ] | Configuration filtering |
-| `findLocation.js` | [ ] | |
+| `filterConf.js` → `filterConf.ts` | [x] | Configuration filtering |
+| `findLocation.js` → `findLocation.ts` | [x] | |
 | `formatStr.js` → `formatStr.ts` | [x] | |
-| `getBigipVersion.js` | [ ] | |
+| `getBigipVersion.js` → `getBigipVersion.ts` | [x] | |
 | `getKey.js` → `getKey.ts` | [x] | |
-| `getObjectType.js` | [ ] | |
-| `globalRenameAndSkippedObject.js` | [ ] | |
-| `handleObjectRef.js` | [ ] | Object reference handling |
+| `getObjectType.js` → `getObjectType.ts` | [x] | |
+| `globalRenameAndSkippedObject.js` → `globalRenameAndSkippedObject.ts` | [x] | Private fields class |
+| `handleObjectRef.js` → `handleObjectRef.ts` | [x] | Object reference handling |
 | `hyphensToCamel.js` → `hyphensToCamel.ts` | [x] | |
-| `ipUtils.js` | [ ] | IP address utilities |
+| `ipUtils.js` → `ipUtils.ts` | [x] | IP address utilities with class |
 | `isNumber.js` → `isNumber.ts` | [x] | |
-| `loadCertsAndKeys.js` | [ ] | Certificate loading |
-| `loadDeviceCert.js` | [ ] | |
-| `log.js` | [ ] | Winston logger wrapper |
-| `object.js` | [ ] | Object manipulation |
-| `parseNestedString.js` | [ ] | |
-| `prependObjProps.js` | [ ] | |
-| `recursiveCamelize.js` | [ ] | |
-| `renameProperties.js` | [ ] | |
+| `loadCertsAndKeys.js` → `loadCertsAndKeys.ts` | [x] | Certificate loading |
+| `loadDeviceCert.js` → `loadDeviceCert.ts` | [x] | |
+| `log.js` → `log.ts` | [x] | Winston logger wrapper |
+| `object.js` → `object.ts` | [x] | Object manipulation with lodash |
+| `parseNestedString.js` → `parseNestedString.ts` | [x] | |
+| `prependObjProps.js` → `prependObjProps.ts` | [x] | |
+| `recursiveCamelize.js` → `recursiveCamelize.ts` | [x] | |
+| `renameProperties.js` → `renameProperties.ts` | [x] | RenameHistory class |
 | `returnEmptyObjIfNone.js` → `returnEmptyObjIfNone.ts` | [x] | |
-| `string.js` | [ ] | String utilities |
-| `traverseJSON.js` | [ ] | JSON traversal |
+| `string.js` → `string.ts` | [x] | String utilities |
+| `traverseJSON.js` → `traverseJSON.ts` | [x] | JSON traversal algorithm |
 | `unquote.js` → `unquote.ts` | [x] | |
 
 ---
@@ -194,13 +194,13 @@ As we convert files, we'll identify shared types. Track them here:
 | Core | 1 | 1 | 100% |
 | Validators | 1 | 0 | 0% |
 | Parser | 7 | 0 | 0% |
-| Utilities | 33 | 8 | 24% |
+| Utilities | 33 | 33 | 100% |
 | I/O | 2 | 0 | 0% |
 | AS3 Converter | 4 | 0 | 0% |
 | AS3 Engine | 4 | 0 | 0% |
 | AS3 Maps | 21 | 0 | 0% |
 | DO Converter | 2 | 0 | 0% |
-| **Total** | **76** | **10** | **13%** |
+| **Total** | **76** | **35** | **46%** |
 
 ---
 

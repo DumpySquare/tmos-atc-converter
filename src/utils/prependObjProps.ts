@@ -14,13 +14,24 @@
  * limitations under the License.
  */
 
-'use strict';
+import upperFirst from 'lodash/upperFirst';
 
-// find BIG-IP Version
-module.exports = (data) => {
-    const dataStr = JSON.stringify(data);
-    if (dataStr.includes('TMSH-VERSION')) {
-        return dataStr.split('TMSH-VERSION: ')[1].split('\\n')[0];
-    }
-    return '';
-};
+/**
+ * Prepend a `prefix` to all keys in `obj`
+ *
+ * @param obj - object to transform
+ * @param prefix - prefix to prepend to each key
+ * @returns new object with updated keys
+ */
+function prependObjProps<T>(obj: Record<string, T>, prefix: string): Record<string, T> {
+    return Object.fromEntries(
+        Object.entries(obj)
+            .map(([key, value]) => [
+                `${prefix}${upperFirst(key)}`,
+                value
+            ])
+    );
+}
+
+export default prependObjProps;
+module.exports = prependObjProps;

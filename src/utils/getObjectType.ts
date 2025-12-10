@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-'use strict';
-
-const defaults = require('../data/defaults.json');
+/* eslint-disable @typescript-eslint/no-require-imports */
+const defaults = require('../data/defaults.json') as string[];
 
 // currently only supports ltm
-module.exports = (objName, file) => {
+/**
+ * Get the profile type for a given object name
+ *
+ * @param objName - object name/path
+ * @param file - parsed TMOS config
+ * @returns profile type string or false if not found
+ */
+function getObjectType(objName: string, file: Record<string, unknown>): string | false {
     // default profiles not stored in conf
-    const dict = {
+    const dict: Record<string, string> = {
         '/Common/apm-forwarding-fastL4': 'fastl4',
         '/Common/apm-forwarding-client-tcp': 'tcp',
         '/Common/apm-forwarding-server-tcp': 'tcp',
@@ -98,26 +104,32 @@ module.exports = (objName, file) => {
         '/Common/wom-tcp-lan-optimized': 'tcp',
         '/Common/wom-tcp-wan-optimized': 'tcp'
     };
-    if (Object.keys(dict).includes(objName)) return dict[objName];
+    if (Object.keys(dict).includes(objName)) return dict[objName] as string;
 
     // fix for un-prefixed profiles on /Common 16.1
     const keys = Object.keys(file).map((key) => {
         const split = key.split(' ');
-        const profPath = split.pop();
+        const profPath = split.pop() ?? '';
         split.push(profPath.includes('/') ? profPath : `/Common/${profPath}`);
         return split.join(' ');
     });
 
     for (let i = 0; i < keys.length; i += 1) {
-        const ltmOrPem = keys[i].startsWith('ltm ') || keys[i].startsWith('pem ');
-        if (keys[i].endsWith(` ${objName}`) && !defaults.includes(objName)) {
+        const currentKey = keys[i];
+        if (!currentKey) continue;
+
+        const ltmOrPem = currentKey.startsWith('ltm ') || currentKey.startsWith('pem ');
+        if (currentKey.endsWith(` ${objName}`) && !defaults.includes(objName)) {
             if (ltmOrPem) {
-                return keys[i].split(' ')[2];
+                return currentKey.split(' ')[2] ?? false;
             }
-            if (keys[i].startsWith('security')) {
-                return keys[i].split(' ')[1];
+            if (currentKey.startsWith('security')) {
+                return currentKey.split(' ')[1] ?? false;
             }
         }
     }
     return false;
-};
+}
+
+export default getObjectType;
+module.exports = getObjectType;

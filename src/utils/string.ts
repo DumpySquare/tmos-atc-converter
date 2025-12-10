@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-'use strict';
-
 /**
  * String Utilities
  */
 
+export interface RemoveMiddleCharsOptions {
+    length: number;
+    separator?: string;
+}
+
 /**
  * Remove middle chars from the data if data exceeded maxLen
  *
- * @public
- *
- * @param {string} data - data
- * @param {object} options - optiosn
- * @param {integer} options.length - max length
- * @param {string} [options.separator = ''] - separator
- *
- * @returns {string} updated data
+ * @param data - data
+ * @param options - options
+ * @param options.length - max length
+ * @param options.separator - separator (default: '')
+ * @returns updated data
  */
-function removeMiddleChars(data, options) {
+export function removeMiddleChars(data: string, options: RemoveMiddleCharsOptions): string {
     if (data.length <= options.length) {
         return data;
     }
     if (options.length === 0) {
         return '';
     }
-    const sep = options.separator || '';
+    const sep = options.separator ?? '';
     // number of chars to remove for each part
     const rLen = (sep.length + data.length - options.length) / 2;
     // mid char position - X or X.5

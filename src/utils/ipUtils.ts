@@ -14,24 +14,32 @@
  * limitations under the License.
  */
 
-'use strict';
-
 // test if string is an f5 IP, which means valid IPv4 or IPv6
 // with optional %route-domain and/or /mask-length appended.
 const IPv4rex = /^(((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)[.]){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d))(%(6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|[1-9]\d{3}|[1-9]\d{2}|[1-9]?\d))?(\x2f(3[012]|2\d|1\d|\d))?$/;
 const IPv6rex = /^(::(([0-9a-f]{1,4}:){0,5}((([0-9a-f]{1,4}:)?[0-9a-f]{1,4})|(((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)[.]){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d))))?)|([0-9a-f]{1,4}::(([0-9a-f]{1,4}:){0,4}((([0-9a-f]{1,4}:)?[0-9a-f]{1,4})|(((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)[.]){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d))))?)|([0-9a-f]{1,4}:[0-9a-f]{1,4}::(([0-9a-f]{1,4}:){0,3}((([0-9a-f]{1,4}:)?[0-9a-f]{1,4})|(((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)[.]){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d))))?)|([0-9a-f]{1,4}(:[0-9a-f]{1,4}){2}::(([0-9a-f]{1,4}:){0,2}((([0-9a-f]{1,4}:)?[0-9a-f]{1,4})|(((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)[.]){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d))))?)|([0-9a-f]{1,4}(:[0-9a-f]{1,4}){3}::(([0-9a-f]{1,4}:)?((([0-9a-f]{1,4}:)?[0-9a-f]{1,4})|(((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)[.]){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d))))?)|([0-9a-f]{1,4}(:[0-9a-f]{1,4}){4}::((([0-9a-f]{1,4}:)?[0-9a-f]{1,4})|(((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)[.]){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)))?)|([0-9a-f]{1,4}(:[0-9a-f]{1,4}){5}::([0-9a-f]{1,4})?)|([0-9a-f]{1,4}(:[0-9a-f]{1,4}){0,6}::)|(([0-9a-f]{1,4}:){7}[0-9a-f]{1,4})(%(6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|[1-9]\d{3}|[1-9]\d{2}|[1-9]?\d))?(\x2f(12[0-8]|1[01]\d|[1-9]?\d))?$/;
 
+export interface SplitAddressResult {
+    address: string;
+    port: string;
+}
+
+export interface ParsedIpAddress {
+    ip: string;
+    routeDomain: string;
+    ipWithRoute: string;
+    port: string;
+}
+
 class IpUtil {
     /**
      * Common functionality for IP address checking
      *
-     * @private
-     *
-     * @param {string} address - IPv4/6 address as string
-     * @param {RegExp} regex - RegExp to use for testing the string
-     * @returns {boolean}
+     * @param address - IPv4/6 address as string
+     * @param regex - RegExp to use for testing the string
+     * @returns boolean
      */
-    static isIPCommon(address, regex) {
+    private static isIPCommon(address: unknown, regex: RegExp): boolean {
         if (!address) return false;
         if (typeof address !== 'string') return false;
 
@@ -44,60 +52,61 @@ class IpUtil {
     /**
      * Checks if an address is IPv4
      *
-     * @public
-     * @param {string} address - address to check
-     * @returns {boolean}
+     * @param address - address to check
+     * @returns boolean
      */
-    static isIPv4(address) {
+    static isIPv4(address: unknown): boolean {
         return this.isIPCommon(address, IPv4rex);
     }
 
     /**
      * Checks if an address is IPv6
      *
-     * @public
-     * @param {string} address - address to check
-     * @returns {boolean}
+     * @param address - address to check
+     * @returns boolean
      */
-    static isIPv6(address) {
+    static isIPv6(address: unknown): boolean {
         return this.isIPCommon(address, IPv6rex);
     }
 
     /**
      * Splits an IPv4 or IPv6 address into an address and port pair
      *
-     * @public
-     * @param {string} combined - address:port pair
-     * @returns {Object} - { address: xx, port: x}
+     * @param combined - address:port pair
+     * @returns { address: xx, port: x}
      */
-    static splitAddress(combined) {
-        let isAnyV4;
-        let isAnyV6;
-        if (combined.startsWith('any6')) {
+    static splitAddress(combined: string): SplitAddressResult {
+        let isAnyV4: boolean | undefined;
+        let isAnyV6: boolean | undefined;
+        let workingCombined = combined;
+
+        if (workingCombined.startsWith('any6')) {
             isAnyV6 = true;
-            combined = combined.replace('any6', '::');
-        } else if (combined.startsWith('any')) {
+            workingCombined = workingCombined.replace('any6', '::');
+        } else if (workingCombined.startsWith('any')) {
             isAnyV4 = true;
-            combined = combined.replace('any', '0.0.0.0');
+            workingCombined = workingCombined.replace('any', '0.0.0.0');
         }
 
         // If there is no port, we need something that we can find with the
         // regex below. At this point it doesn't matter that the separator matches
         // the IP type
-        if (!(combined.indexOf('.') >= 0 && combined.indexOf(':') >= 0)) {
-            if (combined.split(':').length !== 2) {
-                combined += ':NO_PORT';
+        if (!(workingCombined.indexOf('.') >= 0 && workingCombined.indexOf(':') >= 0)) {
+            if (workingCombined.split(':').length !== 2) {
+                workingCombined += ':NO_PORT';
             }
         }
 
-        let port = combined.match(/[.:]?[0-9a-z]+$/);
-        let address;
-        if (port) {
-            port = port[0];
-            address = combined.replace(port, '');
+        const portMatch = workingCombined.match(/[.:]?[0-9a-z]+$/);
+        let port: string;
+        let address: string;
+        if (portMatch) {
+            port = portMatch[0];
+            address = workingCombined.replace(port, '');
         } else {
-            address = combined;
+            address = workingCombined;
             address = address.replace(':NO_PORT', '');
+            port = '';
         }
 
         if (isAnyV4) {
@@ -112,48 +121,51 @@ class IpUtil {
     /**
      * Returns the CIDR for the given netmask
      *
-     * @public
-     * @param {string} netmask - Network mask
-     * @param {boolean} [noSlash] - Whether or not to prefix a '/' on the CIDR. Default false.
-     * @returns {Array}
+     * @param netmask - Network mask
+     * @param noSlash - Whether or not to prefix a '/' on the CIDR. Default false.
+     * @returns CIDR string or number
      */
-    static getCidrFromNetmask(netmask, noSlash) {
+    static getCidrFromNetmask(netmask: string, noSlash?: boolean): string | number {
         if (netmask === 'any' || netmask === 'any6') {
             return noSlash ? '0' : '/0';
         }
         let cidr = 0;
+        let workingNetmask = netmask;
 
-        if (netmask.includes(':')) {
-            const converted = [];
+        if (workingNetmask.includes(':')) {
+            const converted: number[] = [];
             // convert Ipv6 hex to decimal
-            netmask.split(':').forEach((chunk) => {
+            workingNetmask.split(':').forEach((chunk) => {
                 const hexInt = parseInt(chunk, 16);
                 converted.push(hexInt >> 8); // eslint-disable-line no-bitwise
                 converted.push(hexInt & 0xff); // eslint-disable-line no-bitwise
             });
 
-            netmask = converted.join('.');
+            workingNetmask = converted.join('.');
         }
-        const maskNodes = netmask.match(/(\d+)/g);
-        maskNodes.forEach((m) => {
-            // eslint-disable-next-line no-bitwise
-            cidr += (((m >>> 0).toString(2)).match(/1/g) || []).length;
-        });
+        const maskNodes = workingNetmask.match(/(\d+)/g);
+        if (maskNodes) {
+            maskNodes.forEach((m) => {
+                // eslint-disable-next-line no-bitwise
+                cidr += (((parseInt(m, 10) >>> 0).toString(2)).match(/1/g) ?? []).length;
+            });
+        }
         return noSlash ? cidr : `/${cidr}`;
     }
 
     /**
      * Parses an IP address into its components
      *
-     * @param {string} address - Address to parse
-     * @returns {object} - Object containing IP, route domain, CIRD, netmask, IP with route
+     * @param address - Address to parse
+     * @returns Object containing IP, route domain, CIDR, netmask, IP with route
      */
-    static parseIpAddress(address) {
-        if (address === 'any') address = '0.0.0.0';
-        if (address === 'any6') address = '::';
-        if (address === undefined) address = '';
+    static parseIpAddress(address: string | undefined): ParsedIpAddress {
+        let workingAddress = address;
+        if (workingAddress === 'any') workingAddress = '0.0.0.0';
+        if (workingAddress === 'any6') workingAddress = '::';
+        if (workingAddress === undefined) workingAddress = '';
 
-        const parsedIp = address.match(/((\/[\w\D]+){0,3}\/)?([a-zA-Z0-9_.:]+)(%(\d+))?([.:][\da-z]+)?/) || [];
+        const parsedIp = workingAddress.match(/((\/[\w\D]+){0,3}\/)?([a-zA-Z0-9_.:]+)(%(\d+))?([.:][\da-z]+)?/) ?? [];
 
         // IPv6 f5 wildcard should be '::' but the above match will give it ':'
         // eslint-disable-next-line no-nested-ternary
@@ -161,7 +173,7 @@ class IpUtil {
         // if parsedIp[4] is '' we want routeDomain set to ''
         const routeDomain = (typeof parsedIp[4] === 'undefined' || parsedIp[4] === '0') ? '' : `%${parsedIp[5]}`;
         const ipWithRoute = `${ip}${routeDomain}`;
-        const port = this.splitAddress(address).port;
+        const port = this.splitAddress(workingAddress).port;
 
         return {
             ip,
@@ -172,4 +184,5 @@ class IpUtil {
     }
 }
 
+export default IpUtil;
 module.exports = IpUtil;

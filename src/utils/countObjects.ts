@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-'use strict';
+/**
+ * Count the number of keys in an object
+ *
+ * @param json - object to count keys of
+ * @returns number of keys
+ */
+function countObjects(json: Record<string, unknown>): number {
+    return Object.keys(json).length;
+}
 
-const inputReader = require('../io/inputReader');
-
-const certPath = 'var/tmp/cert_temp/conf/ssl.crt/server.crt';
-const keyPath = 'var/tmp/cert_temp/conf/ssl.key/server.key';
-
-module.exports = (dataCert) => {
-    const deviceCert = {};
-    deviceCert.certificate = (dataCert && dataCert[certPath]) ? dataCert[certPath] : inputReader.data[certPath];
-    deviceCert.privateKey = (dataCert && dataCert[keyPath]) ? dataCert[keyPath] : inputReader.data[keyPath];
-    if (deviceCert.certificate && deviceCert.privateKey) return deviceCert;
-    return false;
-};
+export default countObjects;
+module.exports = countObjects;

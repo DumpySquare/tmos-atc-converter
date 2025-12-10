@@ -14,26 +14,36 @@
  * limitations under the License.
  */
 
-'use strict';
+export interface NestedObject {
+    [key: string]: NestedObject | null;
+}
 
 /**
-     * @param {tmshPath} string
-     * @returns {result} object
-*/
-module.exports = (str) => {
+ * Parse a path string into a nested object structure
+ *
+ * @param str - path string separated by '/'
+ * @returns nested object structure
+ */
+function parseNestedString(str: string): NestedObject {
     const segments = str.split('/');
-    const result = {};
-    let current = result;
+    const result: NestedObject = {};
+    let current: NestedObject = result;
 
     for (let i = 0; i < segments.length; i += 1) {
+        const segment = segments[i];
+        if (segment === undefined) continue;
+
         if (i === segments.length - 1) {
             // If it's the last segment, assign it as null
-            current[segments[i]] = null;
+            current[segment] = null;
         } else {
             // Otherwise, create a new nested object
-            current[segments[i]] = {};
-            current = current[segments[i]];
+            current[segment] = {};
+            current = current[segment] as NestedObject;
         }
     }
     return result;
-};
+}
+
+export default parseNestedString;
+module.exports = parseNestedString;

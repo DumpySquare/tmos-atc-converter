@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-'use strict';
+export interface NameValueObject {
+    name: string;
+    value: string;
+}
 
-// input: '/Tenant1/App1/Profile1'
-// output: {app: 'App1', tenant: 'Tenant1', profile: 'Profile1'}
-
-const formatStr = require('./formatStr');
-
-module.exports = (str) => {
-    const strFormated = formatStr(str);
-    const split = strFormated.split('/');
-    const tenant = split[1];
-    const app = split[2];
-    const profile = split[3];
-
+// '"foo: bar"' => {name: 'foo', value: 'bar'}
+/**
+ * Convert a colon-separated string to a name/value object
+ *
+ * @param str - string in format 'name: value' (with optional quotes)
+ * @returns object with name and value properties
+ */
+function convertToNameValueObj(str: string): NameValueObject {
+    const split = str.replace(/"/g, '').split(':');
     return {
-        app,
-        iapp: app.endsWith('.app'),
-        original: str,
-        profile,
-        tenant
+        name: split[0] ?? '',
+        value: split.slice(1).join(':').trim()
     };
-};
+}
+
+export default convertToNameValueObj;
+module.exports = convertToNameValueObj;

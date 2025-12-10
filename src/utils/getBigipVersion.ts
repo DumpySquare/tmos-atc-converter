@@ -14,7 +14,19 @@
  * limitations under the License.
  */
 
-'use strict';
+/**
+ * Find BIG-IP Version from parsed config data
+ *
+ * @param data - parsed configuration data
+ * @returns BIG-IP version string or empty string if not found
+ */
+function getBigipVersion(data: unknown): string {
+    const dataStr = JSON.stringify(data);
+    if (dataStr.includes('TMSH-VERSION')) {
+        return dataStr.split('TMSH-VERSION: ')[1]?.split('\\n')[0] ?? '';
+    }
+    return '';
+}
 
-// '"100 101 102 200"' => [ 100, 101, 102, 200 ]
-module.exports = (str) => str.trim().split(' ').map(Number);
+export default getBigipVersion;
+module.exports = getBigipVersion;

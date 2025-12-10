@@ -14,57 +14,64 @@
  * limitations under the License.
  */
 
-'use strict';
-
-const Writable = require('stream').Writable;
-const winston = require('winston');
+import { Writable } from 'stream';
+import winston from 'winston';
 
 const colorizer = winston.format.colorize();
-let level = process.env.LOG_LEVEL || 'info';
-if (process.env.NODE_ENV === 'test') level = 'warn';
+let level = process.env['LOG_LEVEL'] ?? 'info';
+if (process.env['NODE_ENV'] === 'test') level = 'warn';
 
 // var for stream log stdout into it
 let output = '';
 const stream = new Writable();
-stream._write = (chunk, encoding, next) => {
+stream._write = (chunk: Buffer, _encoding: BufferEncoding, next: () => void): void => {
     output += chunk.toString();
     next();
 };
 
+export interface ExtendedLogger extends winston.Logger {
+    configureFile: (filename?: string) => void;
+    memory: () => string[];
+}
+
 const logger = winston.createLogger({
     format: winston.format.combine(
         winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        winston.format.printf((msg) => `${msg.timestamp} ${msg.level.toUpperCase()} ${msg.message}`)
+        winston.format.printf((msg) => `${msg['timestamp'] as string} ${msg.level.toUpperCase()} ${msg['message'] as string}`)
     ),
     level,
-    json: false,
     transports: [
         new winston.transports.Console({
             format: winston.format.printf(
-                (msg) => `${msg.timestamp} ${colorizer.colorize(
+                (msg) => `${msg['timestamp'] as string} ${colorizer.colorize(
                     msg.level,
                     msg.level.toUpperCase()
-                )} ${msg.message}`
+                )} ${msg['message'] as string}`
             )
         }),
         new winston.transports.Stream({ stream })
     ]
-});
+}) as ExtendedLogger;
 
-logger.configure = (filename) => {
+// Note: Original JS code used 'configure' but winston.Logger already has that method.
+// We keep compatibility by also assigning to 'configure' at runtime.
+logger.configureFile = (filename?: string): void => {
     if (filename) {
         logger.add(new winston.transports.File({
             filename,
-            json: false,
             maxsize: 10000000
         }));
     }
 };
 
-logger.memory = () => {
+// Maintain backward compatibility with JS code that calls logger.configure()
+(logger as unknown as Record<string, unknown>)['configure'] = logger.configureFile;
+
+logger.memory = (): string[] => {
     const arr = output.trim().split('\n');
     output = '';
     return arr;
 };
 
+export default logger;
 module.exports = logger;
