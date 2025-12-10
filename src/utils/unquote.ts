@@ -14,14 +14,28 @@
  * limitations under the License.
  */
 
-'use strict';
+const QUOTES = ['"', "'", '`'];
 
-// 'enabled' => 'enable'
-// 'disabled' => 'disable'
-// 'auto' => 'auto'
-
-module.exports = (val) => {
-    if (val === 'enabled') return 'enable';
-    if (val === 'disabled') return 'disable';
+/**
+ * Remove leading and trailing quotes
+ *
+ * Note:
+ * - removes only matching quotes. If only leading or trailing quote found
+ *   then string returned as is.
+ *
+ * @param val - quoted string
+ * @returns unquoted string
+ */
+function unquote<T>(val: T): T | string {
+    if (
+        typeof val === 'string'
+        && val.at(0) === val.at(-1)
+        && QUOTES.includes(val.at(0) as string)
+    ) {
+        return val.slice(1, -1);
+    }
     return val;
-};
+}
+
+export default unquote;
+module.exports = unquote;

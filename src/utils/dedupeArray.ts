@@ -1,0 +1,69 @@
+/**
+ * Copyright 2024 F5, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+interface ObjectWithUse {
+    use?: string;
+    bigip?: string;
+    [key: string]: unknown;
+}
+
+type ArrayItem = string | unknown[] | ObjectWithUse;
+
+function arrayEquals(a: unknown[], b: unknown[]): boolean {
+    return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((val, i) => val === b[i]);
+}
+
+/**
+ * Deduplicate an array, handling strings, arrays, and objects with use/bigip properties
+ *
+ * @param arr - array to deduplicate
+ * @returns deduplicated array
+ */
+function dedupeArray(arr: ArrayItem[]): ArrayItem[] {
+    // separate dedupe steps for strings vs arrays vs objs
+    const dict: ArrayItem[] = [];
+    arr.forEach((val) => {
+        const dictObjs = dict
+            .filter((x): x is ObjectWithUse => typeof x === 'object' && !Array.isArray(x) && x !== null && 'use' in x)
+            .map((x) => x.use);
+        const dictObjs1 = dict
+            .filter((x): x is ObjectWithUse => typeof x === 'object' && !Array.isArray(x) && x !== null && 'bigip' in x)
+            .map((x) => x.bigip);
+
+        if (typeof val === 'string' && !dict.includes(val)) {
+            dict.push(val);
+        } else if (Array.isArray(val)) {
+            // check if current array 'dict' includes array 'val'
+            let include = false;
+            dict.forEach((dictItem) => {
+                if (Array.isArray(dictItem) && arrayEquals(val, dictItem)) include = true;
+            });
+            if (!include) dict.push(val);
+        } else if (
+            typeof val === 'object'
+            && val !== null
+            && !Array.isArray(val)
+            && !dictObjs.includes((val as ObjectWithUse).use)
+            && !dictObjs1.includes((val as ObjectWithUse).bigip)
+        ) {
+            dict.push(val);
+        }
+    });
+    return dict;
+}
+
+export default dedupeArray;
+module.exports = dedupeArray;

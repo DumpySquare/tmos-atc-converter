@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-'use strict';
-
-const FLOAT_REGEXP_STRICT = /^([+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?)$/;
+// 'enabled' => 'enable'
+// 'disabled' => 'disable'
+// 'auto' => 'auto'
 
 /**
- * Tests if `value` is a number or string representation of it
+ * Convert 'enabled'/'disabled' to 'enable'/'disable'
  *
- * @param {string} value - value to check
- *
- * @returns {boolean} true if value can be parsed using `parseInt` or `parseFloat`
+ * @param val - value to convert
+ * @returns converted value
  */
-module.exports = (value) => {
-    if (typeof value === 'number') {
-        return Number.isFinite(value);
-    }
-    return typeof value === 'string' && FLOAT_REGEXP_STRICT.test(value);
-};
+function enabledToEnable(val: string): string {
+    if (val === 'enabled') return 'enable';
+    if (val === 'disabled') return 'disable';
+    return val;
+}
+
+export default enabledToEnable;
+module.exports = enabledToEnable;

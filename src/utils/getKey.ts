@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-'use strict';
-
-const camelCase = require('lodash/camelCase');
+// input: 'ltm node /Web/10.1.1.1'
+// output: 'ltm node'
 
 /**
- * Convert string to camel case
+ * Extract the key (type) from a TMOS object path
  *
- * Example:
- * in: 'example-string-here'
- * out: 'exampleStringHere'
- *
- * @param {string} str
- *
- * @returns {string} string in camel case format
+ * @param val - TMOS object path string
+ * @returns the key/type portion without the object name
  */
-module.exports = camelCase;
+function getKey(val: string): string {
+    if (val.includes('"')) {
+        return (val.split('"')[0] ?? '').trim();
+    }
+
+    const split = val.split(' ');
+    split.pop();
+    return split.join(' ');
+}
+
+export default getKey;
+module.exports = getKey;

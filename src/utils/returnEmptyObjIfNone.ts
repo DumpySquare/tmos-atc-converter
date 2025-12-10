@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-'use strict';
-
-module.exports = (val, confObj) => {
+/**
+ * Return empty object if value is 'none', otherwise return the config object
+ *
+ * @param val - value to check
+ * @param confObj - config object to return if val is not 'none'
+ * @returns empty object or confObj
+ */
+function returnEmptyObjIfNone<T>(val: string, confObj: T): T | Record<string, never> {
     if (val === 'none') return {};
     return confObj;
-};
+}
+
+export default returnEmptyObjIfNone;
+module.exports = returnEmptyObjIfNone;

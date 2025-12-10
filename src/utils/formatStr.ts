@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-'use strict';
-
 // input: '/Tenant1/App1/Profile1'
 // output: '/Tenant1/App1/Profile1'
 // 1) trim to 194 symbols
 // 2) replace spaces in the path to _
 
-module.exports = (str) => {
+/**
+ * Format a string path, handling quoted strings and spaces
+ *
+ * @param str - string to format
+ * @returns formatted string or undefined if input is falsy
+ */
+function formatStr(str: string | undefined | null): string | undefined {
     if (!str) return undefined;
 
     let newStr = '';
@@ -32,18 +36,21 @@ module.exports = (str) => {
     } else if (str.includes('"')) {
         // quoted == with spaces, replace spaces with _
         const split = str.split('"');
-        newStr = split[1].replace(/\s/g, '_');
+        newStr = (split[1] ?? '').replace(/\s/g, '_');
     } else {
-        // unquoter with spaces take last element as object path
+        // unquoted with spaces take last element as object path
         const split = str.split(' ');
-        newStr = split.at(-1);
+        newStr = split.at(-1) as string;
     }
 
-    // remove preceeding '_'
+    // remove preceding '_'
     newStr = newStr.replace(/(\/)_+(w+)/g, '$1$2');
 
     // trim length
     newStr = newStr.substring(0, 194);
 
     return newStr;
-};
+}
+
+export default formatStr;
+module.exports = formatStr;

@@ -14,13 +14,48 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-require-imports */
 
-const accPackage = require('../package.json');
-const classicValidator = require('./validators/as3');
-// NEXT validator removed - not needed for this standalone converter
+const accPackage = require('../package.json') as { version: string };
+const classicValidator = require('./validators/as3') as { getSchemaVersion: () => { latest: string } };
 
-module.exports = {
+export interface TMOSConstants {
+    MAX_NAME_LEN: number;
+    PATH_SEP: string;
+}
+
+export interface CommonConstants {
+    TMOS: TMOSConstants;
+}
+
+export interface JSONLogsConstants {
+    PROPERTIES_NOT_TO_LOG: string[];
+}
+
+export interface NextConstants {
+    CLASS_NAME_MAX_LEN: number;
+}
+
+export interface PackageVersionConstants {
+    ACC: string;
+    AS3_SCHEMA: string;
+}
+
+export interface PackageConstants {
+    VERSION: PackageVersionConstants;
+}
+
+export interface Constants {
+    CIPHER_SUFFIX: string;
+    COMMON: CommonConstants;
+    JSON_LOGS: JSONLogsConstants;
+    NEXT: NextConstants;
+    PACKAGE: PackageConstants;
+    SERVICES_WITH_POOL: string[];
+    GLOBAL_OBJECT_PATH_SEP: string;
+}
+
+const constants: Constants = {
     // sometimes we have cipher groups and rules with the same name, we use that suffix to separate that
     CIPHER_SUFFIX: '_rule',
     // common for all modules and types of declarations
@@ -46,7 +81,6 @@ module.exports = {
         VERSION: {
             ACC: accPackage.version,
             AS3_SCHEMA: classicValidator.getSchemaVersion().latest
-            // NEXT/SHARED_SCHEMA removed - not needed for this standalone converter
         }
     },
     SERVICES_WITH_POOL: [
@@ -62,3 +96,8 @@ module.exports = {
     // separator used in globalObjectUtil parsing
     GLOBAL_OBJECT_PATH_SEP: '/'
 };
+
+export default constants;
+
+// CommonJS export for backward compatibility with JS files
+module.exports = constants;

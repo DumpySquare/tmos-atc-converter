@@ -39,7 +39,7 @@ This document tracks the progress of converting the codebase from JavaScript to 
 
 | File | Status | Notes |
 |------|--------|-------|
-| `constants.js` | [ ] | Simple constants, good starting point |
+| `constants.js` → `constants.ts` | [x] | Simple constants, converted with interfaces |
 
 ---
 
@@ -75,20 +75,20 @@ This document tracks the progress of converting the codebase from JavaScript to 
 | `convertToNumberArray.js` | [ ] | |
 | `countObjects.js` | [ ] | |
 | `declarationBase.js` | [ ] | AS3/DO declaration templates |
-| `dedupeArray.js` | [ ] | |
+| `dedupeArray.js` → `dedupeArray.ts` | [x] | |
 | `deleteProperties.js` | [ ] | |
-| `enabledToEnable.js` | [ ] | |
+| `enabledToEnable.js` → `enabledToEnable.ts` | [x] | |
 | `filterConf.js` | [ ] | Configuration filtering |
 | `findLocation.js` | [ ] | |
-| `formatStr.js` | [ ] | |
+| `formatStr.js` → `formatStr.ts` | [x] | |
 | `getBigipVersion.js` | [ ] | |
-| `getKey.js` | [ ] | |
+| `getKey.js` → `getKey.ts` | [x] | |
 | `getObjectType.js` | [ ] | |
 | `globalRenameAndSkippedObject.js` | [ ] | |
 | `handleObjectRef.js` | [ ] | Object reference handling |
-| `hyphensToCamel.js` | [ ] | |
+| `hyphensToCamel.js` → `hyphensToCamel.ts` | [x] | |
 | `ipUtils.js` | [ ] | IP address utilities |
-| `isNumber.js` | [ ] | |
+| `isNumber.js` → `isNumber.ts` | [x] | |
 | `loadCertsAndKeys.js` | [ ] | Certificate loading |
 | `loadDeviceCert.js` | [ ] | |
 | `log.js` | [ ] | Winston logger wrapper |
@@ -97,10 +97,10 @@ This document tracks the progress of converting the codebase from JavaScript to 
 | `prependObjProps.js` | [ ] | |
 | `recursiveCamelize.js` | [ ] | |
 | `renameProperties.js` | [ ] | |
-| `returnEmptyObjIfNone.js` | [ ] | |
+| `returnEmptyObjIfNone.js` → `returnEmptyObjIfNone.ts` | [x] | |
 | `string.js` | [ ] | String utilities |
 | `traverseJSON.js` | [ ] | JSON traversal |
-| `unquote.js` | [ ] | |
+| `unquote.js` → `unquote.ts` | [x] | |
 
 ---
 
@@ -191,16 +191,16 @@ As we convert files, we'll identify shared types. Track them here:
 | Category | Total | Completed | Percentage |
 |----------|-------|-----------|------------|
 | Root | 1 | 1 | 100% |
-| Core | 1 | 0 | 0% |
+| Core | 1 | 1 | 100% |
 | Validators | 1 | 0 | 0% |
 | Parser | 7 | 0 | 0% |
-| Utilities | 33 | 0 | 0% |
+| Utilities | 33 | 8 | 24% |
 | I/O | 2 | 0 | 0% |
 | AS3 Converter | 4 | 0 | 0% |
 | AS3 Engine | 4 | 0 | 0% |
 | AS3 Maps | 21 | 0 | 0% |
 | DO Converter | 2 | 0 | 0% |
-| **Total** | **76** | **1** | **1%** |
+| **Total** | **76** | **10** | **13%** |
 
 ---
 

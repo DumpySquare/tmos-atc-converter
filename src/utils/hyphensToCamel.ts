@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-'use strict';
+import camelCase from 'lodash/camelCase';
 
-// input: 'ltm node /Web/10.1.1.1'
-// output: 'ltm node'
+/**
+ * Convert string to camel case
+ *
+ * Example:
+ * in: 'example-string-here'
+ * out: 'exampleStringHere'
+ *
+ * @param str - string to convert
+ * @returns string in camel case format
+ */
+const hyphensToCamel: (str: string) => string = camelCase;
 
-module.exports = (val) => {
-    if (val.includes('"')) {
-        return val.split('"')[0].trim();
-    }
-
-    const split = val.split(' ');
-    split.pop();
-    return split.join(' ');
-};
+export default hyphensToCamel;
+module.exports = hyphensToCamel;
