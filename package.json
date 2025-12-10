@@ -9,9 +9,11 @@
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
-    "test": "mocha --require ts-node/register 'test/**/*-spec.ts' 'test/**/*-spec.js' --recursive --timeout 30000",
+    "test": "TS_NODE_PROJECT=tsconfig.test.json mocha --require ts-node/register 'test/**/*.test.ts' 'test/**/*spec.ts' 'test/**/*spec.js' --recursive --timeout 30000",
     "test:js": "mocha test --recursive --timeout 30000",
-    "test:upstream": "mocha test/upstream --recursive --timeout 30000"
+    "test:upstream": "mocha test/upstream --recursive --timeout 30000",
+    "typecheck": "tsc --noEmit",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json"
   },
   "keywords": [
     "f5",
@@ -34,8 +36,11 @@
     "winston": "^3.18.3"
   },
   "devDependencies": {
+    "@types/chai": "^5.2.3",
     "@types/lodash": "^4.17.21",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^24.10.2",
+    "@types/sinon": "^21.0.0",
     "chai": "^4.5.0",
     "chai-as-promised": "^8.0.0",
     "mocha": "^10.8.2",

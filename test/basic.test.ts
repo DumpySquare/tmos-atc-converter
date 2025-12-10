@@ -2,10 +2,8 @@
  * Basic functionality tests for extracted tmos-converter
  */
 
-'use strict';
-
-const { expect } = require('chai');
-const tmos = require('../dist');
+import { expect } from 'chai';
+import * as tmos from '../src/index';
 
 describe('TMOS Converter - Basic Extraction Test', () => {
     describe('API exports', () => {
