@@ -1,0 +1,17 @@
+{
+    "schemaVersion": "1.0.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "deviceCertificate": {
+            "class": "DeviceCertificate",
+            "certificate": {
+                "base64": ""
+            },
+            "privateKey": {
+                "base64": ""
+            }
+        }
+    }
+}

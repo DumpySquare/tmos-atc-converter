@@ -21,9 +21,9 @@
 // the 'properties' option will add to the configItems.json file (avoids upstream changes)
 // keyValueRemaps allows both the key and value of a property to be manipulated
 
-const portDict = require('../portDict.json');
-const unquote = require('../../util/convert/unquote');
-const recursiveCamelize = require('../../util/convert/recursiveCamelize');
+const portDict = require('../../../data/portDict.json');
+const unquote = require('../../../utils/unquote');
+const recursiveCamelize = require('../../../utils/recursiveCamelize');
 
 module.exports = {
     Analytics: {},

@@ -16,7 +16,7 @@
 
 'use strict';
 
-const inputReader = require('../../preConverter/inputReader');
+const inputReader = require('../io/inputReader');
 
 const certPath = 'var/tmp/cert_temp/conf/ssl.crt/server.crt';
 const keyPath = 'var/tmp/cert_temp/conf/ssl.key/server.key';

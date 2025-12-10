@@ -30,7 +30,9 @@
   "devDependencies": {
     "chai": "^4.5.0",
     "chai-as-promised": "^8.0.0",
-    "mocha": "^10.8.2"
+    "mocha": "^10.8.2",
+    "nunjucks": "^3.2.4",
+    "sinon": "^21.0.0"
   },
   "engines": {
     "node": ">=18.0.0"

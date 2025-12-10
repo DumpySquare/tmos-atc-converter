@@ -19,27 +19,27 @@
 /* eslint-disable global-require */
 
 const dictArr = [
-    require('./customMaps/certificate'),
-    require('./customMaps/cipher'),
-    require('./customMaps/data_group'),
-    require('./customMaps/dns'),
-    require('./customMaps/enforcement'),
-    require('./customMaps/firewall'),
-    require('./customMaps/gslb'),
-    require('./customMaps/html_rule'),
-    require('./customMaps/iapp'),
-    require('./customMaps/irule'),
-    require('./customMaps/log_config'),
-    require('./customMaps/monitor'),
-    require('./customMaps/network'),
-    require('./customMaps/persist'),
-    require('./customMaps/policy'),
-    require('./customMaps/pool'),
-    require('./customMaps/profile'),
-    require('./customMaps/security'),
-    require('./customMaps/service'),
-    require('./customMaps/service_address'),
-    require('./customMaps/snat_pool')
+    require('./maps/certificate'),
+    require('./maps/cipher'),
+    require('./maps/data_group'),
+    require('./maps/dns'),
+    require('./maps/enforcement'),
+    require('./maps/firewall'),
+    require('./maps/gslb'),
+    require('./maps/html_rule'),
+    require('./maps/iapp'),
+    require('./maps/irule'),
+    require('./maps/log_config'),
+    require('./maps/monitor'),
+    require('./maps/network'),
+    require('./maps/persist'),
+    require('./maps/policy'),
+    require('./maps/pool'),
+    require('./maps/profile'),
+    require('./maps/security'),
+    require('./maps/service'),
+    require('./maps/service_address'),
+    require('./maps/snat_pool')
 ];
 
 module.exports = Object.assign(...dictArr);

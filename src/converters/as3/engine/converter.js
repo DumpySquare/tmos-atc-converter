@@ -20,13 +20,13 @@
 
 const lodashIsEmpty = require('lodash/isEmpty');
 const constants = require('../../../constants');
-const customDict = require('../customDict');
-const getMergedAS3Properties = require('../as3Properties');
-const objectUtil = require('../../../util/object');
-const traverseJSON = require('../../../util/traverseJSON');
-const globalObjectUtil = require('../../../util/globalRenameAndSkippedObject');
-const hyphensToCamel = require('../../../util/convert/hyphensToCamel');
-const parseNestedString = require('../../../util/convert/parseNestedString');
+const customDict = require('../dict');
+const getMergedAS3Properties = require('../properties');
+const objectUtil = require('../../../utils/object');
+const traverseJSON = require('../../../utils/traverseJSON');
+const globalObjectUtil = require('../../../utils/globalRenameAndSkippedObject');
+const hyphensToCamel = require('../../../utils/hyphensToCamel');
+const parseNestedString = require('../../../utils/parseNestedString');
 /** Use to indicate when no value set */
 const NO_VALUE = Symbol('NO_VALUE');
 let objectPropertyPath = Symbol('NO_VALUE');

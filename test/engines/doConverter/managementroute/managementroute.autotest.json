@@ -1,0 +1,14 @@
+{
+    "schemaVersion": "1.0.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "mgmtRoute": {
+            "class": "ManagementRoute",
+            "gw": "10.2.3.4",
+            "network": "10.3.2.1/32",
+            "mtu": 1501
+        }
+    }
+}

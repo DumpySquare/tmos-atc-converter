@@ -16,9 +16,9 @@
 
 'use strict';
 
-const buildProtectedObj = require('../../../util/convert/buildProtectedObj');
-const loadCertsAndKeys = require('../../../util/convert/loadCertsAndKeys');
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const buildProtectedObj = require('../../../utils/buildProtectedObj');
+const loadCertsAndKeys = require('../../../utils/loadCertsAndKeys');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 
 module.exports = {
 

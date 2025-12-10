@@ -16,10 +16,10 @@
 
 'use strict';
 
-const hyphensToCamel = require('../../../util/convert/hyphensToCamel');
-const isNumber = require('../../../util/convert/isNumber');
+const hyphensToCamel = require('../../../utils/hyphensToCamel');
+const isNumber = require('../../../utils/isNumber');
 const NO_VALUE = require('./converter').NO_VALUE;
-const objectUtil = require('../../../util/object');
+const objectUtil = require('../../../utils/object');
 
 /**
  * Default actions for Convert Engine

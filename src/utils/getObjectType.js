@@ -16,7 +16,7 @@
 
 'use strict';
 
-const defaults = require('../../lib/bigipDefaults.json');
+const defaults = require('../data/defaults.json');
 
 // currently only supports ltm
 module.exports = (objName, file) => {

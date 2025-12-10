@@ -16,7 +16,7 @@
 
 'use strict';
 
-const objectUtil = require('../object');
+const objectUtil = require('./object');
 
 const ITEM_DELETED = Symbol('ITEM_DELETED');
 const ITEM_NOT_FOUND = Symbol('ITEM_NOT_FOUND');

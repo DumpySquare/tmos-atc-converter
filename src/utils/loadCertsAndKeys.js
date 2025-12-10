@@ -16,8 +16,8 @@
 
 'use strict';
 
-const inputReader = require('../../preConverter/inputReader');
-const log = require('../log');
+const inputReader = require('../io/inputReader');
+const log = require('./log');
 
 module.exports = (mockPath, loc, file) => {
     const nameSplit = mockPath.split('/');

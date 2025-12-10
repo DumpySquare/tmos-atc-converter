@@ -16,9 +16,9 @@
 
 'use strict';
 
-const objectUtil = require('../../../util/object');
-const prependObjProps = require('../../../util/convert/prependObjProps');
-const unquote = require('../../../util/convert/unquote');
+const objectUtil = require('../../../utils/object');
+const prependObjProps = require('../../../utils/prependObjProps');
+const unquote = require('../../../utils/unquote');
 
 /**
  * Public actions for Convert Engine

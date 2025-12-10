@@ -18,13 +18,13 @@
 
 /* eslint-disable consistent-return */
 
-const configItems = require('@automation-toolchain/f5-do/configItems');
-const customMaps = require('../lib/DO/doCustomMaps');
-const log = require('../util/log');
-const declarationBase = require('../util/convert/declarationBase');
-const loadDeviceCert = require('../util/convert/loadDeviceCert');
-const inputReader = require('../preConverter/inputReader');
-const unquote = require('../util/convert/unquote');
+const configItems = require('../../data/configItems.json');
+const customMaps = require('./maps/doCustomMaps');
+const log = require('../../utils/log');
+const declarationBase = require('../../utils/declarationBase');
+const loadDeviceCert = require('../../utils/loadDeviceCert');
+const inputReader = require('../../io/inputReader');
+const unquote = require('../../utils/unquote');
 
 const regexIPv4 = /^(\d{1,3}\.){3}\d{1,3}/;
 const regexIPv6 = /^([a-fA-F\d]*:)+[a-fA-F\d]*/;

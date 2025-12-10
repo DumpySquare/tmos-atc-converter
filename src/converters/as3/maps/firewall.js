@@ -17,10 +17,10 @@
 'use strict';
 
 const uuid = require('uuid').v4;
-const handleObjectRef = require('../../../util/convert/handleObjectRef');
-const hyphensToCamel = require('../../../util/convert/hyphensToCamel');
-const unquote = require('../../../util/convert/unquote');
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const handleObjectRef = require('../../../utils/handleObjectRef');
+const hyphensToCamel = require('../../../utils/hyphensToCamel');
+const unquote = require('../../../utils/unquote');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 
 module.exports = {
 

@@ -16,7 +16,7 @@
 
 'use strict';
 
-const traverseJSON = require('../traverseJSON');
+const traverseJSON = require('./traverseJSON');
 
 /**
  * Store history for renamed paths

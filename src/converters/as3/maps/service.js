@@ -17,14 +17,14 @@
 'use strict';
 
 const path = require('path');
-const enabledToEnable = require('../../../util/convert/enabledToEnable');
-const getObjectType = require('../../../util/convert/getObjectType');
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
-const handleObjectRef = require('../../../util/convert/handleObjectRef');
-const ipUtils = require('../../../util/convert/ipUtils');
-const log = require('../../../util/log');
-const portDict = require('../../portDict.json');
-const returnEmptyObjIfNone = require('../../../util/convert/returnEmptyObjIfNone');
+const enabledToEnable = require('../../../utils/enabledToEnable');
+const getObjectType = require('../../../utils/getObjectType');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+const handleObjectRef = require('../../../utils/handleObjectRef');
+const ipUtils = require('../../../utils/ipUtils');
+const log = require('../../../utils/log');
+const portDict = require('../../../data/portDict.json');
+const returnEmptyObjIfNone = require('../../../utils/returnEmptyObjIfNone');
 
 const handleSharedPath = (propertyPath) => {
     const splitPath = propertyPath.split('/');

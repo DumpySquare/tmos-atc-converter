@@ -16,10 +16,10 @@
 
 'use strict';
 
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
-const handleObjectRef = require('../../../util/convert/handleObjectRef');
-const hyphensToCamel = require('../../../util/convert/hyphensToCamel');
-const unquote = require('../../../util/convert/unquote');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+const handleObjectRef = require('../../../utils/handleObjectRef');
+const hyphensToCamel = require('../../../utils/hyphensToCamel');
+const unquote = require('../../../utils/unquote');
 const { GLOBAL_OBJECT_PATH_SEP } = require('../../../constants');
 
 const toCamelCase = (str) => str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());

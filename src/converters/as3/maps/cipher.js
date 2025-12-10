@@ -16,8 +16,8 @@
 
 'use strict';
 
-const handleObjectRef = require('../../../util/convert/handleObjectRef');
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const handleObjectRef = require('../../../utils/handleObjectRef');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 
 const defaultRules = ['/Common/f5-default', '/Common/f5-secure'];
 const CIPHER_SUFFIX = require('../../../constants').CIPHER_SUFFIX;

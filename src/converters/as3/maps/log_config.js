@@ -16,9 +16,9 @@
 
 'use strict';
 
-const handleObjectRef = require('../../../util/convert/handleObjectRef');
+const handleObjectRef = require('../../../utils/handleObjectRef');
 
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 
 module.exports = {
 

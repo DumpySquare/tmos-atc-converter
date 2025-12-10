@@ -16,8 +16,8 @@
 
 'use strict';
 
-const buildProtectedObj = require('../../../util/convert/buildProtectedObj');
-const handleObjectRef = require('../../../util/convert/handleObjectRef');
+const buildProtectedObj = require('../../../utils/buildProtectedObj');
+const handleObjectRef = require('../../../utils/handleObjectRef');
 
 module.exports = {
 

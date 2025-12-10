@@ -16,13 +16,13 @@
 
 'use strict';
 
-const buildProtectedObj = require('../../../util/convert/buildProtectedObj');
-const handleObjectRef = require('../../../util/convert/handleObjectRef');
-const hyphensToCamel = require('../../../util/convert/hyphensToCamel');
-const ipUtils = require('../../../util/convert/ipUtils');
-const returnEmptyObjIfNone = require('../../../util/convert/returnEmptyObjIfNone');
-const unquote = require('../../../util/convert/unquote');
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const buildProtectedObj = require('../../../utils/buildProtectedObj');
+const handleObjectRef = require('../../../utils/handleObjectRef');
+const hyphensToCamel = require('../../../utils/hyphensToCamel');
+const ipUtils = require('../../../utils/ipUtils');
+const returnEmptyObjIfNone = require('../../../utils/returnEmptyObjIfNone');
+const unquote = require('../../../utils/unquote');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 
 const reparse = (str) => str.replace(/{/g, '').replace(/}/g, '')
     .split('"')

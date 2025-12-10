@@ -1,0 +1,14 @@
+{
+    "security dos bot-signature \"/Common/Bash Shellshock\"": {
+        "category": "\"/Common/Exploit Tool\"",
+        "rule": "\"headercontent:\\\"() {\\\"; useragentonly; nocase;\"",
+        "user-defined": "false"
+    },
+    "security dos bot-signature \"/Common/Bichoo Spider\"": {
+        "category": "\"/Common/Web Spider\"",
+        "risk": "high",
+        "rule": "\"headercontent:\\\"Bichoo Spider\\\"; useragentonly; nocase;\"",
+        "user-defined": "false"
+    },
+    "ltm rule /Common/test_rule": "    when HTTP_RESPONSE {\n        if { [string map {\\\" \"\"} [HTTP::cookie \"JSESSIONID\"]] ne \"\" } {\n                log -noname local0. \"test\"\n        }\n    }"
+}

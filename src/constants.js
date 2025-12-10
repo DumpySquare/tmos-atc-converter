@@ -17,8 +17,8 @@
 'use strict';
 
 const accPackage = require('../package.json');
-const classicValidator = require('./lib/validators/as3Classic');
-const nextValidator = require('./lib/validators/as3Next');
+const classicValidator = require('./validators/as3');
+// NEXT validator removed - not needed for this standalone converter
 
 module.exports = {
     // sometimes we have cipher groups and rules with the same name, we use that suffix to separate that
@@ -45,9 +45,8 @@ module.exports = {
     PACKAGE: {
         VERSION: {
             ACC: accPackage.version,
-            AS3_SCHEMA: classicValidator.getSchemaVersion().latest,
-            SHARED_SCHEMA: nextValidator.getSchemaVersion().latest,
-            SHARED_SCHEMA_PACKAGE: nextValidator.getPkgVersion()
+            AS3_SCHEMA: classicValidator.getSchemaVersion().latest
+            // NEXT/SHARED_SCHEMA removed - not needed for this standalone converter
         }
     },
     SERVICES_WITH_POOL: [

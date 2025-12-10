@@ -16,8 +16,8 @@
 
 'use strict';
 
-const unquote = require('../../../util/convert/unquote');
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const unquote = require('../../../utils/unquote');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 
 module.exports = {
 

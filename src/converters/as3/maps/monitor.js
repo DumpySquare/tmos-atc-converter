@@ -16,13 +16,13 @@
 
 'use strict';
 
-const buildProtectedObj = require('../../../util/convert/buildProtectedObj');
-const convertToNumberArray = require('../../../util/convert/convertToNumberArray');
-const handleObjectRef = require('../../../util/convert/handleObjectRef');
-const loadCertsAndKeys = require('../../../util/convert/loadCertsAndKeys');
-const returnEmptyObjIfNone = require('../../../util/convert/returnEmptyObjIfNone');
-const unquote = require('../../../util/convert/unquote');
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const buildProtectedObj = require('../../../utils/buildProtectedObj');
+const convertToNumberArray = require('../../../utils/convertToNumberArray');
+const handleObjectRef = require('../../../utils/handleObjectRef');
+const loadCertsAndKeys = require('../../../utils/loadCertsAndKeys');
+const returnEmptyObjIfNone = require('../../../utils/returnEmptyObjIfNone');
+const unquote = require('../../../utils/unquote');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 
 const mapAdaptiveDivergence = (rootObj, loc) => {
     const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;

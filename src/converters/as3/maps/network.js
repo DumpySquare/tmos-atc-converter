@@ -17,8 +17,8 @@
 'use strict';
 
 const range = require('lodash/range');
-const handleObjectRef = require('../../../util/convert/handleObjectRef');
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const handleObjectRef = require('../../../utils/handleObjectRef');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 
 const splitRate = (str) => {
     let i;

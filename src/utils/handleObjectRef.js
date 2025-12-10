@@ -17,7 +17,7 @@
 'use strict';
 
 const formatStr = require('./formatStr');
-const defaults = require('../../lib/bigipDefaults.json');
+const defaults = require('../data/defaults.json');
 
 module.exports = (str) => {
     str = formatStr(str);

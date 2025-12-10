@@ -16,8 +16,8 @@
 
 'use strict';
 
-const buildProtectedObj = require('../../../util/convert/buildProtectedObj');
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const buildProtectedObj = require('../../../utils/buildProtectedObj');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 
 const iruleRef = (val) => {
     const split = val.split('/').slice(1);

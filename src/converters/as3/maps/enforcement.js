@@ -16,10 +16,10 @@
 
 'use strict';
 
-const buildProtectedObj = require('../../../util/convert/buildProtectedObj');
-const handleObjectRef = require('../../../util/convert/handleObjectRef');
-const returnEmptyObjIfNone = require('../../../util/convert/returnEmptyObjIfNone');
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const buildProtectedObj = require('../../../utils/buildProtectedObj');
+const handleObjectRef = require('../../../utils/handleObjectRef');
+const returnEmptyObjIfNone = require('../../../utils/returnEmptyObjIfNone');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 
 module.exports = {
 

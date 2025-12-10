@@ -16,16 +16,16 @@
 
 'use strict';
 
-const buildProtectedObj = require('../../../util/convert/buildProtectedObj');
-const convertToNameValueObj = require('../../../util/convert/convertToNameValueObj');
-const enabledToEnable = require('../../../util/convert/enabledToEnable');
-const handleObjectRef = require('../../../util/convert/handleObjectRef');
-const loadCertsAndKeys = require('../../../util/convert/loadCertsAndKeys');
-const returnEmptyObjIfNone = require('../../../util/convert/returnEmptyObjIfNone');
-const unquote = require('../../../util/convert/unquote');
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const buildProtectedObj = require('../../../utils/buildProtectedObj');
+const convertToNameValueObj = require('../../../utils/convertToNameValueObj');
+const enabledToEnable = require('../../../utils/enabledToEnable');
+const handleObjectRef = require('../../../utils/handleObjectRef');
+const loadCertsAndKeys = require('../../../utils/loadCertsAndKeys');
+const returnEmptyObjIfNone = require('../../../utils/returnEmptyObjIfNone');
+const unquote = require('../../../utils/unquote');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 
-const defaults = require('../../bigipDefaults.json');
+const defaults = require('../../../data/defaults.json');
 
 /**
  * Removes suffix from string '100Mb' and return number.

@@ -16,10 +16,10 @@
 
 'use strict';
 
-const handleObjectRef = require('../../../util/convert/handleObjectRef');
-const ipUtils = require('../../../util/convert/ipUtils');
-const returnEmptyObjIfNone = require('../../../util/convert/returnEmptyObjIfNone');
-const unquote = require('../../../util/convert/unquote');
+const handleObjectRef = require('../../../utils/handleObjectRef');
+const ipUtils = require('../../../utils/ipUtils');
+const returnEmptyObjIfNone = require('../../../utils/returnEmptyObjIfNone');
+const unquote = require('../../../utils/unquote');
 
 module.exports = {
 

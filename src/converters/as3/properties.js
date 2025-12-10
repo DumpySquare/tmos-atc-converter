@@ -17,10 +17,10 @@
 'use strict';
 
 const AS3Properties = require('@automation-toolchain/f5-appsvcs-classic-schema/properties');
-const AS3PropertiesAddtnl = require('./as3PropertiesCustom.json');
+const AS3PropertiesAddtnl = require('./propertiesCustom.json');
 
-const log = require('../../util/log');
-const objectUtil = require('../../util/object');
+const log = require('../../utils/log');
+const objectUtil = require('../../utils/object');
 
 /**
  * Remove data related to special handling from ACC

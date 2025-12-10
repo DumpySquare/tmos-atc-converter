@@ -17,10 +17,10 @@
 'use strict';
 
 const assert = require('assert');
-const handleObjectRef = require('../../../util/convert/handleObjectRef');
-const hyphensToCamel = require('../../../util/convert/hyphensToCamel');
-const ipUtils = require('../../../util/convert/ipUtils');
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const handleObjectRef = require('../../../utils/handleObjectRef');
+const hyphensToCamel = require('../../../utils/hyphensToCamel');
+const ipUtils = require('../../../utils/ipUtils');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 const constants = require('../../../constants');
 
 // custom diff func w/ concept of allowlist

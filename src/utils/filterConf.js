@@ -16,7 +16,7 @@
 
 'use strict';
 
-const getKey = require('../util/getKey');
+const getKey = require('./getKey');
 
 /**
  * Filter object using TMOS keys

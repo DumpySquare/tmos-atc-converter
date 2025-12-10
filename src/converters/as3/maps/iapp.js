@@ -16,7 +16,7 @@
 
 'use strict';
 
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 
 module.exports = {
 

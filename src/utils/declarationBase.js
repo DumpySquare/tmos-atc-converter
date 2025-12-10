@@ -18,9 +18,9 @@
 
 const uuid = require('uuid').v4;
 
-const as3Classic = require('../../lib/validators/as3Classic');
+const as3Classic = require('../validators/as3');
 
-const { name, version } = require('../../../package.json');
+const { name, version } = require('../../package.json');
 
 module.exports = {
     AS3: (config) => {

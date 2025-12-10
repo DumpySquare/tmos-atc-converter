@@ -16,8 +16,8 @@
 
 'use strict';
 
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
-const unquote = require('../../../util/convert/unquote');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+const unquote = require('../../../utils/unquote');
 
 // APM complicates conversion in few ways.
 //

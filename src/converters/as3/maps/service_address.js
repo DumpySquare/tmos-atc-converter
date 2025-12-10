@@ -16,9 +16,9 @@
 
 'use strict';
 
-const enabledToEnable = require('../../../util/convert/enabledToEnable');
-const ipUtils = require('../../../util/convert/ipUtils');
-const GlobalObject = require('../../../util/globalRenameAndSkippedObject');
+const enabledToEnable = require('../../../utils/enabledToEnable');
+const ipUtils = require('../../../utils/ipUtils');
+const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
 
 module.exports = {
 
