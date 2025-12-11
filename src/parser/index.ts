@@ -14,31 +14,37 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import arrToMultilineStr from './utils/arrToMultilineStr';
+import countIndent from './utils/countIndent';
+import getTitle from './utils/getTitle';
+import objToArr from './utils/objToArr';
+import log from '../utils/log';
+import removeIndent from './utils/removeIndent';
+import strToObj from './utils/strToObj';
 
-const arrToMultilineStr = require('./utils/arrToMultilineStr');
-const countIndent = require('./utils/countIndent');
-const getTitle = require('./utils/getTitle');
-const objToArr = require('./utils/objToArr');
-const log = require('../utils/log');
-const removeIndent = require('./utils/removeIndent');
-const strToObj = require('./utils/strToObj');
+export type ParsedConfig = Record<string, any>;
+
+interface GroupResult {
+    group: string[][];
+    error: Error | null;
+}
 
 // return true if the string contains the header of ltm/gtm/pem rule
-function isRule(str) {
+function isRule(str: string): boolean {
     return str.includes('ltm rule') || str.includes('gtm rule') || str.includes('pem irule');
 }
 
 // pass arr of individual bigip-obj
 // recognize && handle edge cases
-function orchestrate(arr) {
-    const key = getTitle(arr[0]);
+function orchestrate(arr: string[]): Record<string, any> {
+    const key = getTitle(arr[0] ?? '');
 
     // remove opening and closing brackets
     arr.pop();
     arr.shift();
 
-    let obj = {};
+    let obj: any = {};
 
     // edge case: iRules (multiline string)
     if (isRule(key)) {
@@ -46,8 +52,8 @@ function orchestrate(arr) {
 
     // edge case: monitor min X of {...}
     } else if (key.includes('monitor min')) {
-        arr = arr.map((s) => s.trim());
-        obj = arr.join(' ').split(' ');
+        const trimmedArr = arr.map((s) => s.trim());
+        obj = trimmedArr.join(' ').split(' ');
 
     // edge case: skip cli script
     // also skip 'sys crypto cert-order-manager', it has quotation marks around curly brackets of 'order-info'
@@ -56,7 +62,7 @@ function orchestrate(arr) {
             // edge case: nested object
             // RECURSIVE FUNCTION
             // quoted bracket "{" won't trigger recursion
-            if (arr[i].endsWith('{') && arr.length !== 1) {
+            if (arr[i]?.endsWith('{') && arr.length !== 1) {
                 let c = 0;
                 while (arr[i + c] !== '    }') {
                     c += 1;
@@ -83,27 +89,27 @@ function orchestrate(arr) {
                 i += c;
 
             // edge case: empty object
-            } else if (arr[i].split(' ').join('').endsWith('{}')) {
-                obj[arr[i].split('{')[0].trim()] = {};
+            } else if (arr[i]?.split(' ').join('').endsWith('{}')) {
+                obj[(arr[i]?.split('{')[0] ?? '').trim()] = {};
 
             // edge case: pseudo-array pattern (coerce to array)
-            } else if (arr[i].includes('{') && arr[i].includes('}') && !arr[i].includes('"')) {
-                obj[arr[i].split('{')[0].trim()] = objToArr(arr[i]);
+            } else if (arr[i]?.includes('{') && arr[i]?.includes('}') && !arr[i]?.includes('"')) {
+                obj[(arr[i]?.split('{')[0] ?? '').trim()] = objToArr(arr[i] ?? '');
 
             // edge case: single-string property
-            } else if ((!arr[i].trim().includes(' ') || arr[i].trim().match(/^"[\s\S]*"$/)) && !arr[i].includes('}')) {
-                obj[arr[i].trim()] = '';
+            } else if ((!arr[i]?.trim().includes(' ') || arr[i]?.trim().match(/^"[\s\S]*"$/)) && !arr[i]?.includes('}')) {
+                obj[arr[i]?.trim() ?? ''] = '';
 
             // regular string property
             // ensure string props on same indentation level
-            } else if (countIndent(arr[i]) === 4) {
+            } else if (countIndent(arr[i] ?? '') === 4) {
                 // edge case: multiline string
-                const count = (arr[i].match(/"/g) || []).length;
+                const count = (arr[i]?.match(/"/g) ?? []).length;
                 if (count % 2 === 1) {
                     let c = 1;
 
                     // keep count of '"'?
-                    while (arr[i + c] && (arr[i + c].match(/"/g) || []).length % 2 !== 1) {
+                    while (arr[i + c] && (arr[i + c]?.match(/"/g) ?? []).length % 2 !== 1) {
                         c += 1;
                     }
 
@@ -114,12 +120,12 @@ function orchestrate(arr) {
 
                 // treat as typical string
                 } else {
-                    const tmp = strToObj(arr[i].trim());
+                    const tmp = strToObj(arr[i]?.trim() ?? '');
                     // edge case for gtm monitor external and user-defined property
                     if (key.startsWith('gtm monitor external') && Object.keys(tmp).includes('user-defined')) {
                         if (!obj['user-defined']) obj['user-defined'] = {};
-                        const tmpObj = strToObj(tmp['user-defined']);
-                        obj['user-defined'][Object.keys(tmpObj)[0]] = Object.values(tmpObj)[0];
+                        const tmpObj = strToObj(tmp['user-defined'] ?? '');
+                        obj['user-defined'][Object.keys(tmpObj)[0] ?? ''] = Object.values(tmpObj)[0];
                     } else obj = Object.assign(obj, tmp);
                 }
 
@@ -135,12 +141,13 @@ function orchestrate(arr) {
 
 /* THIS FUNCTION SHOULD ONLY GROUP ROOT-LEVEL CONFIG OBJECTS */
 
-function groupObjects(arr) {
-    const group = [];
-    let error = null;
+function groupObjects(arr: string[]): GroupResult {
+    const group: string[][] = [];
+    let error: Error | null = null;
     try {
         for (let i = 0; i < arr.length; i += 1) {
             const currentLine = arr[i];
+            if (!currentLine) continue;
 
             // empty obj / pseudo-array
             // change to use first/last char pattern (not nested empty obj)
@@ -170,7 +177,7 @@ function groupObjects(arr) {
 
                     if (!line) {
                         if ((opening !== closing) && ruleFlag) {
-                            error = { message: `iRule parsing error, check the following iRule: ${ruleLine}` };
+                            error = new Error(`iRule parsing error, check the following iRule: ${ruleLine}`);
                         }
                         break;
                     }
@@ -213,19 +220,25 @@ function groupObjects(arr) {
             }
         }
     } catch (e) {
-        error = e;
+        error = e as Error;
     }
     return { group, error };
 }
 
 // count specific char in string
-function countChar(str, char) {
+function countChar(str: string, char: string): number {
     return str.split(char).length - 1;
 }
 
-module.exports = (files) => {
+/**
+ * Parse TMOS configuration files
+ *
+ * @param files - object with file paths as keys and file contents as values
+ * @returns parsed configuration object
+ */
+function parse(files: Record<string, string>): ParsedConfig {
     try {
-        let data = {};
+        let data: ParsedConfig = {};
 
         Object.keys(files).forEach((key) => {
             // do not parse certs, keys or license
@@ -235,12 +248,12 @@ module.exports = (files) => {
 
             log.debug(`Parsing ${key}`);
 
-            const fileStr = files[key].replace(/\r\n/g, '\n');
+            const fileStr = files[key]?.replace(/\r\n/g, '\n') ?? '';
             let fileArr = fileStr.split('\n');
 
             // gtm topology
-            const newFileArr = [];
-            const topologyArr = [];
+            const newFileArr: string[] = [];
+            const topologyArr: string[] = [];
             let topologyCount = 0;
             let longestMatchEnabled = false;
             let inTopology = false;
@@ -318,8 +331,12 @@ module.exports = (files) => {
             throw e;
         } else {
             // For other exceptions, include the custom message
-            e.message = `Error parsing input file. Please open an issue at https://github.com/f5devcentral/f5-automation-config-converter/issues and include the following error:\n${e.message}`;
-            throw e;
+            const err = e as Error;
+            err.message = `Error parsing input file. Please open an issue at https://github.com/f5devcentral/f5-automation-config-converter/issues and include the following error:\n${err.message}`;
+            throw err;
         }
     }
-};
+}
+
+export default parse;
+module.exports = parse;

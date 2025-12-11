@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-'use strict';
-
-const ConvertEngine = require('./converter');
-const defaultActions = require('./defaultActions');
-const publicActions = require('./publicActions');
-
 /**
- * Initialize ConvertEngine
+ * Return number of leading spaces
  *
- * @returns {ConvertEngine} instance
+ * @param str - string to count leading spaces in
+ * @returns number of leading spaces
  */
-module.exports = () => new ConvertEngine({
-    default: defaultActions,
-    public: publicActions
-});
+function countIndent(str: string): number {
+    return str.search(/\S/);
+}
+
+export default countIndent;
+module.exports = countIndent;

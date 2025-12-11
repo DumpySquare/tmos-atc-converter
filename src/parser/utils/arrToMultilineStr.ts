@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-'use strict';
+/**
+ * Convert array of lines to multiline string object
+ *
+ * @param arr - array of lines representing a multiline string
+ * @returns object with key-value where value is joined multiline string
+ */
+function arrToMultilineStr(arr: string[]): Record<string, string> {
+    const split = arr[0]?.trim().split(' ') ?? [];
+    const key = split.shift() ?? '';
+    arr[0] = split.join(' ');
+    return { [key]: arr.join('\n') };
+}
 
-// for one-line arrays
-module.exports = (line) => {
-    const split = line.split('{');
-    const arrBody = split[1].split('}').join('').trim();
-    return arrBody.split(' ');
-};
+export default arrToMultilineStr;
+module.exports = arrToMultilineStr;

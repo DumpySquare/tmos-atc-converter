@@ -14,50 +14,56 @@
  * limitations under the License.
  */
 
-/* eslint-disable max-classes-per-file, no-restricted-syntax */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-'use strict';
+import lodashIsEmpty from 'lodash/isEmpty';
+import * as constants from '../../../constants';
+import customDict from '../dict';
+import getMergedAS3Properties from '../properties';
+import objectUtil from '../../../utils/object';
+import traverseJSON from '../../../utils/traverseJSON';
+import globalObjectUtil from '../../../utils/globalRenameAndSkippedObject';
+import hyphensToCamel from '../../../utils/hyphensToCamel';
+import parseNestedString from '../../../utils/parseNestedString';
 
-const lodashIsEmpty = require('lodash/isEmpty');
-const constants = require('../../../constants');
-const customDict = require('../dict');
-const getMergedAS3Properties = require('../properties');
-const objectUtil = require('../../../utils/object');
-const traverseJSON = require('../../../utils/traverseJSON');
-const globalObjectUtil = require('../../../utils/globalRenameAndSkippedObject');
-const hyphensToCamel = require('../../../utils/hyphensToCamel');
-const parseNestedString = require('../../../utils/parseNestedString');
 /** Use to indicate when no value set */
-const NO_VALUE = Symbol('NO_VALUE');
-let objectPropertyPath = Symbol('NO_VALUE');
-let objectTmshHeader = Symbol('NO_VALUE');
+export const NO_VALUE = Symbol('NO_VALUE');
+let objectPropertyPath: symbol | string = NO_VALUE;
+let objectTmshHeader: symbol | string = NO_VALUE;
+
+export interface ConvertOptions {
+    accConfig?: {
+        jsonLogs?: boolean;
+        requestContext?: {
+            logSkipTmshProperty: (data: any) => void;
+            logRenameProperty: (data: any) => void;
+        };
+    };
+    tmshHeader?: string;
+    originalTmshHeader?: string;
+}
+
+export interface PropertyDefinition {
+    id?: string;
+    [key: string]: any;
+}
+
+export interface Action {
+    name: string;
+    action: (ctx: any, value: any, options?: any, path?: string) => Promise<void>;
+}
 
 /**
  * Object Context Class for ConvertEngine
- *
- * @property {object} convertedData - converted data
  */
 class ObjectContext {
-    /** @type {object} */
-    #configHandler;
+    #configHandler: any;
+    #engine: ConvertEngine;
+    #tmosConfigKey: string;
+    #tmosConfigObject: Record<string, any>;
+    convertedData: Record<string, any>;
 
-    /** @type {ConvertEngine} */
-    #engine;
-
-    /** @type {string} */
-    #tmosConfigKey;
-
-    /** @type {object} */
-    #tmosConfigObject;
-
-    /**
-     * Constructor
-     *
-     * @param {ConvertEngine} engine - ConvertEngine instance
-     * @param {string} tmosConfigKey - TMOS Config Object key
-     * @param {object} tmosConfigObject - TMOS Config Object
-     */
-    constructor(engine, tmosConfigKey, tmosConfigObject) {
+    constructor(engine: ConvertEngine, tmosConfigKey: string, tmosConfigObject: Record<string, any>) {
         this.#configHandler = objectUtil.get(customDict, tmosConfigKey, null);
         this.#engine = engine;
         this.#tmosConfigKey = tmosConfigKey;
@@ -65,70 +71,46 @@ class ObjectContext {
         this.convertedData = {};
     }
 
-    /** @returns {object} */
-    get configHandler() {
+    get configHandler(): any {
         return this.#configHandler;
     }
 
-    /** @returns {Array<object>} array of properties definitions */
-    get definitions() {
+    get definitions(): PropertyDefinition[] {
         return objectUtil.cloneDeep(
             objectUtil.get(this.#engine.propertiesMap, this.#tmosConfigKey, [])
         );
     }
 
-    /** @returns {ConvertEngine} instance */
-    get engine() {
+    get engine(): ConvertEngine {
         return this.#engine;
     }
 
-    /** @returns {string} TMOS Config key */
-    get tmosConfigKey() {
+    get tmosConfigKey(): string {
         return this.#tmosConfigKey;
     }
 
-    /** @returns {object} deep clone of origin TMOS Config Object */
-    get tmosConfigObject() {
+    get tmosConfigObject(): Record<string, any> {
         return objectUtil.cloneDeep(this.#tmosConfigObject);
     }
 
-    /** @returns {boolean} true if `tmosConfigKey` is supported and data can be */
-    isSupported() {
+    isSupported(): boolean {
         return !!this.definitions.length;
     }
 }
 
 /**
  * Property Context Class for ConvertEngine
- *
- * @property {string} convertedPropertyKey - converted property key
- * @property {any} convertedPropertyValue - converted propert value
  */
 class PropertyContext {
-    /** @type {ObjectContext} */
-    #objectCtx;
+    #objectCtx: ObjectContext;
+    #propertyDefinition: PropertyDefinition;
+    #stopFlag: boolean = false;
+    #tmosPropertyKey: string;
+    #tmosPropertyValue: any;
+    convertedPropertyKey: any;
+    convertedPropertyValue: any;
 
-    /** @type {object} */
-    #propertyDefinition;
-
-    /** @type {boolean} */
-    #stopFlag = false;
-
-    /** @type {string} */
-    #tmosPropertyKey;
-
-    /** @type {any} */
-    #tmosPropertyValue;
-
-    /**
-     * Constructor
-     *
-     * @param {ObjectContext} objectCtx
-     * @param {string} tmosPropertyKey
-     * @param {any} tmosPropertyValue
-     * @param {object} definition
-     */
-    constructor(objectCtx, tmosPropertyKey, tmosPropertyValue, definition) {
+    constructor(objectCtx: ObjectContext, tmosPropertyKey: string, tmosPropertyValue: any, definition: PropertyDefinition) {
         this.#objectCtx = objectCtx;
         this.#propertyDefinition = objectUtil.cloneDeep(definition);
         this.#tmosPropertyKey = tmosPropertyKey;
@@ -137,79 +119,51 @@ class PropertyContext {
         this.convertedPropertyValue = NO_VALUE;
     }
 
-    /** @returns {object} */
-    get configHandler() {
+    get configHandler(): any {
         return this.#objectCtx.configHandler;
     }
 
-    /** @returns {object} */
-    get convertedData() {
+    get convertedData(): Record<string, any> {
         return this.#objectCtx.convertedData;
     }
 
-    /** @returns {ConvertEngine} instance */
-    get engine() {
+    get engine(): ConvertEngine {
         return this.#objectCtx.engine;
     }
 
-    /** @returns {object} property definition */
-    get propertyDefinition() {
+    get propertyDefinition(): PropertyDefinition {
         return objectUtil.cloneDeep(this.#propertyDefinition);
     }
 
-    /** @returns {string} TMOS Config key */
-    get tmosConfigKey() {
+    get tmosConfigKey(): string {
         return this.#objectCtx.tmosConfigKey;
     }
 
-    /** @returns {object} deep clone of origin TMOS Config Object */
-    get tmosConfigObject() {
+    get tmosConfigObject(): Record<string, any> {
         return this.#objectCtx.tmosConfigObject;
     }
 
-    /** @returns {string} TMOS Property key */
-    get tmosPropertyKey() {
+    get tmosPropertyKey(): string {
         return this.#tmosPropertyKey;
     }
 
-    /** @returns {any} TMOS Property value */
-    get tmosPropertyValue() {
+    get tmosPropertyValue(): any {
         return objectUtil.cloneDeep(this.#tmosPropertyValue);
     }
 
-    /**
-     * @returns {boolean} true if processing for the context enabled
-     */
-    isActive() {
+    isActive(): boolean {
         return !this.#stopFlag;
     }
 
-    /**
-     * Get action's value
-     *
-     * @param {string} actionName - action name
-     *
-     * @returns {any} action's value
-     */
-    getActionValue(actionName) {
+    getActionValue(actionName: string): any {
         return this.#propertyDefinition[actionName];
     }
 
-    /**
-     * Check if action defined in `propertyDefinition`
-     *
-     * @param {string} actionName
-     *
-     * @returns {boolean}
-     */
-    hasAction(actionName) {
+    hasAction(actionName: string): boolean {
         return objectUtil.has(this.#propertyDefinition, actionName);
     }
 
-    /**
-     * Stop processing for the context
-     */
-    stop() {
+    stop(): void {
         this.#stopFlag = true;
     }
 }
@@ -218,71 +172,30 @@ class PropertyContext {
  * Property-based Convert Engine Class
  */
 class ConvertEngine {
-    /** @type {Array} */
-    #defaultActions;
+    #defaultActions: Action[];
+    #publicActions: Action[];
+    #propertiesMap: Record<string, PropertyDefinition[]>;
 
-    /** @type {Array} */
-    #publicActions;
-
-    /** @type {object} */
-    #propertiesMap;
-
-    /**
-     * Constructor
-     *
-     * @param {object} actions - actions
-     * @param {Array} actions.default - default actions
-     * @param {Array} actions.public - public actions
-     */
-    constructor(actions) {
+    constructor(actions: { default?: Action[]; public?: Action[] }) {
         this.#defaultActions = objectUtil.get(actions, 'default', []);
         this.#publicActions = objectUtil.get(actions, 'public', []);
         this.#propertiesMap = getMergedAS3Properties();
     }
 
-    /**
-     * Properties map
-     *
-     * @returns {object}
-     */
-    get propertiesMap() {
+    get propertiesMap(): Record<string, PropertyDefinition[]> {
         return this.#propertiesMap;
     }
 
     /**
      * Log TMSH properties that are not recognized by AS3 Core (cannot be found in properties.json)
-     *
-     * If a sub-object cannot be found in properties.json only the name of the sub-object will be logged:
-     * E.g., if properties.josn has:
-     * "ltm pool": [
-     *   { "id": "members",                   "extend": "objArray", "default": null },
-     *   { "id": "metadata",                  "extend": "objArray" }
-     * ],
-     * "ltm pool metadata": [
-     *   { "id": "name" },
-     *   { "id": "value" },
-     *   { "id": "persist" }
-     * ...
-     * And BIG-IP configuration has a misspelled sub-object name:
-     * ltm pool my_pool {
-     *   Mmetadata: {
-     *     mdata1: {
-     *       name: 'mdata1',
-     *       value: 'value1',
-     *       persist: 0
-     *     }
-     * ...
-     * Then only "Mmetadata" will be logged as skipped (and not "mdata1" and its properties).
-     *
-     * @param {ObjectContext} objectCtx
-     * @param {string} tmosConfigKey - TMOS Config Object key
-     * @param {object} tmosConfigObject - TMOS Config Object
-     * @param {object} options.accConfig - configuration of ACC call
-     * @param {string} options.tmshHeader - tmsh class and object name, e.g., "ltm profile tcp some_profile"
-     * @param {boolean} retryFlag - Set to True if the convertion of a property failed and retrying again.
-     * @param {string} options.originalTmshHeader - original name of tmsh class (before duplicates).
      */
-    #logSkippedProperties(objectCtx, tmosConfigKey, tmosConfigObject, options, retryFlag = false) {
+    #logSkippedProperties(
+        objectCtx: ObjectContext,
+        tmosConfigKey: string,
+        tmosConfigObject: Record<string, any>,
+        options: ConvertOptions | null,
+        retryFlag: boolean = false
+    ): void {
         if (
             options && options.accConfig && options.accConfig.jsonLogs
             && options.tmshHeader && options.originalTmshHeader) {
@@ -291,7 +204,7 @@ class ConvertEngine {
                 if (!constants.JSON_LOGS.PROPERTIES_NOT_TO_LOG.includes(tmosProp)
                 && !as3Props.includes(tmosProp)
                 && !retryFlag) {
-                    options.accConfig.requestContext.logSkipTmshProperty({
+                    options.accConfig.requestContext?.logSkipTmshProperty({
                         reason: `'${tmosProp}' of '${tmosConfigKey}' is not an AS3 Core recognized property`,
                         tmshHeader: options.originalTmshHeader,
                         tmshPath: { [tmosProp]: null },
@@ -306,15 +219,11 @@ class ConvertEngine {
      * originValue just copies TMSH sub-object as is.
      * So, the for the shadow object we need to preserve the structure,
      * and add tmshHeader and tmosPath
-     *
-     * @param {PropertyContext} - propertyCtx
-     * @param {string} tmshHeader - tmsh class and object name, e.g., "ltm profile tcp some_profile"
-     * @returns {object} property value with TMSH info
      */
-    #addTmshInfoForOriginValue(propertyCtx, tmshHeader) {
+    #addTmshInfoForOriginValue(propertyCtx: PropertyContext, tmshHeader: string | symbol): any {
         // add to each node tmsh header and path
         const propWithTmshInfo = objectUtil.cloneDeep(propertyCtx.convertedPropertyValue);
-        traverseJSON(propWithTmshInfo, (parent, key, depth, stop, pathInternal) => {
+        traverseJSON(propWithTmshInfo, (parent: any, key: string, depth: number, stop: () => void, pathInternal: string[]) => {
             /* update only the original properties
                 do not get into an infinite loop with tmsh properties */
             if (key !== 'tmshHeader' && key !== 'tmshPath'
@@ -325,9 +234,9 @@ class ConvertEngine {
                 const pathArray = [...pathInternal];
                 pathArray.unshift(propertyCtx.tmosPropertyKey);
                 pathArray.push(key);
-                let bigObj = null;
+                let bigObj: any = null;
                 while (pathArray.length > 0) {
-                    bigObj = { [pathArray.pop()]: bigObj };
+                    bigObj = { [pathArray.pop()!]: bigObj };
                 }
 
                 /* shadow object does not care about primitive values
@@ -344,16 +253,14 @@ class ConvertEngine {
 
     /**
      * Convert TMOS Config object
-     *
-     * @param {string} tmosConfigKey - TMOS Config Object key
-     * @param {object} tmosConfigObject - TMOS Config Object
-     * @param {object} options.accConfig - configuration of ACC call
-     * @param {string} options.tmshHeader - tmsh class and object name, e.g., "ltm profile tcp some_profile"
-     * @param {string} options.originalTmshHeader - original name of tmsh class (before duplicates),
-     *
-     * @returns {object} converted object
      */
-    async convert(tmosConfigKey, tmosConfigObject, options, tmshPath = null, retryFlag = false) {
+    async convert(
+        tmosConfigKey: string,
+        tmosConfigObject: Record<string, any>,
+        options: ConvertOptions | null,
+        tmshPath: string | null = null,
+        retryFlag: boolean = false
+    ): Promise<Record<string, any>> {
         const objectCtx = new ObjectContext(this, tmosConfigKey, tmosConfigObject);
         if (objectCtx.isSupported()) {
             this.#logSkippedProperties(objectCtx, tmosConfigKey, tmosConfigObject, options, retryFlag);
@@ -362,22 +269,17 @@ class ConvertEngine {
         return objectCtx.convertedData;
     }
 
-    /**
-     * @param {ObjectContext} objectCtx
-     * @param {object} options.accConfig - configuration of ACC call
-     * @param {string} options.tmshHeader - tmsh class and object name, e.g., "ltm profile tcp some_profile"
-     * @param {string} options.originalTmshHeader - original name of tmsh class (before duplicates),
-     */
-    async #runWithCtx(objectCtx, options, tmshPathObj = null) {
+    async #runWithCtx(objectCtx: ObjectContext, options: ConvertOptions | null, tmshPathObj: string | null = null): Promise<void> {
         // handling empty path for global object
-        let path;
-        let existingPath;
-        let headerValue;
-        let tmshPathNestedValue = null;
-        let tmshpathValue = null;
+        let path: string | symbol;
+        let existingPath: string[] | undefined;
+        let headerValue: string | undefined;
+        let tmshPathNestedValue: string | null = null;
+        let tmshpathValue: any = null;
         if (options && options.accConfig && options.tmshHeader && options.originalTmshHeader) {
             // Match either quoted strings or non-space characters and remove quotes
-            path = options.tmshHeader.match(/"([^"]+)"|(\S+)/g).pop().replace(/"/g, '');
+            const matches = options.tmshHeader.match(/"([^"]+)"|(\S+)/g);
+            path = matches?.pop()?.replace(/"/g, '') ?? '';
             const splittedPath = path.split('/');
             if (splittedPath.length === 1) {
                 splittedPath.unshift('');
@@ -388,14 +290,14 @@ class ConvertEngine {
                 const tmshPathArr = [...existingPath];
                 const existingProperty = existingPath.pop();
                 let tmshPath = '';
-                if (lodashIsEmpty(globalObjectUtil.getTmshInfo(existingPath, existingProperty))) {
+                if (existingProperty && lodashIsEmpty(globalObjectUtil.getTmshInfo(existingPath, existingProperty))) {
                     tmshPathArr.forEach((currentPath, index) => {
                         if (index + 1 in tmshPathArr) {
                             const subPath = tmshPathArr.slice(0, index + 1).join('/');
                             tmshPath += `/${tmshPathArr[index + 1]}`;
                             globalObjectUtil.addProperty(
                                 subPath,
-                                tmshPathArr[index + 1],
+                                tmshPathArr[index + 1]!,
                                 '',
                                 { [tmshPath]: null }
                             );
@@ -408,7 +310,7 @@ class ConvertEngine {
             headerValue = options.originalTmshHeader;
             globalObjectUtil.addProperty(
                 firstSplittedPath.join('/'),
-                splittedPath.pop(),
+                splittedPath.pop()!,
                 headerValue,
                 { [splittedPath.join('/')]: null }
             );
@@ -416,56 +318,52 @@ class ConvertEngine {
             path = objectPropertyPath;
             if (objectPropertyPath !== NO_VALUE && objectTmshHeader !== NO_VALUE) {
                 path = objectPropertyPath;
-                headerValue = objectTmshHeader;
+                headerValue = objectTmshHeader as string;
             }
         }
         for (const def of objectCtx.definitions) {
             const tmosObject = objectCtx.tmosConfigObject;
-            if (!(objectUtil.has(def, 'id') && objectUtil.has(tmosObject, [def.id]))) {
-                // eslint-disable-next-line no-continue
+            if (!(objectUtil.has(def, 'id') && objectUtil.has(tmosObject, [def.id!]))) {
                 continue;
             }
 
             const propertyCtx = new PropertyContext(
                 objectCtx,
-                def.id,
-                tmosObject[def.id],
+                def.id!,
+                tmosObject[def.id!],
                 def
             );
             for (const action of this.#publicActions) {
                 if (!propertyCtx.isActive()) {
-                    if (path && propertyCtx.hasAction('altId')) {
+                    if (typeof path === 'string' && propertyCtx.hasAction('altId')) {
                         globalObjectUtil.addProperty(
                             path,
                             propertyCtx.getActionValue(action.name),
-                            headerValue,
-                            { [propertyCtx.tmosPropertyKey]: null } // propertyCtx.tmospropertykey
+                            headerValue!,
+                            { [propertyCtx.tmosPropertyKey]: null }
                         );
                     }
                     break;
                 }
 
                 if (propertyCtx.hasAction(action.name)) {
-                    // eslint-disable-next-line no-await-in-loop
                     if (
                         action.name === 'extend'
                         && propertyCtx.getActionValue(action.name) === 'object'
                     ) {
                         objectPropertyPath = path;
-                        objectTmshHeader = headerValue;
+                        objectTmshHeader = headerValue!;
                         if (tmshPathObj) {
                             tmshPathObj = `${tmshPathObj}/${propertyCtx.tmosPropertyKey}`;
                         } else {
                             tmshPathObj = propertyCtx.tmosPropertyKey;
                         }
                     }
-                    // eslint-disable-next-line no-await-in-loop
                     await action.action(propertyCtx, propertyCtx.getActionValue(action.name), tmshPathObj);
                     if (options) {
                         tmshPathObj = null;
                     }
-                    // eslint-disable-next-line no-await-in-loop
-                    if (action.name === 'altId' && path) {
+                    if (action.name === 'altId' && typeof path === 'string') {
                         if (tmshPathObj) {
                             tmshPathNestedValue = `${tmshPathObj}/${propertyCtx.tmosPropertyKey}`;
                             tmshpathValue = parseNestedString(tmshPathNestedValue);
@@ -475,11 +373,11 @@ class ConvertEngine {
                         globalObjectUtil.addProperty(
                             path,
                             propertyCtx.getActionValue(action.name),
-                            headerValue,
-                            tmshpathValue // propertyCtx.tmospropertykey
+                            headerValue!,
+                            tmshpathValue
                         );
                         if (options && options.accConfig && options.accConfig.jsonLogs) {
-                            options.accConfig.requestContext.logRenameProperty({
+                            options.accConfig.requestContext?.logRenameProperty({
                                 tmshHeader: headerValue,
                                 tmshPath: tmshpathValue,
                                 property: propertyCtx.convertedPropertyKey,
@@ -489,7 +387,7 @@ class ConvertEngine {
                     }
                 }
             }
-            if (!propertyCtx.hasAction('altId') && path) {
+            if (!propertyCtx.hasAction('altId') && typeof path === 'string') {
                 // add non-renamed objects
                 if (tmshPathObj) {
                     tmshPathNestedValue = `${tmshPathObj}/${propertyCtx.tmosPropertyKey}`;
@@ -500,7 +398,7 @@ class ConvertEngine {
                 globalObjectUtil.addProperty(
                     path,
                     propertyCtx.tmosPropertyKey,
-                    headerValue,
+                    headerValue!,
                     tmshpathValue
                 );
             }
@@ -509,7 +407,7 @@ class ConvertEngine {
                     if (!propertyCtx.hasAction('altId')
                         && !(propertyCtx.tmosPropertyKey
                             === hyphensToCamel(propertyCtx.tmosPropertyKey)
-                        ) && path) {
+                        ) && typeof path === 'string') {
                         globalObjectUtil.moveProperty(
                             path,
                             propertyCtx.tmosPropertyKey,
@@ -521,8 +419,7 @@ class ConvertEngine {
                 }
                 const oldConvertedPropertyKey = propertyCtx.convertedPropertyKey === NO_VALUE
                     ? propertyCtx.tmosPropertyKey : propertyCtx.convertedPropertyKey;
-                // eslint-disable-next-line no-await-in-loop
-                await action.action(propertyCtx, options, path);
+                await action.action(propertyCtx, options, path as string);
                 if (action.name === 'originValue') {
                     const propName = propertyCtx.convertedPropertyKey === NO_VALUE
                         ? propertyCtx.tmosPropertyKey : propertyCtx.convertedPropertyKey;
@@ -536,31 +433,34 @@ class ConvertEngine {
                         } else {
                             tmshpathValue = { [propertyCtx.tmosPropertyKey]: null };
                         }
-                        globalObjectUtil.addProperty(
-                            path,
-                            propName,
-                            headerValue,
-                            tmshpathValue
-                        );
+                        if (typeof path === 'string') {
+                            globalObjectUtil.addProperty(
+                                path,
+                                propName,
+                                headerValue!,
+                                tmshpathValue
+                            );
+                        }
                     } else {
                         // object
-                        // eslint-disable-next-line no-lonely-if
                         if (tmshPathObj) {
                             tmshPathNestedValue = `${tmshPathObj}/${propertyCtx.tmosPropertyKey}`;
                             tmshpathValue = parseNestedString(tmshPathNestedValue);
                         } else {
                             tmshpathValue = { [propertyCtx.tmosPropertyKey]: null };
                         }
-                        globalObjectUtil.addProperty(
-                            path,
-                            propName,
-                            headerValue,
-                            tmshpathValue,
-                            null,
-                            this.#addTmshInfoForOriginValue(propertyCtx, headerValue)
-                        );
+                        if (typeof path === 'string') {
+                            globalObjectUtil.addProperty(
+                                path,
+                                propName,
+                                headerValue!,
+                                tmshpathValue,
+                                null,
+                                this.#addTmshInfoForOriginValue(propertyCtx, headerValue!)
+                            );
+                        }
                     }
-                } else if (action.name === 'defaultAltId' && !propertyCtx.hasAction('altId') && !(propertyCtx.tmosPropertyKey === hyphensToCamel(propertyCtx.tmosPropertyKey)) && path) {
+                } else if (action.name === 'defaultAltId' && !propertyCtx.hasAction('altId') && !(propertyCtx.tmosPropertyKey === hyphensToCamel(propertyCtx.tmosPropertyKey)) && typeof path === 'string') {
                     globalObjectUtil.moveProperty(
                         path,
                         propertyCtx.tmosPropertyKey,
@@ -568,7 +468,7 @@ class ConvertEngine {
                         hyphensToCamel(propertyCtx.tmosPropertyKey)
                     );
                     if (options && options.accConfig && options.accConfig.jsonLogs) {
-                        options.accConfig.requestContext.logRenameProperty({
+                        options.accConfig.requestContext?.logRenameProperty({
                             tmshHeader: headerValue,
                             tmshPath: { [propertyCtx.tmosPropertyKey]: null },
                             property: propertyCtx.convertedPropertyKey,
@@ -581,14 +481,16 @@ class ConvertEngine {
                     // key might change in defaultAltId but not the value
                     const propName = propertyCtx.convertedPropertyKey === NO_VALUE
                         ? propertyCtx.tmosPropertyKey : propertyCtx.convertedPropertyKey;
-                    globalObjectUtil.moveAll(
-                        path,
-                        propName,
-                        path,
-                        propertyCtx.convertedPropertyKey
-                    );
+                    if (typeof path === 'string') {
+                        globalObjectUtil.moveAll(
+                            path,
+                            propName,
+                            path,
+                            propertyCtx.convertedPropertyKey
+                        );
+                    }
                     if (options && options.accConfig && options.accConfig.jsonLogs) {
-                        options.accConfig.requestContext.logRenameProperty({
+                        options.accConfig.requestContext?.logRenameProperty({
                             tmshHeader: headerValue,
                             tmshPath: { [propertyCtx.tmosPropertyKey]: null },
                             property: propertyCtx.convertedPropertyKey,
@@ -601,5 +503,6 @@ class ConvertEngine {
     }
 }
 
+export default ConvertEngine;
 module.exports = ConvertEngine;
 module.exports.NO_VALUE = NO_VALUE;

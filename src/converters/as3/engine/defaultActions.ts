@@ -14,12 +14,32 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-const hyphensToCamel = require('../../../utils/hyphensToCamel');
-const isNumber = require('../../../utils/isNumber');
-const NO_VALUE = require('./converter').NO_VALUE;
-const objectUtil = require('../../../utils/object');
+import hyphensToCamel from '../../../utils/hyphensToCamel';
+import isNumber from '../../../utils/isNumber';
+import { NO_VALUE } from './converter';
+import objectUtil from '../../../utils/object';
+
+export interface PropertyContext {
+    convertedPropertyKey: any;
+    convertedPropertyValue: any;
+    convertedData: Record<string, any>;
+    tmosPropertyKey: string;
+    tmosPropertyValue: any;
+    configHandler: any;
+}
+
+export interface ConvertOptions {
+    accConfig?: any;
+    tmshHeader?: string;
+    originalTmshHeader?: string;
+}
+
+export interface Action {
+    name: string;
+    action: (ctx: PropertyContext, options?: ConvertOptions, path?: string) => Promise<void>;
+}
 
 /**
  * Default actions for Convert Engine
@@ -34,10 +54,8 @@ const DEFAULT_INT_IGNORE = ['description', 'recv', 'recv-disable', 'send'];
 
 /**
  * Use origin value as converted if needed
- *
- * @param {PropertyContext} ctx
  */
-async function defaultActionOriginValue(ctx) {
+async function defaultActionOriginValue(ctx: PropertyContext): Promise<void> {
     if (ctx.convertedPropertyValue === NO_VALUE) {
         ctx.convertedPropertyValue = objectUtil.cloneDeep(ctx.tmosPropertyValue);
     }
@@ -45,10 +63,8 @@ async function defaultActionOriginValue(ctx) {
 
 /**
  * Convert TMOS Config Object Property name to camelCase
- *
- * @param {PropertyContext} ctx
  */
-async function defaultActionAlternativeID(ctx) {
+async function defaultActionAlternativeID(ctx: PropertyContext): Promise<void> {
     if (ctx.convertedPropertyKey === NO_VALUE) {
         ctx.convertedPropertyKey = hyphensToCamel(ctx.tmosPropertyKey);
     }
@@ -56,15 +72,13 @@ async function defaultActionAlternativeID(ctx) {
 
 /**
  * Convert array to array of integers if needed
- *
- * @param {PropertyContext} ctx
  */
-async function defaultActionIntArray(ctx) {
+async function defaultActionIntArray(ctx: PropertyContext): Promise<void> {
     if (ctx.convertedPropertyValue !== NO_VALUE
             && Array.isArray(ctx.convertedPropertyValue)) {
         const tmp = ctx.convertedPropertyValue
-            .map((val) => (isNumber(val) ? parseInt(val, 10) : val));
-        if (tmp.every((val) => Number.isFinite(val))) {
+            .map((val: any) => (isNumber(val) ? parseInt(val, 10) : val));
+        if (tmp.every((val: any) => Number.isFinite(val))) {
             ctx.convertedPropertyValue = tmp;
         }
     }
@@ -72,10 +86,8 @@ async function defaultActionIntArray(ctx) {
 
 /**
  * Convert value to integer if needed
- *
- * @param {PropertyContext} ctx
  */
-async function defaultActionInteger(ctx) {
+async function defaultActionInteger(ctx: PropertyContext): Promise<void> {
     if (ctx.convertedPropertyValue !== NO_VALUE
             && !DEFAULT_INT_IGNORE.includes(ctx.tmosPropertyKey)
             && isNumber(ctx.convertedPropertyValue)) {
@@ -85,19 +97,15 @@ async function defaultActionInteger(ctx) {
 
 /**
  * Custom handling based on TMOS Config Key
- *
- * @param {PropertyContext} ctx
- * @param {object} options - contains acc configuration and tmshHeader
- * @param {string} path - path of tmsh object
  */
-async function defaultActionCustomHandling(ctx, options, path) {
+async function defaultActionCustomHandling(ctx: PropertyContext, options?: ConvertOptions, path?: string): Promise<void> {
     if (ctx.convertedPropertyKey !== NO_VALUE && ctx.convertedPropertyValue !== NO_VALUE) {
         Object.assign(
             ctx.convertedData,
             objectUtil.get(
                 ctx.configHandler,
                 ['keyValueRemaps', ctx.convertedPropertyKey],
-                (key, value) => ({ [key]: value })
+                (key: string, value: any) => ({ [key]: value })
             )(ctx.convertedPropertyKey, ctx.convertedPropertyValue, options, path)
         );
     }
@@ -106,7 +114,7 @@ async function defaultActionCustomHandling(ctx, options, path) {
 /**
  * NOTE: ORDER IS MATTERS
  */
-module.exports = [
+const defaultActions: Action[] = [
     {
         name: 'originValue',
         action: defaultActionOriginValue
@@ -128,3 +136,6 @@ module.exports = [
         action: defaultActionCustomHandling
     }
 ];
+
+export default defaultActions;
+module.exports = defaultActions;

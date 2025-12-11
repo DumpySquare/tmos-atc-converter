@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-'use strict';
+/**
+ * Parse bigip-object properties from string
+ *
+ * @param line - line containing "key value"
+ * @returns object with key-value pair
+ */
+function strToObj(line: string): Record<string, string> {
+    const split = line.trim().split(' ');
+    const key = split.shift() ?? '';
+    return { [key]: split.join(' ') };
+}
 
-module.exports = (arr) => {
-    const split = arr[0].trim().split(' ');
-    const key = split.shift();
-    arr[0] = split.join(' ');
-    return { [key]: arr.join('\n') };
-};
+export default strToObj;
+module.exports = strToObj;

@@ -14,11 +14,30 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-const objectUtil = require('../../../utils/object');
-const prependObjProps = require('../../../utils/prependObjProps');
-const unquote = require('../../../utils/unquote');
+import objectUtil from '../../../utils/object';
+import prependObjProps from '../../../utils/prependObjProps';
+import unquote from '../../../utils/unquote';
+
+export interface PropertyContext {
+    engine: {
+        convert: (key: string, value: any, ctx: null, tmshPath: string | null) => Promise<any>;
+    };
+    tmosConfigKey: string;
+    tmosPropertyKey: string;
+    tmosPropertyValue: any;
+    configHandler: any;
+    convertedData: Record<string, any>;
+    convertedPropertyKey: any;
+    convertedPropertyValue: any;
+    stop: () => void;
+}
+
+export interface Action {
+    name: string;
+    action: (ctx: PropertyContext, value: any, tmshPath?: string | null) => Promise<void>;
+}
 
 /**
  * Public actions for Convert Engine
@@ -29,23 +48,15 @@ const unquote = require('../../../utils/unquote');
 
 /**
  * Check if `set` contains the `value`
- *
- * @param {Array | any} set
- * @param {any} value
- *
- * @returns {boolean} true or false
  */
-function setIncludesValue(set, value) {
+function setIncludesValue(set: any[] | any, value: any): boolean {
     return (Array.isArray(set) ? set : [set]).includes(value);
 }
 
 /**
  * 'extend' action
- *
- * @param {PropertyContext} ctx
- * @param {string} actionType
  */
-async function actionExtend(ctx, actionType, tmshPath = null) {
+async function actionExtend(ctx: PropertyContext, actionType: string, tmshPath: string | null = null): Promise<void> {
     let stopPipeline = false;
     if (actionType === 'object') {
         let recurse = await ctx.engine.convert(`${ctx.tmosConfigKey} ${ctx.tmosPropertyKey}`, ctx.tmosPropertyValue, null, tmshPath);
@@ -71,21 +82,15 @@ async function actionExtend(ctx, actionType, tmshPath = null) {
 
 /**
  * 'altId' action
- *
- * @param {PropertyContext} ctx
- * @param {string} altId
  */
-async function actionAlternativeID(ctx, altId) {
+async function actionAlternativeID(ctx: PropertyContext, altId: string): Promise<void> {
     ctx.convertedPropertyKey = altId;
 }
 
 /**
  * 'falsehood' action
- *
- * @param {PropertyContext} ctx
- * @param {string | Array<string>} falsehoodValues - supported values
  */
-async function actionFalsehood(ctx, falsehoodValues) {
+async function actionFalsehood(ctx: PropertyContext, falsehoodValues: string | string[]): Promise<void> {
     if (setIncludesValue(falsehoodValues, ctx.tmosPropertyValue)) {
         ctx.convertedPropertyValue = false;
     }
@@ -93,11 +98,8 @@ async function actionFalsehood(ctx, falsehoodValues) {
 
 /**
  * 'truth' action
- *
- * @param {PropertyContext} ctx
- * @param {string | Array<string>} truthValues - supported values
  */
-async function actionTruth(ctx, truthValues) {
+async function actionTruth(ctx: PropertyContext, truthValues: string | string[]): Promise<void> {
     if (setIncludesValue(truthValues, ctx.tmosPropertyValue)) {
         ctx.convertedPropertyValue = true;
     }
@@ -124,11 +126,8 @@ async function actionTruth(ctx, truthValues) {
  *
  * AS3 sets "quotedString" to true when the value should be enclosed with quotation marks.
  * ACC reads "quotedString" (if set to true) as guidance to remove enclosing quotation marks.
- *
- * @param {PropertyContext} ctx
- * @param {boolean} isQuoted - true if string quoted (value from AS3 merged properties)
  */
-async function actionQuotedString(ctx, isQuoted) {
+async function actionQuotedString(ctx: PropertyContext, isQuoted: boolean): Promise<void> {
     if (isQuoted) {
         ctx.convertedPropertyValue = unquote(ctx.tmosPropertyValue);
     }
@@ -137,7 +136,7 @@ async function actionQuotedString(ctx, isQuoted) {
 /**
  * NOTE: ORDER IS MATTERS
  */
-module.exports = [
+const publicActions: Action[] = [
     {
         name: 'extend',
         action: actionExtend
@@ -159,3 +158,6 @@ module.exports = [
         action: actionFalsehood
     }
 ];
+
+export default publicActions;
+module.exports = publicActions;

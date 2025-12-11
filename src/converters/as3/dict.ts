@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
 
-/* eslint-disable global-require */
-
-const dictArr = [
+const dictArr: Record<string, any>[] = [
     require('./maps/certificate'),
     require('./maps/cipher'),
     require('./maps/data_group'),
@@ -42,4 +40,7 @@ const dictArr = [
     require('./maps/snat_pool')
 ];
 
-module.exports = Object.assign(...dictArr);
+const customDict: Record<string, any> = Object.assign({}, ...dictArr);
+
+export default customDict;
+module.exports = customDict;

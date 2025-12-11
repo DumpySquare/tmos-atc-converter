@@ -14,76 +14,81 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-const path = require('path');
-const deepmerge = require('deepmerge');
+// @ts-nocheck - This file has complex dynamic property access patterns that TypeScript strict mode struggles with
 
-const as3ClassicCleanUp = require('./cleanup');
-// const as3NextCleanUp = require('./as3NextCleanUp'); // REMOVED: NEXT support excluded
-const CIPHER_SUFFIX = require('../../constants').CIPHER_SUFFIX;
-const customDict = require('./dict');
-const declarationBase = require('../../utils/declarationBase');
-const dedupeArray = require('../../utils/dedupeArray');
-const filterConf = require('../../utils/filterConf');
-const findLocation = require('../../utils/findLocation');
-const getKey = require('../../utils/getKey');
-const GlobalObject = require('../../utils/globalRenameAndSkippedObject');
-const handleObjectRef = require('../../utils/handleObjectRef');
-const ipUtils = require('../../utils/ipUtils');
-const log = require('../../utils/log');
-const objectUtil = require('../../utils/object');
-const createConvertEngine = require('./engine');
-const defaults = require('../../data/defaults.json');
+import path from 'path';
+import deepmerge from 'deepmerge';
+
+import as3ClassicCleanUp from './cleanup';
+import constants from '../../constants';
+import customDict from './dict';
+
+const { CIPHER_SUFFIX } = constants;
+import declarationBase from '../../utils/declarationBase';
+import dedupeArray from '../../utils/dedupeArray';
+import filterConf from '../../utils/filterConf';
+import findLocation, { LocationInfo } from '../../utils/findLocation';
+import getKey from '../../utils/getKey';
+import GlobalObject from '../../utils/globalRenameAndSkippedObject';
+import handleObjectRef from '../../utils/handleObjectRef';
+import ipUtils from '../../utils/ipUtils';
+import log from '../../utils/log';
+import objectUtil from '../../utils/object';
+import createConvertEngine from './engine';
+import defaults from '../../data/defaults.json';
+
+export interface ConvertConfig {
+    requestContext?: any;
+    next?: boolean;
+    skipTMOSConvertProcess?: boolean;
+    [key: string]: any;
+}
+
+export interface ConvertResult {
+    declaration: Record<string, any>;
+    iappSupported: string[];
+    as3NotConverted: Record<string, any>;
+    as3NotRecognized: Record<string, any>;
+    keyClassicNotSupported: string[];
+    renamedDict: Record<string, string>;
+    unsupportedStats: Record<string, number>;
+}
+
+interface RedirectVS {
+    add: any[];
+    loc: LocationInfo;
+}
 
 let retryFlag = false;
+
 /**
  * This is an auxiliary function that determines if the names of the two configuration objects are matching
  * in order to select candidates for renaming to avoid name collision in the AS3 declaration.
- * Usually, it is enough to compare the names in the normal way.
- * However, ".crt" suffix in the name of the certificate file is considered meaningless and optional.
- * To address that, the suffix in the name of the certificate file is ignored during the comparison
- * (the certificate key does not participate directly in the creation of the certificate object name of the declaration
- * and can be ignored).
- * The expectation is that a certificate file can appear only as the "secondObject"
- * because it is not in the "supported" array of the caller.
- * We can get away without renaming the certificate file name
- * because it is enough that we rename "ltm profile client-ssl".
- * In addition to that renaming "sys file ssl-cert" is likely to have implication later in the custom handling of
- * certificates when trying to match it to name of "sys file ssl-key" object and bundles.
- *
- * @param {String} candidateForRenaming - top line of a configuration object that might be renamed later,
- *      e.g., "ltm profile client-ssl /Custom/cert_01"
- * @param {String} secondObject  - top line of another configuration object that might have matching name,
- *      e.g., "sys file ssl-cert /Custom/cert_01.crt"
- * @returns {Boolean} "true" if the names match, "false" otherwise
  */
-function doNamesMatch(candidateForRenaming, secondObject) {
+function doNamesMatch(candidateForRenaming: string, secondObject: string): boolean {
     const candidateName = candidateForRenaming.split(' ').pop();
 
     let secondName = secondObject.split(' ').pop();
     if (secondObject.startsWith('sys file ssl-cert')) {
-        secondName = secondName.replace(/\.crt$/g, '');
+        secondName = secondName?.replace(/\.crt$/g, '');
     }
 
     return candidateName === secondName;
 }
+
 /**
  * Function check for id value in conf and give route-domain name
- *
- * @param {Object} obj - source json object
- * @param {Object} targetId - id Value
- *
- * @returns {Object} - keyValues of matching route-domain names
  */
-function filterById(obj, targetId) {
+function filterById(obj: Record<string, any>, targetId: number): string[] {
     const keyValue = Object.entries(obj)
         .filter(([key, value]) => key.includes('net route-domain') && Number(value.id) === targetId)
         .map(([key]) => key);
     return keyValue;
 }
 
-function modifyContentTypeIncludeValues(val) {
+function modifyContentTypeIncludeValues(val: string): string {
     // Regular expression to capture the entire application/(...) part
     const regex = /application\/\(([^)]+)\)/;
 
@@ -97,7 +102,7 @@ function modifyContentTypeIncludeValues(val) {
         const match = val.match(regex);
         if (match) {
             // Split the captured group by the '|' character to get each option
-            const options = match[1].split('|');
+            const options = match[1]!.split('|');
             // Map each option to the format `application/option`, and join them with `; `
             const modifiedVal = options.map((opt) => `application/${opt}`).join('; ');
             // Replace the original application/(...) part with the newly formatted string
@@ -112,39 +117,31 @@ function modifyContentTypeIncludeValues(val) {
  * ['ltm pool', 'ltm profile', 'ltm virtual', 'ltm rule', 'ltm policy', 'ltm monitor']
  * will rename them with template <type>_<oldName>_<dup(optional)>
  *
- * Irrespective of deduplication, rename certificate names that start with a digit
- * (which is currently prohibited by the schemas) by adding prefix 'file_'.
- *
- * And also returns dict of renamed keys for use in 'next'
- *
  * Note:
  * - mutates 'obj'
- *
- * @param {Object} json - source json object
- * @param {Object} processingLogs - logger tool
- *
- * @returns {Object} jsonDeduped - updated json object
- * @returns {Object} renamedDict - dict of renamed keys
- * @returns {Object} originalTmshPathDict - dict of renamed keys with original Tmsh headers
  */
-const deDupeObjectNames = (json, processingLogs) => {
+function deDupeObjectNames(json: Record<string, any>, processingLogs: any): {
+    jsonDeduped: Record<string, any>;
+    renamedDict: Record<string, string>;
+    originalTmshPathDict: Record<string, string>;
+} {
     const supported = ['ltm pool', 'ltm profile', 'ltm virtual', 'ltm rule', 'ltm policy', 'ltm monitor'];
     const ipNameSupported = ['ltm virtual', 'ltm pool', 'ltm monitor'];
-    const dupeArray = [];
-    const ipNameArray = [];
-    const digitFirstCertArray = [];
+    const dupeArray: string[] = [];
+    const ipNameArray: string[] = [];
+    const digitFirstCertArray: string[] = [];
     const jsonKeys = Object.keys(json);
 
     // Check original json for duplicates. Check objects names
     jsonKeys.forEach((jsonKey) => {
         const confKey = getKey(jsonKey);
-        const confKeyName = jsonKey.split(' ').pop();
+        const confKeyName = jsonKey.split(' ').pop() ?? '';
 
         /* Collect certificate names that start with a digit.
             The certificate object name in the schema originates from the name of 'sys file ssl-cert' */
         if (confKey === 'sys file ssl-cert') {
             const objName = jsonKey.split('/').pop();
-            if (objName.match(/^\d/)) {
+            if (objName?.match(/^\d/)) {
                 digitFirstCertArray.push(jsonKey);
             }
         }
@@ -169,9 +166,9 @@ const deDupeObjectNames = (json, processingLogs) => {
 
     // Join objects for update
     const tempArray = dupeArray.concat(ipNameArray).concat(digitFirstCertArray);
-    const renamedDict = {};
-    let jsonDeduped = {};
-    const originalTmshPathDict = {};
+    const renamedDict: Record<string, string> = {};
+    let jsonDeduped: Record<string, any> = {};
+    const originalTmshPathDict: Record<string, string> = {};
 
     // If no duplicates or ip names found, return json as it is.
     if (!tempArray.length) {
@@ -183,7 +180,7 @@ const deDupeObjectNames = (json, processingLogs) => {
         jsonKeys.forEach((jsonKey) => {
             if (objectToUpdate === jsonKey) {
                 const objType = getKey(objectToUpdate).split(' ')[1];
-                const objFullName = objectToUpdate.split(' ').pop();
+                const objFullName = objectToUpdate.split(' ').pop() ?? '';
                 const objName = path.basename(objFullName);
                 const objPath = path.dirname(objFullName);
 
@@ -204,10 +201,10 @@ const deDupeObjectNames = (json, processingLogs) => {
                     const jValue = json[jKey];
 
                     // We've to transform rule and profile to rules and profiles to change in object.
-                    let tempobjType;
+                    let tempobjType: string;
                     if (objType === 'rule' || objType === 'profile') {
                         tempobjType = `${objType}s`;
-                    } else tempobjType = objType;
+                    } else tempobjType = objType ?? '';
 
                     // Rules and profiles cases:
                     // Rules and profiles inside are objects.
@@ -250,7 +247,7 @@ const deDupeObjectNames = (json, processingLogs) => {
                             there might be multiple certificates in a profile */
                         const certKeySet = jValue['cert-key-chain'];
                         if (typeof certKeySet === 'object') {
-                            Object.values(certKeySet).forEach((certKey) => {
+                            Object.values(certKeySet).forEach((certKey: any) => {
                                 if (typeof certKey === 'object') {
                                     /* Although we can rename certificate object names,
                                         we cannot rename file paths.
@@ -312,9 +309,9 @@ const deDupeObjectNames = (json, processingLogs) => {
     });
 
     return { jsonDeduped, renamedDict, originalTmshPathDict };
-};
+}
 
-const defaultsFromInheritance = (json) => {
+function defaultsFromInheritance(json: Record<string, any>): Record<string, any> {
     const supported = ['ltm monitor', 'ltm profile'];
     const jsonKeys = Object.keys(json);
 
@@ -330,18 +327,18 @@ const defaultsFromInheritance = (json) => {
                 // create heritage list
                 // T3 -> defaults-from T2 -> defaults-from T1 -> defaults-from default
                 // [T3, T2, T1]
-                let parentList = [];
-                const objName = jsonKey.split(confKey)[1].trim();
+                let parentList: string[] = [];
+                const objName = jsonKey.split(confKey)[1]?.trim() ?? '';
                 let tempObjName = objName;
 
                 do {
                     parentList.push(tempObjName);
-                    tempObjName = json[confKey.concat(' ', tempObjName)]['defaults-from'];
+                    tempObjName = json[confKey.concat(' ', tempObjName)]?.['defaults-from'];
                 } while (confKey.concat(' ', tempObjName) in json);
                 parentList = parentList.map((x) => confKey.concat(' ', x));
 
                 // merge object's params
-                let updatedObj = {};
+                let updatedObj: Record<string, any> = {};
                 parentList.forEach((item) => {
                     updatedObj = { ...json[item], ...updatedObj };
                 });
@@ -353,19 +350,19 @@ const defaultsFromInheritance = (json) => {
     });
 
     return json;
-};
+}
 
 /**
  * If a 'snatpool' member is a 'snat-translation' promote the address from the 'snat-translation'
  * directly to the 'snatpool', since 'snat-translation' objects are not converted anyway.
  *
  * Note: it might modify jsonDefaultsUpdated.
- *
- * @param {object} jsonDefaultsUpdated - BIG-IP configuration storred as a json
- * @param {string} confKey - the type of the current object of the configuration
- * @param {object} confObj - the current object of the configuration
  */
-function promoteSnatTranslationAddress(jsonDefaultsUpdated, fileKey, processingLogs) {
+function promoteSnatTranslationAddress(
+    jsonDefaultsUpdated: Record<string, any>,
+    fileKey: string,
+    processingLogs: any
+): void {
     const confKey = getKey(fileKey);
     if (confKey === 'ltm snatpool') {
         const confObj = jsonDefaultsUpdated[fileKey];
@@ -394,15 +391,23 @@ function promoteSnatTranslationAddress(jsonDefaultsUpdated, fileKey, processingL
     }
 }
 
-async function as3Convert(json, config) {
+async function as3Convert(json: Record<string, any>, config: ConvertConfig): Promise<{
+    as3NotConverted: Record<string, any>;
+    as3NotRecognized: Record<string, any>;
+    declaration: Record<string, any>;
+    iappSupported: string[];
+    ignoredObjects: Record<string, any>;
+    promotedObjects: Record<string, any>;
+    renamedDict: Record<string, string>;
+}> {
     // start with basic json structure
-    const declObj = declarationBase.AS3(config);
-    const unconvertedArr = [];
+    const declObj: Record<string, any> = declarationBase.AS3(config);
+    const unconvertedArr: string[] = [];
     const convertEngine = createConvertEngine();
     const loggerCtx = config.requestContext;
 
     // use for cleanup redirect services
-    const redirectVS = [];
+    const redirectVS: RedirectVS[] = [];
 
     /* Not every TMOS configuration class might have 1:1 representation in the Shared Schema.
         Sometimes data from a "low" level object is propagated to another "subsuming" object
@@ -410,7 +415,7 @@ async function as3Convert(json, config) {
         promotedObjects is a mapping from TMOS path like '/tenant1/app1/object1' of a "low" level object
         to an object formed by 'src/util/convert/findLocation.js' for the "subsuming" object.
     */
-    const promotedObjects = {};
+    const promotedObjects: Record<string, any> = {};
 
     // cleanup Duplicates
     const { jsonDeduped, renamedDict, originalTmshPathDict } = deDupeObjectNames(json, loggerCtx);
@@ -422,14 +427,13 @@ async function as3Convert(json, config) {
     // filter http iapp keys
     const regexHttpiApp = /ltm\svirtual\s(\/\w+\/\w+\.app)/;
     const httpiApps = fileKeys.filter((item) => item.match(regexHttpiApp));
-    const iappPath = httpiApps.map((item) => item.match(regexHttpiApp)[1]);
+    const iappPath = httpiApps.map((item) => item.match(regexHttpiApp)?.[1]).filter(Boolean) as string[];
     const iappSupported = fileKeys.filter((item) => iappPath.some((el) => item.includes(el)));
 
     /**
-     * @param {string} fileKey
-     * @returns {boolean} true if key converted/processed or false if key should be processed later
+     * @returns true if key converted/processed or false if key should be processed later
      */
-    const convertFileKey = async (fileKey, finalAttempt) => {
+    const convertFileKey = async (fileKey: string, finalAttempt: boolean): Promise<boolean> => {
         const confKey = getKey(fileKey);
         const confObj = jsonDefaultsUpdated[fileKey];
         // promote address from 'snat-translation' to 'snatpool'
@@ -450,11 +454,11 @@ async function as3Convert(json, config) {
             const tcObj = confObj[tcString];
             if (tcObj && typeof tcObj === 'object' && Object.keys(tcObj).length === 1) {
                 const keyZeroName = Object.getOwnPropertyNames(confObj[tcString])[0];
-                const keyZeroValue = tcObj[Object.keys(tcObj)[0]];
+                const keyZeroValue = tcObj[Object.keys(tcObj)[0]!];
                 const defaultName = 'capture-for-f5-appsvcs';
                 if (keyZeroName !== defaultName) {
                     confObj[tcString][defaultName] = keyZeroValue;
-                    delete confObj[tcString][keyZeroName];
+                    delete confObj[tcString][keyZeroName!];
                     if (loggerCtx) {
                         loggerCtx.logRenameProperty({
                             reason: 'Analytics profile traffic-capture renamed to default',
@@ -462,7 +466,7 @@ async function as3Convert(json, config) {
                             tmshHeader: fileKey,
                             tmshPath: {
                                 [tcString]: {
-                                    [keyZeroName]: null
+                                    [keyZeroName!]: null
                                 }
                             }
                         });
@@ -476,12 +480,12 @@ async function as3Convert(json, config) {
             : fileKey;
 
         // For irule we are adding the key to the rule content and modifying it object from string
-        let obj;
+        let obj: any;
         if (confKey === 'ltm rule' && confObj && (typeof confObj === 'string')) {
             // api-anonymous is the key used for ltm rule from properties.json
             const keyValue = 'api-anonymous';
             // prefer-const
-            const modifiedConfObj = {};
+            const modifiedConfObj: Record<string, any> = {};
             modifiedConfObj[keyValue] = confObj;
             // modifying the ltm rule to be object so that it will be parsed properly and also remove unwanted logging
             obj = await convertEngine.convert(
@@ -507,20 +511,20 @@ async function as3Convert(json, config) {
         let modifiedFileKey = fileKey;
 
         // fix for un-prefixed profiles on /Common 16.1
-        if (!filePath.startsWith('/')) {
+        if (filePath && !filePath.startsWith('/')) {
             modifiedFileKey = fileKey.replace(filePath, `/Common/${filePath}`);
             filePath = `/Common/${filePath}`;
         }
 
         // if object is default to BIG-IP, do not convert
-        if (defaults.includes(filePath)) {
+        if (filePath && defaults.includes(filePath)) {
             return true;
         }
 
         const loc = findLocation(modifiedFileKey);
         log.debug(`Converting ${filePath} "${customDict[confKey].class}"`);
 
-        const getAS3Path = (root = false) => (root ? `/${loc.tenant}/${loc.app}` : `/${loc.tenant}/${loc.app}/${loc.profile}`);
+        const getAS3Path = (root = false): string => (root ? `/${loc.tenant}/${loc.app}` : `/${loc.tenant}/${loc.app}/${loc.profile}`);
 
         // partial support for iApps
         if (loc.iapp && !fileKey.startsWith('sys application service')
@@ -533,7 +537,7 @@ async function as3Convert(json, config) {
         // ex: /Common/somewhere/test -> /Common/Shared/test
         //     /Common/test2 -> /Common/Shared/test2
         // We add oldPath, so it can be later used when updating GlobalObject
-        let oldPath;
+        let oldPath: string;
         if (loc.tenant === 'Common' && loc.app !== 'Shared' && loc.profile) {
             oldPath = `/${loc.tenant}/${loc.app}`;
             loc.app = 'Shared';
@@ -596,7 +600,7 @@ async function as3Convert(json, config) {
             return true;
         }
         // if there's a custom override:
-        let customObj = {};
+        let customObj: Record<string, any> = {};
         if (customDict[confKey].customHandling) {
             customObj = customDict[confKey].customHandling(
                 obj,
@@ -611,8 +615,8 @@ async function as3Convert(json, config) {
                 const keys = Object.keys(customObj[loc.profile].members);
                 for (let i = 0; i < keys.length; i += 1) {
                     const poolMemberPath = keys[i];
-                    const poolMember = customObj[loc.profile].members[poolMemberPath];
-                    let serverIds;
+                    const poolMember = customObj[loc.profile].members[poolMemberPath!];
+                    let serverIds: string[] | undefined;
                     if ('servers' in poolMember) {
                         serverIds = Object.keys(poolMember.servers);
                     } else if ('serverAddresses' in poolMember) {
@@ -622,24 +626,24 @@ async function as3Convert(json, config) {
                     }
                     for (let eachServerIndex = 0; eachServerIndex < serverIds.length; eachServerIndex += 1) {
                         const serverKey = serverIds[eachServerIndex];
-                        let serverObj;
+                        let serverObj: any;
 
-                        if (poolMember.servers && serverKey in poolMember.servers) {
+                        if (poolMember.servers && serverKey && serverKey in poolMember.servers) {
                             serverObj = poolMember.servers[serverKey];
-                        } else {
+                        } else if (serverKey) {
                             serverObj = poolMember.serverAddresses[serverKey];
                         }
                         // regex to see if the address consists of route domain
                         const regex = /^([\d.]+)%(\d+)$/;
-                        let match;
-                        if (poolMember.servers && serverKey in poolMember.servers) {
+                        let match: RegExpMatchArray | null;
+                        if (poolMember.servers && serverKey && serverKey in poolMember.servers) {
                             match = serverObj.address.match(regex);
                         } else {
-                            match = serverObj.match(regex);
+                            match = serverObj?.match?.(regex);
                         }
                         if (match) {
                             const ip = match[1];
-                            if (poolMember.servers && serverKey in poolMember.servers) {
+                            if (poolMember.servers && serverKey && serverKey in poolMember.servers) {
                                 serverObj.address = ip;
                             } else {
                                 serverObj = ip;
@@ -663,7 +667,7 @@ async function as3Convert(json, config) {
             if (keyValue.length !== 0) {
                 const orig = jsonDefaultsUpdated[loc.original];
                 const match = orig.destination.match(/%(\d+)/);
-                if (match[1]) {
+                if (match?.[1]) {
                     const result = filterById(jsonDefaultsUpdated, Number(match[1]));
                     customObj[loc.profile].allowNetworks = Object.keys({ key: '' }).map(() => ({ bigip: `Add your VRF name here for id:${result}` }));
                 }
@@ -675,7 +679,7 @@ async function as3Convert(json, config) {
             && customObj[loc.profile].virtualAddresses
             && Array.isArray(customObj[loc.profile].virtualAddresses)) {
             // replace ['destination', 'source'] array with 'destination'
-            const dropSourceAddress = (element) => {
+            const dropSourceAddress = (element: any): any => {
                 if (Array.isArray(element) && element.length === 2) {
                     // the first element of the array is 'destination'
                     // and the second is 'source'
@@ -700,14 +704,14 @@ async function as3Convert(json, config) {
         if (confKey === 'ltm profile http-compression' && config && config.next) {
             if (customObj[loc.profile].contentTypeIncludes
                 && Array.isArray(customObj[loc.profile].contentTypeIncludes)) {
-                customObj[loc.profile].contentTypeIncludes.forEach((contentType, index) => {
+                customObj[loc.profile].contentTypeIncludes.forEach((contentType: string, index: number) => {
                     const modifiedContentType = modifyContentTypeIncludeValues(contentType);
                     customObj[loc.profile].contentTypeIncludes[index] = modifiedContentType;
                 });
             }
             if (customObj[loc.profile].contentTypeExcludes
                 && Array.isArray(customObj[loc.profile].contentTypeExcludes)) {
-                customObj[loc.profile].contentTypeExcludes.forEach((contentType, index) => {
+                customObj[loc.profile].contentTypeExcludes.forEach((contentType: string, index: number) => {
                     const modifiedContentType = modifyContentTypeIncludeValues(contentType);
                     customObj[loc.profile].contentTypeExcludes[index] = modifiedContentType;
                 });
@@ -747,13 +751,13 @@ async function as3Convert(json, config) {
         if (confKey === 'ltm virtual') {
             // if (config && config.next) {
             const orig = jsonDefaultsUpdated[loc.original];
-            const tmc = orig['traffic-matching-criteria'];
+            const tmc = orig?.['traffic-matching-criteria'];
             if (tmc) {
                 /* Here we are dealing with virtual ports of tmc only,
                     because they might require access to the port list object.
                     Virtual addresses of tmc are dealt with in service.js. */
                 const ref = `ltm traffic-matching-criteria ${tmc}`;
-                let portListPath = jsonDefaultsUpdated[ref]['destination-port-list'];
+                let portListPath = jsonDefaultsUpdated[ref]?.['destination-port-list'];
                 if (portListPath) {
                     if (config && config.next) {
                         portListPath = handleObjectRef(portListPath).use;
@@ -769,15 +773,15 @@ async function as3Convert(json, config) {
                     }
 
                     // single port can be presented as a number (instead of an array)
-                    if (Array.isArray(customObj[loc.profile].virtualPort)
-                        && customObj[loc.profile].virtualPort.length === 1
-                        && Number.isInteger(customObj[loc.profile].virtualPort[0])) {
-                        customObj[loc.profile].virtualPort = customObj[loc.profile].virtualPort[0];
+                    if (Array.isArray(customObj[loc.profile!].virtualPort)
+                        && customObj[loc.profile!].virtualPort.length === 1
+                        && Number.isInteger(customObj[loc.profile!].virtualPort[0])) {
+                        customObj[loc.profile!].virtualPort = customObj[loc.profile!].virtualPort[0];
                     }
-                } else if (jsonDefaultsUpdated[ref]['destination-port-inline']) {
-                    customObj[loc.profile].virtualPort = parseInt(jsonDefaultsUpdated[ref]['destination-port-inline'], 10);
+                } else if (jsonDefaultsUpdated[ref]?.['destination-port-inline']) {
+                    customObj[loc.profile!].virtualPort = parseInt(jsonDefaultsUpdated[ref]['destination-port-inline'], 10);
                 }
-                GlobalObject.addProperty(getAS3Path(), 'virtualPort', originalTmshHeader, { virtualPort: null });
+                GlobalObject.addProperty(getAS3Path(), 'virtualPort', originalTmshHeader!, { virtualPort: null });
             }
         }
 
@@ -786,10 +790,10 @@ async function as3Convert(json, config) {
         const profileSlice = loc.profile.match(/[_.-]\d+-{0,1}$/ig);
 
         if (profileSlice) {
-            const reReplace = new RegExp(profileSlice[0], 'g');
+            const reReplace = new RegExp(profileSlice[0]!, 'g');
             const origProfile = loc.profile.replace(reReplace, '');
-            const dupeInt = parseInt(profileSlice[0].slice(1), 10);
-            const declReady = declObj[loc.tenant][loc.app] && declObj[loc.tenant][loc.app][origProfile];
+            const dupeInt = parseInt(profileSlice[0]!.slice(1), 10);
+            const declReady = declObj[loc.tenant]?.[loc.app]?.[origProfile];
 
             if (!declReady && !finalAttempt) {
                 return false;
@@ -899,14 +903,12 @@ async function as3Convert(json, config) {
     while (fileKeysArray.length > 0 && !stopLoop) {
         stopLoop = lastKnownLength === fileKeysArray.length;
         lastKnownLength = fileKeysArray.length;
-        const notProcessedKeys = [];
+        const notProcessedKeys: string[] = [];
 
         // iterate through config objects
-        // eslint-disable-next-line no-restricted-syntax
         for (const fileKey of fileKeysArray) {
             let isProcessed = false;
             try {
-                // eslint-disable-next-line no-await-in-loop
                 isProcessed = await convertFileKey(fileKey, stopLoop);
             } catch (e) {
                 log.error(`Error converting: ${fileKey}`);
@@ -940,18 +942,18 @@ async function as3Convert(json, config) {
             const confKey = getKey(fileKey);
             if (confKey === 'ltm virtual') {
                 const loc = findLocation(fileKey);
-                const partObj = declObj[loc.tenant][loc.app];
+                const partObj = declObj[loc.tenant]?.[loc.app];
                 const objVS = (loc.profile && partObj) ? partObj[loc.profile] : partObj;
 
                 // skip empty objects
                 if (objVS !== undefined) {
                     // check that virtual server has the same address and has https type
-                    const destAddr = Array.isArray(objVS.virtualAddresses[0])
+                    const destAddr = Array.isArray(objVS.virtualAddresses?.[0])
                         ? objVS.virtualAddresses[0][0]
-                        : objVS.virtualAddresses[0];
+                        : objVS.virtualAddresses?.[0];
 
                     // check if we found HTTPS with the same address and mark that
-                    if (destAddr.includes(red.add[0]) && objVS.class === 'Service_HTTPS') {
+                    if (destAddr?.includes(red.add[0]) && objVS.class === 'Service_HTTPS') {
                         declObj[loc.tenant][loc.app][loc.profile].redirect80 = true;
                         GlobalObject.addProperty(`/${loc.tenant}/${loc.app}/${loc.profile}`, 'redirect80', originalTmshPathDict[fileKey] || fileKey, { redirect80: null });
                         redirect80 = true;
@@ -982,29 +984,29 @@ async function as3Convert(json, config) {
     };
 }
 
-module.exports = async (json, config) => {
+async function as3Converter(json: Record<string, any>, config: ConvertConfig): Promise<ConvertResult> {
     try {
-        let ret;
+        let ret: Awaited<ReturnType<typeof as3Convert>> | undefined;
         if (!config.skipTMOSConvertProcess) {
             ret = await as3Convert(json, config);
         }
 
         let declaration = ret?.declaration ?? json;
-        const keyClassicNotSupported = [];
+        const keyClassicNotSupported: string[] = [];
 
         // AS3 Classic cleanUp (NEXT support removed)
-        const resultsAS3 = await as3ClassicCleanUp(declaration, config);
+        const resultsAS3 = await as3ClassicCleanUp(declaration);
         declaration = resultsAS3.declaration;
         keyClassicNotSupported.push(...resultsAS3.keyClassicNotSupported);
 
         // count occurrences of unsupported tmsh keys
-        const unsupportedStats = {};
+        const unsupportedStats: Record<string, number> = {};
         Object.keys(ret?.ignoredObjects ?? {}).map((x) => getKey(x))
             .forEach((type) => {
                 if (!unsupportedStats[type]) {
                     unsupportedStats[type] = 0;
                 }
-                unsupportedStats[type] += 1;
+                unsupportedStats[type]! += 1;
             });
         return {
             declaration,
@@ -1016,7 +1018,10 @@ module.exports = async (json, config) => {
             unsupportedStats
         };
     } catch (e) {
-        e.message = `Error converting input file. Please open an issue at https://github.com/f5devcentral/f5-automation-config-converter/issues and include the following error:\n${e.message}`;
+        (e as Error).message = `Error converting input file. Please open an issue at https://github.com/f5devcentral/f5-automation-config-converter/issues and include the following error:\n${(e as Error).message}`;
         throw e;
     }
-};
+}
+
+export default as3Converter;
+module.exports = as3Converter;

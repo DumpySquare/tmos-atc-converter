@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-'use strict';
+import countIndent from './countIndent';
 
-// return number of leading spaces
-module.exports = (str) => str.search(/\S/);
+/**
+ * Remove first 4 whitespaces from each item in array
+ *
+ * @param arr - array of lines
+ * @returns array with reduced indentation
+ */
+function removeIndent(arr: string[]): string[] {
+    return arr.map((line) => (countIndent(line) > 1 ? line.slice(4) : line));
+}
+
+export default removeIndent;
+module.exports = removeIndent;

@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 
-'use strict';
+import ConvertEngine from './converter';
+import defaultActions from './defaultActions';
+import publicActions from './publicActions';
 
-const countIndent = require('./countIndent');
+/**
+ * Initialize ConvertEngine
+ *
+ * @returns ConvertEngine instance
+ */
+function createConvertEngine(): ConvertEngine {
+    return new ConvertEngine({
+        default: defaultActions,
+        public: publicActions
+    });
+}
 
-// remove first 4 whitespaces from each item in array
-module.exports = (arr) => arr.map((line) => (countIndent(line) > 1 ? line.slice(4) : line));
+export default createConvertEngine;
+module.exports = createConvertEngine;

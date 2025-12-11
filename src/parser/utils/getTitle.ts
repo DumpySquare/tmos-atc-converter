@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-'use strict';
+/**
+ * Get title of root-level bigip-object
+ *
+ * @param str - string containing object definition
+ * @returns title without trailing braces
+ */
+function getTitle(str: string): string {
+    return str.replace(/\s?\{\s?}?$/, '').trim();
+}
 
-// for bigip-object properties
-module.exports = (line) => {
-    const split = line.trim().split(' ');
-    const key = split.shift();
-    return { [key]: split.join(' ') };
-};
+export default getTitle;
+module.exports = getTitle;

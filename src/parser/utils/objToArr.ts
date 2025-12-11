@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-'use strict';
+/**
+ * Parse one-line arrays from TMOS config
+ *
+ * @param line - line containing inline array like "key { val1 val2 }"
+ * @returns array of values
+ */
+function objToArr(line: string): string[] {
+    const split = line.split('{');
+    const arrBody = (split[1] ?? '').split('}').join('').trim();
+    return arrBody.split(' ');
+}
 
-// get title of root-level bigip-object
-module.exports = (str) => str.replace(/\s?\{\s?}?$/, '').trim();
+export default objToArr;
+module.exports = objToArr;

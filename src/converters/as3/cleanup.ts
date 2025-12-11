@@ -14,27 +14,29 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-/* eslint-disable no-continue */
+import as3Validator from '../../validators/as3';
+import deleteProperties from '../../utils/deleteProperties';
+import log from '../../utils/log';
+import objectUtil from '../../utils/object';
+import globalObjectUtil from '../../utils/globalRenameAndSkippedObject';
 
-const as3Validator = require('../../validators/as3');
-const deleteProperties = require('../../utils/deleteProperties');
-const log = require('../../utils/log');
-const objectUtil = require('../../utils/object');
-const globalObjectUtil = require('../../utils/globalRenameAndSkippedObject');
+export interface CleanupResult {
+    declaration: Record<string, any>;
+    keyClassicNotSupported: string[];
+}
 
 /**
  * split path in object into two parts: the parent path and the property name itself
  *
- * @param {string} path - path to split
- *
- * @returns {parentPath: string, property: string} split strings
+ * @param path - path to split
+ * @returns split strings
  */
-function splitPathInTwo(path) {
+function splitPathInTwo(path: string): { parentPath: string; property: string } {
     if (typeof path !== 'string') return { parentPath: '', property: '' };
     const pathArray = path.split('/');
-    const property = pathArray.at(-1);
+    const property = pathArray.at(-1) ?? '';
     pathArray.pop();
     const parentPath = pathArray.join('/');
     return { parentPath, property };
@@ -43,14 +45,13 @@ function splitPathInTwo(path) {
 /**
  * Function for determine unsupported properties in AS3 Classic declaration and delete them
  *
- * @param {Object} declaration   - AS3 declaration ready to clean up
- *
- * @returns {Object} declaration - when clean up completed
+ * @param declaration - AS3 declaration ready to clean up
+ * @returns declaration - when clean up completed
  */
-const as3ClassicCleanUp = async (declaration) => {
+async function as3ClassicCleanUp(declaration: Record<string, any>): Promise<CleanupResult> {
     // - should contain paths to objects with 'class' property only
     // - add another variable for removed properties if need to report it too
-    let keyClassicNotSupported = [];
+    let keyClassicNotSupported: string[] = [];
 
     // need it later to figure out what was deleted from original declaration
     const originDeclaration = objectUtil.cloneDeep(declaration);
@@ -59,9 +60,9 @@ const as3ClassicCleanUp = async (declaration) => {
     // whe need temporary clone object before checking
     const declarationForValidate = objectUtil.cloneDeep(declaration);
 
-    const cleanUpList = (await as3Validator.validate(declarationForValidate))
-        .ignoredAttributes
-        .filter((p) => p !== '/schemaVersion');
+    const validationResult = await as3Validator.validate(declarationForValidate);
+    const cleanUpList = ((validationResult as any).ignoredAttributes ?? [])
+        .filter((p: string) => p !== '/schemaVersion');
 
     if (cleanUpList.length > 0) {
         log.debug('AS3 CLASSIC CLEANUP LIST:');
@@ -88,15 +89,18 @@ const as3ClassicCleanUp = async (declaration) => {
 
     // interested in 'classes' only
     keyClassicNotSupported = deleteResults.deleted
-        .filter((p) => objectUtil.has(objectUtil.get(originDeclaration, p, { tmosPath: true }), 'class'))
+        .filter((p) => {
+            const obj = objectUtil.get(originDeclaration, p, { tmosPath: true });
+            return obj && objectUtil.has(obj, 'class');
+        })
         .map((item) => item.replace(/^\/Common\/Shared\//, '/Common/'));
 
     // Be aware: validation applies 'default' value too. If something was removed after previous call
     // then it may be substitued by 'default' value after this call.
-    const result = await as3Validator.validate(objectUtil.cloneDeep(declaration));
+    const result = await as3Validator.validate(objectUtil.cloneDeep(declaration)) as any;
     if (!result.isValid) {
         // reduce amount of output
-        result.errors.forEach((err) => {
+        result.errors.forEach((err: any) => {
             delete err.data;
             delete err.parentSchema;
         });
@@ -110,6 +114,7 @@ const as3ClassicCleanUp = async (declaration) => {
         declaration,
         keyClassicNotSupported
     };
-};
+}
 
+export default as3ClassicCleanUp;
 module.exports = as3ClassicCleanUp;

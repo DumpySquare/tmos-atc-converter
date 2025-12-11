@@ -14,42 +14,75 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
+import fs from 'fs';
+import stream from 'stream';
 
-const fs = require('fs');
-const stream = require('stream');
-const tar = require('tar');
+const tar = require('tar') as TarModule;
+import log from '../utils/log';
 
-const log = require('../utils/log');
+interface TarModule {
+    Parser: new (options: TarParserOptions) => TarParser;
+}
 
-const TYPES = Object.freeze({
-    CONF: 'conf',
-    UCS: 'ucs'
+interface TarParserOptions {
+    filter?: (path: string, entry: TarEntry) => boolean;
+}
+
+interface TarParser extends NodeJS.WritableStream {
+    on(event: 'entry', listener: (entry: TarEntry) => void): this;
+    on(event: 'warn', listener: (code: string, message: string | Error, data: any) => void): this;
+    abort(error: Error): void;
+}
+
+interface TarEntry {
+    type: string;
+    path: string;
+    concat(): Promise<Buffer>;
+}
+
+interface EntryResult {
+    content?: Buffer;
+    error?: Error;
+    path: string;
+}
+
+export type InputDataType = 'conf' | 'ucs';
+
+export interface InputBuffer {
+    name?: string;
+    type?: InputDataType;
+    buffer: Buffer;
+    path?: string;
+}
+
+export interface InputFile {
+    name?: string;
+    type?: InputDataType;
+    path: string;
+    buffer?: Buffer;
+}
+
+export type InputData = InputBuffer | InputFile | string;
+
+export const TYPES = Object.freeze({
+    CONF: 'conf' as const,
+    UCS: 'ucs' as const
 });
+
 const UCS_EXT = '.ucs';
 
 /**
  * Check if FS path belongs to UCS file
- *
- * @private
- *
- * @param {string} maybePath
- *
- * @returns {boolean}
  */
-const maybeUCSPath = (maybePath) => typeof maybePath === 'string' && maybePath.endsWith(UCS_EXT);
+function maybeUCSPath(maybePath: unknown): boolean {
+    return typeof maybePath === 'string' && maybePath.endsWith(UCS_EXT);
+}
 
 /**
  * UCS content filter
- *
- * @private
- *
- * @param {string} path - entry's path
- * @param {tar.Entry} entry - entry
- *
- * @returns {boolean} true to keep entry or false to ignore it
  */
-const ucsContentFilter = (path, entry) => {
+function ucsContentFilter(path: string, entry: TarEntry): boolean {
     if (entry.type !== 'File') {
         return false;
     }
@@ -61,12 +94,12 @@ const ucsContentFilter = (path, entry) => {
     }
 
     // keep config/*.conf
-    if (split[0] === 'config' && split[1].endsWith('.conf')) {
+    if (split[0] === 'config' && split[1]?.endsWith('.conf')) {
         return true;
     }
 
     // keep config/bigip.license
-    if (split[0] === 'config' && split[1].endsWith('.license')) {
+    if (split[0] === 'config' && split[1]?.endsWith('.license')) {
         return true;
     }
 
@@ -87,19 +120,16 @@ const ucsContentFilter = (path, entry) => {
         return true;
     }
     return false;
-};
+}
 
 /**
  * Extract UCS file to memory
- *
- * @private
- *
- * @param {Buffer | string} - data buffer or FS path to a file with UCS content
- *
- * @returns {{[string]: string }} UCS file content
  */
-const ucsExtract = async (pathOrBuffer, filter) => {
-    let sourceStream;
+async function ucsExtract(
+    pathOrBuffer: string | Buffer,
+    filter: (path: string, entry: TarEntry) => boolean
+): Promise<Record<string, string>> {
+    let sourceStream: NodeJS.ReadableStream;
 
     if (typeof pathOrBuffer === 'string') {
         sourceStream = fs.createReadStream(pathOrBuffer);
@@ -112,10 +142,10 @@ const ucsExtract = async (pathOrBuffer, filter) => {
     const tarParser = new tar.Parser({
         filter
     });
-    const promises = [];
+    const promises: Promise<EntryResult>[] = [];
 
     tarParser
-        .on('entry', (entry) => {
+        .on('entry', (entry: TarEntry) => {
             // .concat() subscribes to `data` event that automatically
             // calls .resume()
             promises.push(entry.concat()
@@ -128,8 +158,8 @@ const ucsExtract = async (pathOrBuffer, filter) => {
                     path: entry.path
                 })));
         })
-        .on('warn', (code, message, data) => {
-            data.code = (message instanceof Error && message.code) || code;
+        .on('warn', (code: string, message: string | Error, data: any) => {
+            data.code = (message instanceof Error && (message as any).code) || code;
             data.tarCode = code;
             tarParser.abort(Object.assign(
                 message instanceof Error ? message : new Error(`${code}: ${message}`),
@@ -139,7 +169,7 @@ const ucsExtract = async (pathOrBuffer, filter) => {
 
     await stream.promises.pipeline(sourceStream, tarParser);
 
-    let content;
+    let content: Record<string, string> | undefined;
     if (promises.length) {
         const results = await Promise.all(promises);
         const errors = results.filter((r) => Object.hasOwn(r, 'error'));
@@ -148,97 +178,82 @@ const ucsExtract = async (pathOrBuffer, filter) => {
         }
         content = Object.fromEntries(
             results
-                .filter((r) => Object.hasOwn(r, 'content'))
+                .filter((r): r is EntryResult & { content: Buffer } => Object.hasOwn(r, 'content'))
                 .map((r) => [r.path, r.content.toString()])
         );
     }
     return content ?? {};
-};
+}
 
 /**
  * Input Data Reader class
  */
 class InputReader {
-    /** @type {{ [string]: string }} last read data */
-    #data = {};
+    #data: Record<string, string> = {};
 
-    async #readConf(conf) {
-        const fname = conf?.path ?? conf;
+    async #readConf(conf: InputData): Promise<Record<string, string>> {
+        const confObj = conf as InputBuffer | InputFile;
+        const fname = confObj?.path ?? (conf as string);
         return {
-            [fname]: (conf?.buffer ?? await fs.promises.readFile(fname)).toString()
+            [fname]: (confObj?.buffer ?? await fs.promises.readFile(fname)).toString()
         };
     }
 
-    #readUCS(ucs) {
-        return ucsExtract(ucs?.buffer ?? ucs?.path ?? ucs, ucsContentFilter);
+    #readUCS(ucs: InputData): Promise<Record<string, string>> {
+        const ucsObj = ucs as InputBuffer | InputFile;
+        return ucsExtract(ucsObj?.buffer ?? ucsObj?.path ?? (ucs as string), ucsContentFilter);
     }
 
-    async #read(files) {
-        files = Array.isArray(files) ? files : [files];
+    async #read(files: InputData | InputData[]): Promise<Record<string, string>> {
+        const filesArr = Array.isArray(files) ? files : [files];
         Object.assign(this.#data, ...await Promise.all(
-            files.map((file) => ((Object.hasOwn(file, 'type') ? file.type === TYPES.UCS : maybeUCSPath(file))
-                ? this.#readUCS(file)
-                : this.#readConf(file)
-            ))
+            filesArr.map((file) => {
+                const fileObj = file as InputBuffer | InputFile;
+                const isUCS = Object.hasOwn(fileObj, 'type')
+                    ? fileObj.type === TYPES.UCS
+                    : maybeUCSPath(file);
+                return isUCS ? this.#readUCS(file) : this.#readConf(file);
+            })
         ));
         return this.data;
     }
 
     /** Cleanup previously read data */
-    cleanup() {
+    cleanup(): void {
         this.#data = {};
     }
 
     /**
-     * @returns {{ [string]: string }} read data
+     * @returns read data
      */
-    get data() {
+    get data(): Record<string, string> {
         return this.#data;
     }
 
     /**
-     * Reda input data
+     * Read input data
      *
-     * @param {string | InputData | Array<string | InputData>} files - files to read
-     *
-     * @returns {{ [string]: string }} read data
+     * @param files - files to read
+     * @returns read data
      */
-    async read(files) {
+    async read(files: InputData | InputData[]): Promise<Record<string, string>> {
         this.cleanup();
         try {
             return await this.#read(files);
         } catch (err) {
-            log.error(err.toString());
+            log.error((err as Error).toString());
             throw new Error('Unable to extract data. More details in logs...');
         }
     }
 }
 
 // singleton at least for now (avoid breaking internal API)
-module.exports = new InputReader();
-module.exports.TYPES = TYPES;
+const inputReaderInstance = new InputReader();
 
-/**
- * @typedef InputDataType
- * @type {'conf' | 'ucs'}
- */
-/**
- * @typedef _InputData
- * @type {object}
- * @property {string} name - file name
- * @property {InputDataType} type - input file type
- */
-/**
- * @typedef InputBuffer
- * @type {_InputData}
- * @property {Buffer} buffer - buffer data to process if file read already
- */
-/**
- * @typedef InputFile
- * @type {_InputData}
- * @property {string} path - path to file or file name
- */
-/**
- * @typedef InputData
- * @type {InputBuffer | InputFile}
- */
+export default inputReaderInstance;
+export { InputReader };
+
+// CommonJS exports for backward compatibility
+module.exports = inputReaderInstance;
+module.exports.TYPES = TYPES;
+module.exports.InputReader = InputReader;
