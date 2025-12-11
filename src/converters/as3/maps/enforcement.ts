@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
+
 'use strict';
 
-const buildProtectedObj = require('../../../utils/buildProtectedObj');
-const handleObjectRef = require('../../../utils/handleObjectRef');
-const returnEmptyObjIfNone = require('../../../utils/returnEmptyObjIfNone');
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import buildProtectedObj from '../../../utils/buildProtectedObj';
+import handleObjectRef from '../../../utils/handleObjectRef';
+import returnEmptyObjIfNone from '../../../utils/returnEmptyObjIfNone';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-module.exports = {
+const enforcementMap: Record<string, any> = {
 
     // Enforcement_Interception_Endpoint
     'pem interception-endpoint': {
         class: 'Enforcement_Interception_Endpoint',
 
         keyValueRemaps: {
-            pool: (key, val) => ({ pool: handleObjectRef(val) })
+            pool: (key: string, val: any) => ({ pool: handleObjectRef(val) })
         }
     },
 
@@ -36,9 +39,9 @@ module.exports = {
     'pem irule': {
         class: 'Enforcement_iRule',
 
-        customHandling: (rootObj, loc, file) => {
+        customHandling: (rootObj: any, loc: any, file: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             let irule = file[loc.original];
             irule = irule.replace(/\/Common/g, '/Common/Shared');
             rootObj.iRule = { base64: Buffer.from(irule).toString('base64') };
@@ -53,11 +56,11 @@ module.exports = {
         class: 'Enforcement_Diameter_Endpoint_Profile',
 
         keyValueRemaps: {
-            parentProfile: (key, val) => ({ parentProfile: handleObjectRef(val) })
+            parentProfile: (key: string, val: any) => ({ parentProfile: handleObjectRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             // fatalGraceTime
             if (rootObj.time) {
                 rootObj.fatalGraceTime = rootObj.time;
@@ -77,13 +80,13 @@ module.exports = {
         class: 'Enforcement_Forwarding_Endpoint',
 
         keyValueRemaps: {
-            pool: (key, val) => ({ pool: handleObjectRef(val) }),
+            pool: (key: string, val: any) => ({ pool: handleObjectRef(val) }),
 
-            SNATPool: (key, val) => ({ SNATPool: handleObjectRef(val) })
+            SNATPool: (key: string, val: any) => ({ SNATPool: handleObjectRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             const persistHash = 'persistenceHashSettings';
             const persistVariable = 'persistence';
@@ -113,11 +116,11 @@ module.exports = {
         class: 'Enforcement_Subscriber_Management_Profile',
 
         keyValueRemaps: {
-            parentProfile: (key, val) => ({ parentProfile: handleObjectRef(val) })
+            parentProfile: (key: string, val: any) => ({ parentProfile: handleObjectRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
 
             delete rootObj.enabled;
 
@@ -131,7 +134,7 @@ module.exports = {
         class: 'Enforcement_Format_Script',
 
         keyValueRemaps: {
-            definition: (key, val) => ({ definition: `set ${val.set}` })
+            definition: (key: string, val: any) => ({ definition: `set ${val.set}` })
         }
     },
 
@@ -145,11 +148,11 @@ module.exports = {
         class: 'Enforcement_Radius_AAA_Profile',
 
         keyValueRemaps: {
-            parentProfile: (key, val) => ({ parentProfile: handleObjectRef(val) }),
+            parentProfile: (key: string, val: any) => ({ parentProfile: handleObjectRef(val) }),
 
-            password: (key, val) => ({ password: buildProtectedObj(val) }),
+            password: (key: string, val: any) => ({ password: buildProtectedObj(val) }),
 
-            sharedSecret: (key, val) => ({ sharedSecret: buildProtectedObj(val) })
+            sharedSecret: (key: string, val: any) => ({ sharedSecret: buildProtectedObj(val) })
         }
     },
 
@@ -158,21 +161,21 @@ module.exports = {
         class: 'Enforcement_Profile',
 
         keyValueRemaps: {
-            connectionOptimizationService: (key, val) => returnEmptyObjIfNone(val, {
+            connectionOptimizationService: (key: string, val: any) => returnEmptyObjIfNone(val, {
                 connectionOptimizationService: handleObjectRef(val)
             }),
 
-            parentProfile: (key, val) => ({ parentProfile: handleObjectRef(val) }),
+            parentProfile: (key: string, val: any) => ({ parentProfile: handleObjectRef(val) }),
 
-            policiesGlobalHighPrecedence: (key, val) => ({
+            policiesGlobalHighPrecedence: (key: string, val: any) => ({
                 policiesGlobalHighPrecedence: Object.keys(val).map((x) => handleObjectRef(x))
             }),
 
-            policiesGlobalLowPrecedence: (key, val) => ({
+            policiesGlobalLowPrecedence: (key: string, val: any) => ({
                 policiesGlobalLowPrecedence: Object.keys(val).map((x) => handleObjectRef(x))
             }),
 
-            policiesUnknownSubscribers: (key, val) => ({
+            policiesUnknownSubscribers: (key: string, val: any) => ({
                 policiesUnknownSubscribers: Object.keys(val).map((x) => handleObjectRef(x))
             })
         }
@@ -182,15 +185,15 @@ module.exports = {
     'pem policy': {
         class: 'Enforcement_Policy',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const rules = rootObj.rules;
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             const rulesProperty = 'rules';
             if (rules) {
                 rootObj.rules = Object.keys(rootObj.rules).map((x, index) => {
                     const origRule = rootObj.rules[x];
-                    const ruleObj = { name: x };
+                    const ruleObj: Record<string, any> = { name: x };
                     const rulesPath = `${globalPath}/${rulesProperty}/${index}`;
 
                     if (origRule['gate-status']) {
@@ -254,7 +257,7 @@ module.exports = {
 
                     if (origRule['flow-info-filters']) {
                         ruleObj.flowInfoFilters = Object.keys(origRule['flow-info-filters']).map((y, flowFilterIndex) => {
-                            const flowObj = { name: y };
+                            const flowObj: Record<string, any> = { name: y };
                             GlobalObject.addProperty(`${rulesPath}/flowInfoFilters/${flowFilterIndex}`, 'name', loc.original, { [rulesProperty]: { [x]: { 'flow-info-filters': { [y]: { name: null } } } } });
                             const flow = origRule['flow-info-filters'][y];
                             if (flow.operation === 'nomatch') {
@@ -295,7 +298,7 @@ module.exports = {
 
                     const forwarding = origRule.forwarding;
                     if (forwarding) {
-                        const forward = {};
+                        const forward: Record<string, any> = {};
                         if (forwarding['fallback-action']) {
                             forward.fallbackAction = forwarding['fallback-action'];
                             GlobalObject.addProperty(`${rulesPath}/forwarding`, 'fallbackAction', loc.original, { [rulesProperty]: { [x]: { forwarding: { 'fallback-action': null } } } });
@@ -309,7 +312,7 @@ module.exports = {
 
                     const insertCont = origRule['insert-content'];
                     if (insertCont) {
-                        const insert = {};
+                        const insert: Record<string, any> = {};
                         if (insertCont.duration) {
                             insert.duration = parseInt(insertCont.duration, 10);
                             GlobalObject.addProperty(`${rulesPath}/insertContent`, 'duration', loc.original, { [rulesProperty]: { [x]: { 'insert-content': { duration: null } } } });
@@ -340,7 +343,7 @@ module.exports = {
                     // modifyHttpHeader
                     const modify = origRule['modify-http-hdr'];
                     if (modify) {
-                        const mod = {};
+                        const mod: Record<string, any> = {};
                         if (modify.name) {
                             mod.headerName = modify.name;
                             GlobalObject.addProperty(`${rulesPath}/modifyHttpHeader`, 'headerName', loc.original, { [rulesProperty]: { [x]: { 'modify-http-hdr': { name: null } } } });
@@ -364,7 +367,7 @@ module.exports = {
                     const qoe = origRule['qoe-reporting'];
                     if (qoe) {
                         const hsl = qoe.dest.hsl;
-                        const qoeReprt = {};
+                        const qoeReprt: Record<string, any> = {};
                         if (hsl['format-script']) {
                             qoeReprt.formatScript = handleObjectRef(hsl['format-script']);
                             GlobalObject.addProperty(`${rulesPath}/qoeReporting`, 'formatScript', loc.original, { [rulesProperty]: { [x]: { 'qoe-reporting': { dest: { hsl: { 'format-script': null } } } } } });
@@ -404,14 +407,14 @@ module.exports = {
                     // ranCongestion
                     const ranCongest = origRule['ran-congestion'];
                     if (ranCongest) {
-                        const ran = {};
+                        const ran: Record<string, any> = {};
                         if (ranCongest['lowerthreshold-bw']) {
                             ran.threshold = parseInt(ranCongest['lowerthreshold-bw'], 10);
                             GlobalObject.addProperty(`${rulesPath}/ranCongestion`, 'threshold', loc.original, { [rulesProperty]: { [x]: { 'ran-congestion': { 'lowerthreshold-bw': null } } } });
                         }
 
                         if (ranCongest.report && ranCongest.report.dest && ranCongest.report.dest.hsl) {
-                            const dest = {};
+                            const dest: Record<string, any> = {};
                             if (ranCongest.report.dest.hsl['format-script']) {
                                 dest.formatScript = handleObjectRef(ranCongest.report.dest.hsl['format-script']);
                             }
@@ -427,12 +430,12 @@ module.exports = {
                     // usageReporting
                     const usage = origRule.reporting;
                     if (usage) {
-                        let obj = {};
+                        let obj: Record<string, any> = {};
 
                         if (usage.dest) {
                             const destKeys = Object.keys(usage.dest).map((y) => {
                                 const dest = usage.dest[y];
-                                const destObj = { destination: y };
+                                const destObj: Record<string, any> = { destination: y };
                                 GlobalObject.addProperty(`${rulesPath}/usageReporting`, 'destination', loc.original, { [rulesProperty]: { [x]: { reporting: { dest: null } } } });
                                 if (dest['application-reporting']) {
                                     destObj.applicationReportingEnabled = dest['application-reporting'] === 'enabled';
@@ -448,7 +451,7 @@ module.exports = {
                         }
 
                         if (usage.volume) {
-                            const vol = {};
+                            const vol: Record<string, any> = {};
                             if (usage.volume.downlink) {
                                 vol.downlink = parseInt(usage.volume.downlink, 10);
                                 GlobalObject.addProperty(`${rulesPath}/usageReporting/volume`, 'downlink', loc.original, { [rulesProperty]: { [x]: { reporting: { volume: { downlink: null } } } } });
@@ -486,7 +489,7 @@ module.exports = {
                     // DTOSTethering
                     const tether = origRule['dtos-tethering'];
                     if (tether) {
-                        const obj = {};
+                        const obj: Record<string, any> = {};
                         if (tether['dtos-detect']) {
                             obj.detectDtos = tether['dtos-detect'] === 'enabled';
                             GlobalObject.addProperty(`${rulesPath}/DTOSTethering`, 'detectDtos', loc.original, { [rulesProperty]: { [x]: { 'dtos-tethering': { 'dtos-detect': null } } } });
@@ -497,7 +500,7 @@ module.exports = {
                         }
 
                         if (tether.report && tether.report.dest && tether.report.dest.hsl) {
-                            const dest = {};
+                            const dest: Record<string, any> = {};
                             if (tether.report.dest.hsl['format-script']) {
                                 dest.formatScript = handleObjectRef(tether.report.dest.hsl['format-script']);
                             }
@@ -524,9 +527,12 @@ module.exports = {
         class: 'Enforcement_Listener',
 
         keyValueRemaps: {
-            enforcementProfile: (key, val) => ({ enforcementProfile: handleObjectRef(val) }),
+            enforcementProfile: (key: string, val: any) => ({ enforcementProfile: handleObjectRef(val) }),
 
-            services: (key, val) => ({ services: Object.keys(val).map((x) => handleObjectRef(x)) })
+            services: (key: string, val: any) => ({ services: Object.keys(val).map((x) => handleObjectRef(x)) })
         }
     }
 };
+
+export default enforcementMap;
+module.exports = enforcementMap;

@@ -17,7 +17,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import lodashIsEmpty from 'lodash/isEmpty';
-import * as constants from '../../../constants';
+import constants from '../../../constants';
 import customDict from '../dict';
 import getMergedAS3Properties from '../properties';
 import objectUtil from '../../../utils/object';
@@ -77,8 +77,8 @@ class ObjectContext {
 
     get definitions(): PropertyDefinition[] {
         return objectUtil.cloneDeep(
-            objectUtil.get(this.#engine.propertiesMap, this.#tmosConfigKey, [])
-        );
+            objectUtil.get(this.#engine.propertiesMap, this.#tmosConfigKey, []) ?? []
+        ) as PropertyDefinition[];
     }
 
     get engine(): ConvertEngine {
@@ -177,8 +177,8 @@ class ConvertEngine {
     #propertiesMap: Record<string, PropertyDefinition[]>;
 
     constructor(actions: { default?: Action[]; public?: Action[] }) {
-        this.#defaultActions = objectUtil.get(actions, 'default', []);
-        this.#publicActions = objectUtil.get(actions, 'public', []);
+        this.#defaultActions = (objectUtil.get(actions, 'default', []) ?? []) as Action[];
+        this.#publicActions = (objectUtil.get(actions, 'public', []) ?? []) as Action[];
         this.#propertiesMap = getMergedAS3Properties();
     }
 
@@ -223,15 +223,16 @@ class ConvertEngine {
     #addTmshInfoForOriginValue(propertyCtx: PropertyContext, tmshHeader: string | symbol): any {
         // add to each node tmsh header and path
         const propWithTmshInfo = objectUtil.cloneDeep(propertyCtx.convertedPropertyValue);
-        traverseJSON(propWithTmshInfo, (parent: any, key: string, depth: number, stop: () => void, pathInternal: string[]) => {
+        traverseJSON(propWithTmshInfo, (parent: any, key: string | number, _depth?: number, _stop?: () => void, pathInternal?: (string | number)[]) => {
+            const path = pathInternal ?? [];
             /* update only the original properties
                 do not get into an infinite loop with tmsh properties */
             if (key !== 'tmshHeader' && key !== 'tmshPath'
-                && !pathInternal.includes('tmshHeader')
-                && !pathInternal.includes('tmshPath')
+                && !path.includes('tmshHeader')
+                && !path.includes('tmshPath')
             ) {
                 // reconstruct the path to the property within tmsh object
-                const pathArray = [...pathInternal];
+                const pathArray: (string | number)[] = [...path];
                 pathArray.unshift(propertyCtx.tmosPropertyKey);
                 pathArray.push(key);
                 let bigObj: any = null;
@@ -291,7 +292,7 @@ class ConvertEngine {
                 const existingProperty = existingPath.pop();
                 let tmshPath = '';
                 if (existingProperty && lodashIsEmpty(globalObjectUtil.getTmshInfo(existingPath, existingProperty))) {
-                    tmshPathArr.forEach((currentPath, index) => {
+                    tmshPathArr.forEach((_currentPath, index) => {
                         if (index + 1 in tmshPathArr) {
                             const subPath = tmshPathArr.slice(0, index + 1).join('/');
                             tmshPath += `/${tmshPathArr[index + 1]}`;

@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - DO converter uses dynamic property access patterns
 
-/* eslint-disable consistent-return */
-
-const configItems = require('../../data/configItems.json');
-const customMaps = require('./maps/doCustomMaps');
-const log = require('../../utils/log');
-const declarationBase = require('../../utils/declarationBase');
-const loadDeviceCert = require('../../utils/loadDeviceCert');
-const inputReader = require('../../io/inputReader');
-const unquote = require('../../utils/unquote');
+import configItems from '../../data/configItems.json';
+import customMaps from './maps/doCustomMaps';
+import log from '../../utils/log';
+import declarationBase from '../../utils/declarationBase';
+import loadDeviceCert from '../../utils/loadDeviceCert';
+import inputReader from '../../io/inputReader';
+import unquote from '../../utils/unquote';
 
 const regexIPv4 = /^(\d{1,3}\.){3}\d{1,3}/;
 const regexIPv6 = /^([a-fA-F\d]*:)+[a-fA-F\d]*/;
 
-const camelize = (s) => s.replace(/-./g, (x) => x.toUpperCase()[1]);
+const camelize = (s: string): string => s.replace(/-./g, (x) => x.toUpperCase()[1]);
 
-const getRegKey = () => {
+const getRegKey = (): string | false => {
     try {
         const license = inputReader.data['config/bigip.license'];
-        return /Registration Key :\s+([\w-]+)\n/g.exec(license)[1];
+        const match = /Registration Key :\s+([\w-]+)\n/g.exec(license);
+        return match ? match[1] : false;
     } catch (e) {
         return false;
     }
@@ -43,42 +43,46 @@ const getRegKey = () => {
 /* Determine if device uses any of selfIp from list.
    Return true or false.
  */
-const validateDevice = (deviceObj, selfIpList) => Boolean(selfIpList.find((selfIP) => {
+const validateDevice = (deviceObj: any, selfIpList: string[]): boolean => Boolean(selfIpList.find((selfIP: string) => {
     if (deviceObj.mirrorIp && deviceObj.mirrorIp === selfIP) return true;
     if (deviceObj.configsyncIp && deviceObj.configsyncIp === selfIP) return true;
     if (deviceObj.unicastAddress) {
         if (Object.keys(deviceObj.unicastAddress).find(
-            (i) => Object.keys(deviceObj.unicastAddress[i]).find(
-                (j) => deviceObj.unicastAddress[i][j] === selfIP
+            (i: string) => Object.keys(deviceObj.unicastAddress[i]).find(
+                (j: string) => deviceObj.unicastAddress[i][j] === selfIP
             )
         )) return true;
     }
     return false;
 }));
 
-module.exports = (json, config) => {
+export interface DOConfig {
+    [key: string]: any;
+}
+
+const doConverter = (json: Record<string, any>, config: DOConfig): Record<string, any> => {
     const declaration = declarationBase.DO(config);
 
     // convert kebab-case property names into camelCase (one-level deep)
-    const confObj = {};
+    const confObj: Record<string, any> = {};
     let currentDevice = '';
-    Object.keys(json).forEach((key) => {
+    Object.keys(json).forEach((key: string) => {
         confObj[key] = {};
         const tmshObj = json[key];
-        Object.keys(tmshObj).forEach((propName) => {
+        Object.keys(tmshObj).forEach((propName: string) => {
             const newName = camelize(propName);
             confObj[key][newName] = json[key][propName];
         });
     });
 
     // filter devices if more than 1 in config
-    const deviceKeys = Object.keys(confObj).filter((item) => item.startsWith('cm device '));
+    const deviceKeys = Object.keys(confObj).filter((item: string) => item.startsWith('cm device '));
     if (deviceKeys.length > 1) {
-        const selfKeys = Object.keys(confObj).filter((item) => item.startsWith('net self '));
+        const selfKeys = Object.keys(confObj).filter((item: string) => item.startsWith('net self '));
 
         // collect all self addresses
-        const selfAddresses = [];
-        selfKeys.forEach((key) => {
+        const selfAddresses: string[] = [];
+        selfKeys.forEach((key: string) => {
             const address = confObj[key].address;
             const tmpV4 = regexIPv4.exec(address);
             const tmpV6 = regexIPv6.exec(address);
@@ -94,7 +98,7 @@ module.exports = (json, config) => {
 
         if (selfAddresses.length) {
             // go through each device and check if it contain any of self ip addresses
-            deviceKeys.forEach((key) => {
+            deviceKeys.forEach((key: string) => {
                 const device = confObj[key];
                 if (validateDevice(device, selfAddresses)) {
                     currentDevice = device.hostname;
@@ -109,16 +113,16 @@ module.exports = (json, config) => {
         currentDevice = confObj[deviceKeys[0]].hostname;
     }
 
-    Object.keys(confObj).forEach((key) => {
+    Object.keys(confObj).forEach((key: string) => {
         const keyArr = key.split(' ');
-        const name = keyArr.at(-1).replace('/Common/', '');
+        const name = keyArr.at(-1)!.replace('/Common/', '');
 
-        configItems.forEach((item) => {
+        configItems.forEach((item: any) => {
             // this ensures no broken conversion while DO-feature is WIP
             if (!Object.keys(customMaps).includes(item.schemaClass)) return;
 
             // use configItem.ignore to skip defaults
-            if (item.ignore && item.ignore.filter((i) => i.name).map((n) => n.name
+            if (item.ignore && item.ignore.filter((i: any) => i.name).map((n: any) => n.name
                 .replace('^', '')
                 .replace('$', ''))
                 .includes(name)) return;
@@ -168,7 +172,7 @@ module.exports = (json, config) => {
                 // add properties and overrides for each obj
                 item.properties
                     .concat(customMaps[schemaClass].properties || [])
-                    .forEach((propObj) => {
+                    .forEach((propObj: any) => {
                         let newId = propObj.newId || propObj.id;
                         let propVal = confObj[key][propObj.id];
 
@@ -196,7 +200,7 @@ module.exports = (json, config) => {
                             }
 
                             // add property to declaration (no keyValueRemap required)
-                            const newObj = {};
+                            const newObj: Record<string, any> = {};
                             newObj[newId] = propVal;
                             return Object.assign(declaration.Common[className], newObj);
                         }
@@ -216,7 +220,7 @@ module.exports = (json, config) => {
                     'ConfigSync', 'FailoverUnicast', 'FailoverMulticast', 'MirrorIp'];
                 if (declaration.Common[className]
                     && Object.keys(declaration.Common[className]).length === 1
-                    && classArr.find((c) => declaration.Common[className].class.includes(c))) {
+                    && classArr.find((c: string) => declaration.Common[className].class.includes(c))) {
                     delete declaration.Common[className];
                 }
             }
@@ -224,7 +228,7 @@ module.exports = (json, config) => {
 
         // User: custom handling, not in configItems
         if (key.includes('auth user')) {
-            const userObj = {
+            const userObj: Record<string, any> = {
                 class: 'User',
                 shell: confObj[key].shell,
                 userType: name === 'root' ? 'root' : 'regular'
@@ -255,25 +259,25 @@ module.exports = (json, config) => {
         }
         if (key.startsWith('auth ldap')) {
             const ldapName = key.split('/').pop();
-            const ldapObj = declaration.Common[ldapName];
+            const ldapObj = declaration.Common[ldapName!];
             if (ldapObj.bindPassword) ldapObj.bindPassword = '';
             delete ldapObj.class;
             if (ldapObj.sslCiphers) ldapObj.sslCiphers = ldapObj.sslCiphers.split(':');
             declaration.Common.Authentication.ldap = ldapObj;
-            delete declaration.Common[ldapName];
+            delete declaration.Common[ldapName!];
         }
         if (key.startsWith('auth tacacs')) {
             const tacacsName = key.split('/').pop();
-            const tacacsObj = declaration.Common[tacacsName];
+            const tacacsObj = declaration.Common[tacacsName!];
             if (tacacsObj.secret) tacacsObj.secret = '';
             delete tacacsObj.class;
             declaration.Common.Authentication.tacacs = tacacsObj;
-            delete declaration.Common[tacacsName];
+            delete declaration.Common[tacacsName!];
         }
         if (key.startsWith('auth radius ')) {
             const tmpRadius = confObj[key];
             if (tmpRadius.servers) {
-                Object.keys(tmpRadius.servers).forEach((serverFullName) => {
+                Object.keys(tmpRadius.servers).forEach((serverFullName: string) => {
                     const keyServerName = `auth radius-server ${serverFullName}`;
                     if (confObj[keyServerName]) {
                         if (confObj[keyServerName].secret) confObj[keyServerName].secret = '';
@@ -287,10 +291,10 @@ module.exports = (json, config) => {
                 });
             }
             declaration.Common.Authentication.radius = tmpRadius;
-            delete declaration.Common[key.split('/').pop()];
+            delete declaration.Common[key.split('/').pop()!];
         }
         if (key.startsWith('auth radius-server')) {
-            delete declaration.Common[key.split('/').pop()];
+            delete declaration.Common[key.split('/').pop()!];
         }
     });
 
@@ -324,3 +328,6 @@ module.exports = (json, config) => {
 
     return declaration;
 };
+
+export default doConverter;
+module.exports = doConverter;

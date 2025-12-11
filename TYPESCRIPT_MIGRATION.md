@@ -47,7 +47,7 @@ This document tracks the progress of converting the codebase from JavaScript to 
 
 | File | Status | Notes |
 |------|--------|-------|
-| `as3.js` | [ ] | AS3 schema validation |
+| `as3.js` → `as3.ts` | [x] | AS3 schema validation |
 
 ---
 
@@ -55,13 +55,13 @@ This document tracks the progress of converting the codebase from JavaScript to 
 
 | File | Status | Notes |
 |------|--------|-------|
-| `index.js` | [ ] | Main parser entry |
-| `utils/arrToMultilineStr.js` | [ ] | Array to string utility |
-| `utils/countIndent.js` | [ ] | Indentation counter |
-| `utils/getTitle.js` | [ ] | Title extraction |
-| `utils/objToArr.js` | [ ] | Object to array conversion |
-| `utils/removeIndent.js` | [ ] | Indentation removal |
-| `utils/strToObj.js` | [ ] | String to object parsing |
+| `index.js` → `index.ts` | [x] | Main parser entry |
+| `utils/arrToMultilineStr.js` → `arrToMultilineStr.ts` | [x] | Array to string utility |
+| `utils/countIndent.js` → `countIndent.ts` | [x] | Indentation counter |
+| `utils/getTitle.js` → `getTitle.ts` | [x] | Title extraction |
+| `utils/objToArr.js` → `objToArr.ts` | [x] | Object to array conversion |
+| `utils/removeIndent.js` → `removeIndent.ts` | [x] | Indentation removal |
+| `utils/strToObj.js` → `strToObj.ts` | [x] | String to object parsing |
 
 ---
 
@@ -108,8 +108,8 @@ This document tracks the progress of converting the codebase from JavaScript to 
 
 | File | Status | Notes |
 |------|--------|-------|
-| `inputReader.js` | [ ] | Various input format handling |
-| `ucsReader.js` | [ ] | UCS archive extraction |
+| `inputReader.js` → `inputReader.ts` | [x] | Various input format handling |
+| `ucsReader.js` | [x] | Removed (was duplicate of inputReader) |
 
 ---
 
@@ -117,10 +117,10 @@ This document tracks the progress of converting the codebase from JavaScript to 
 
 | File | Status | Notes |
 |------|--------|-------|
-| `index.js` | [ ] | Main AS3 converter entry |
-| `cleanup.js` | [ ] | AS3 declaration cleanup |
-| `dict.js` | [ ] | Property dictionaries |
-| `properties.js` | [ ] | Property mappings |
+| `index.js` → `index.ts` | [x] | Main AS3 converter entry (uses @ts-nocheck) |
+| `cleanup.js` → `cleanup.ts` | [x] | AS3 declaration cleanup |
+| `dict.js` → `dict.ts` | [x] | Property dictionaries |
+| `properties.js` → `properties.ts` | [x] | Property mappings |
 
 ---
 
@@ -128,10 +128,10 @@ This document tracks the progress of converting the codebase from JavaScript to 
 
 | File | Status | Notes |
 |------|--------|-------|
-| `index.js` | [ ] | Engine entry point |
-| `converter.js` | [ ] | Core conversion logic |
-| `defaultActions.js` | [ ] | Default conversion actions |
-| `publicActions.js` | [ ] | Public conversion actions |
+| `index.js` → `index.ts` | [x] | Engine entry point |
+| `converter.js` → `converter.ts` | [x] | Core conversion logic with PropertyContext/ObjectContext classes |
+| `defaultActions.js` → `defaultActions.ts` | [x] | Default conversion actions |
+| `publicActions.js` → `publicActions.ts` | [x] | Public conversion actions |
 
 ---
 
@@ -139,27 +139,27 @@ This document tracks the progress of converting the codebase from JavaScript to 
 
 | File | Status | Notes |
 |------|--------|-------|
-| `certificate.js` | [ ] | SSL certificate mappings |
-| `cipher.js` | [ ] | Cipher configuration |
-| `data_group.js` | [ ] | Data group mappings |
-| `dns.js` | [ ] | DNS configuration |
-| `enforcement.js` | [ ] | PEM enforcement |
-| `firewall.js` | [ ] | AFM firewall rules |
-| `gslb.js` | [ ] | Global server load balancing |
-| `html_rule.js` | [ ] | HTML profile rules |
-| `iapp.js` | [ ] | iApp templates |
-| `irule.js` | [ ] | iRule mappings |
-| `log_config.js` | [ ] | Logging configuration |
-| `monitor.js` | [ ] | Health monitors |
-| `network.js` | [ ] | Network configuration |
-| `persist.js` | [ ] | Persistence profiles |
-| `policy.js` | [ ] | LTM policies |
-| `pool.js` | [ ] | Pool configuration |
-| `profile.js` | [ ] | Various profiles |
-| `security.js` | [ ] | Security policies |
-| `service.js` | [ ] | Virtual server services |
-| `service_address.js` | [ ] | Service addresses |
-| `snat_pool.js` | [ ] | SNAT pool configuration |
+| `certificate.js` → `certificate.ts` | [x] | SSL certificate mappings |
+| `cipher.js` → `cipher.ts` | [x] | Cipher configuration |
+| `data_group.js` → `data_group.ts` | [x] | Data group mappings |
+| `dns.js` → `dns.ts` | [x] | DNS configuration |
+| `enforcement.js` → `enforcement.ts` | [x] | PEM enforcement |
+| `firewall.js` → `firewall.ts` | [x] | AFM firewall rules |
+| `gslb.js` → `gslb.ts` | [x] | Global server load balancing |
+| `html_rule.js` → `html_rule.ts` | [x] | HTML profile rules |
+| `iapp.js` → `iapp.ts` | [x] | iApp templates |
+| `irule.js` → `irule.ts` | [x] | iRule mappings |
+| `log_config.js` → `log_config.ts` | [x] | Logging configuration |
+| `monitor.js` → `monitor.ts` | [x] | Health monitors |
+| `network.js` → `network.ts` | [x] | Network configuration |
+| `persist.js` → `persist.ts` | [x] | Persistence profiles |
+| `policy.js` → `policy.ts` | [x] | LTM policies |
+| `pool.js` → `pool.ts` | [x] | Pool configuration |
+| `profile.js` → `profile.ts` | [x] | Various profiles |
+| `security.js` → `security.ts` | [x] | Security policies |
+| `service.js` → `service.ts` | [x] | Virtual server services |
+| `service_address.js` → `service_address.ts` | [x] | Service addresses |
+| `snat_pool.js` → `snat_pool.ts` | [x] | SNAT pool configuration |
 
 ---
 
@@ -167,8 +167,8 @@ This document tracks the progress of converting the codebase from JavaScript to 
 
 | File | Status | Notes |
 |------|--------|-------|
-| `index.js` | [ ] | Main DO converter entry |
-| `maps/doCustomMaps.js` | [ ] | DO-specific mappings |
+| `index.js` → `index.ts` | [x] | Main DO converter entry (uses @ts-nocheck) |
+| `maps/doCustomMaps.js` → `doCustomMaps.ts` | [x] | DO-specific mappings |
 
 ---
 
@@ -192,15 +192,15 @@ As we convert files, we'll identify shared types. Track them here:
 |----------|-------|-----------|------------|
 | Root | 1 | 1 | 100% |
 | Core | 1 | 1 | 100% |
-| Validators | 1 | 0 | 0% |
-| Parser | 7 | 0 | 0% |
+| Validators | 1 | 1 | 100% |
+| Parser | 7 | 7 | 100% |
 | Utilities | 33 | 33 | 100% |
-| I/O | 2 | 0 | 0% |
-| AS3 Converter | 4 | 0 | 0% |
-| AS3 Engine | 4 | 0 | 0% |
-| AS3 Maps | 21 | 0 | 0% |
-| DO Converter | 2 | 0 | 0% |
-| **Total** | **76** | **35** | **46%** |
+| I/O | 2 | 2 | 100% |
+| AS3 Converter | 4 | 4 | 100% |
+| AS3 Engine | 4 | 4 | 100% |
+| AS3 Maps | 21 | 21 | 100% |
+| DO Converter | 2 | 2 | 100% |
+| **Total** | **76** | **76** | **100%** |
 
 ---
 

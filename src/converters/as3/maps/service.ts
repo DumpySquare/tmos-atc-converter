@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const path = require('path');
-const enabledToEnable = require('../../../utils/enabledToEnable');
-const getObjectType = require('../../../utils/getObjectType');
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
-const handleObjectRef = require('../../../utils/handleObjectRef');
-const ipUtils = require('../../../utils/ipUtils');
-const log = require('../../../utils/log');
-const portDict = require('../../../data/portDict.json');
-const returnEmptyObjIfNone = require('../../../utils/returnEmptyObjIfNone');
+import path from 'path';
+import enabledToEnable from '../../../utils/enabledToEnable';
+import getObjectType from '../../../utils/getObjectType';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
+import handleObjectRef from '../../../utils/handleObjectRef';
+import ipUtils from '../../../utils/ipUtils';
+import log from '../../../utils/log';
+import portDict from '../../../data/portDict.json';
+import returnEmptyObjIfNone from '../../../utils/returnEmptyObjIfNone';
 
-const handleSharedPath = (propertyPath) => {
+const handleSharedPath = (propertyPath: string): string => {
     const splitPath = propertyPath.split('/');
     const tenant = splitPath[1];
     const application = splitPath[2];
@@ -38,7 +39,7 @@ const handleSharedPath = (propertyPath) => {
     return propertyPath;
 };
 
-const isTypeInProfiles = (profiles, type, file) => {
+const isTypeInProfiles = (profiles: string[], type: string, file: any): boolean => {
     for (let i = 0; i < profiles.length; i += 1) {
         const profile = profiles[i];
         if (getObjectType(profile, file) === type) return true;
@@ -46,9 +47,9 @@ const isTypeInProfiles = (profiles, type, file) => {
     return false;
 };
 
-const getServiceType = (obj, file, globalPath) => {
+const getServiceType = (obj: Record<string, any>, file: any, globalPath: string): Record<string, any> => {
     const profs = Object.keys(obj);
-    let service;
+    let service: Record<string, any>;
 
     // Service_HTTP/Service_HTTPS
     if (isTypeInProfiles(profs, 'http', file)) {
@@ -80,7 +81,7 @@ const getServiceType = (obj, file, globalPath) => {
     }
 
     // Determine if any profiles attached
-    const serviceProfileProperties = {
+    const serviceProfileProperties: Record<string, string> = {
         'bot-defense': 'profileBotDefense',
         'client-ssl': 'serverTLS',
         'diameter-endpoint': 'profileDiameterEndpoint',
@@ -206,20 +207,20 @@ const getServiceType = (obj, file, globalPath) => {
     return service;
 };
 
-module.exports = {
+const serviceMap = {
 
     // Service
     'ltm virtual': {
         class: 'UNCERTAIN_SERVICE',
 
         keyValueRemaps: {
-            autoLasthop: (key, val, _, tmosPath) => {
+            autoLasthop: (key: string, val: any, _: any, tmosPath: string) => {
                 GlobalObject.moveProperty(tmosPath, key, tmosPath, 'lastHop');
                 return { lastHop: enabledToEnable(val) };
             },
 
-            clonePools: (key, val) => {
-                const obj = {};
+            clonePools: (key: string, val: any) => {
+                const obj: Record<string, any> = {};
                 Object.keys(val).forEach((x) => {
                     if (val[x].context === 'clientside') obj.ingress = handleObjectRef(x);
                     if (val[x].context === 'serverside') obj.egress = handleObjectRef(x);
@@ -227,18 +228,18 @@ module.exports = {
                 return { clonePools: obj };
             },
 
-            fallbackPersistenceMethod: (key, val) => ({ fallbackPersistenceMethod: handleObjectRef(val) }),
+            fallbackPersistenceMethod: (key: string, val: any) => ({ fallbackPersistenceMethod: handleObjectRef(val) }),
 
-            mirroring: (key, val) => returnEmptyObjIfNone(val, { mirroring: 'L4' }),
+            mirroring: (key: string, val: any) => returnEmptyObjIfNone(val, { mirroring: 'L4' }),
 
-            policyFirewallEnforced: (key, val) => ({ policyFirewallEnforced: handleObjectRef(val) }),
+            policyFirewallEnforced: (key: string, val: any) => ({ policyFirewallEnforced: handleObjectRef(val) }),
 
-            policyFirewallStaged: (key, val) => ({ policyFirewallStaged: handleObjectRef(val) })
+            policyFirewallStaged: (key: string, val: any) => ({ policyFirewallStaged: handleObjectRef(val) })
         },
 
-        customHandling: (rootObj, loc, file, promotedObjects) => {
+        customHandling: (rootObj: any, loc: any, file: any, promotedObjects: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             const orig = file[loc.original];
 
             // check disabled status
@@ -331,7 +332,7 @@ module.exports = {
             // calculate netmask for 'destination'
             if (rootObj.mask && rootObj.mask !== '255.255.255.255' && rootObj.virtualType !== 'internal') {
                 const cidr = ipUtils.getCidrFromNetmask(rootObj.mask);
-                rootObj.virtualAddresses = rootObj.virtualAddresses.map((x) => ((typeof x === 'string') ? `${x}${cidr}` : x));
+                rootObj.virtualAddresses = rootObj.virtualAddresses.map((x: any) => ((typeof x === 'string') ? `${x}${cidr}` : x));
             }
             delete rootObj.mask;
 
@@ -358,7 +359,7 @@ module.exports = {
 
             // handle 'source'
             if (rootObj.source && rootObj.source !== '0.0.0.0/0') {
-                rootObj.virtualAddresses = rootObj.virtualAddresses.map((x) => [x, rootObj.source]);
+                rootObj.virtualAddresses = rootObj.virtualAddresses.map((x: any) => [x, rootObj.source]);
                 GlobalObject.addProperty(globalPath, 'virtualAddresses', loc.original, { destination: null });
             }
             delete rootObj.source;
@@ -378,7 +379,7 @@ module.exports = {
             // handle persist ref
             if (rootObj.class !== 'Service_Forwarding') {
                 if (rootObj.persistenceMethods) {
-                    const arr = [];
+                    const arr: any[] = [];
                     Object.keys(rootObj.persistenceMethods).forEach((x, index) => {
                         x = !x.includes('/') ? `/Common/${x}` : x;
                         const y = x;
@@ -491,10 +492,13 @@ module.exports = {
 
         // Rename pool so it does not overwrite 'ltm virtual' pool name
         keyValueRemaps: {
-            pool: (key, val, _, tmosPath) => {
+            pool: (key: string, val: any, _: any, tmosPath: string) => {
                 GlobalObject.moveProperty(tmosPath, key, tmosPath, 'snatPool');
                 return { snatPool: val };
             }
         }
     }
 };
+
+export default serviceMap;
+module.exports = serviceMap;

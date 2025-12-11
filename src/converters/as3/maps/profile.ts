@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const buildProtectedObj = require('../../../utils/buildProtectedObj');
-const convertToNameValueObj = require('../../../utils/convertToNameValueObj');
-const enabledToEnable = require('../../../utils/enabledToEnable');
-const handleObjectRef = require('../../../utils/handleObjectRef');
-const loadCertsAndKeys = require('../../../utils/loadCertsAndKeys');
-const returnEmptyObjIfNone = require('../../../utils/returnEmptyObjIfNone');
-const unquote = require('../../../utils/unquote');
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import buildProtectedObj from '../../../utils/buildProtectedObj';
+import convertToNameValueObj from '../../../utils/convertToNameValueObj';
+import enabledToEnable from '../../../utils/enabledToEnable';
+import handleObjectRef from '../../../utils/handleObjectRef';
+import loadCertsAndKeys from '../../../utils/loadCertsAndKeys';
+import returnEmptyObjIfNone from '../../../utils/returnEmptyObjIfNone';
+import unquote from '../../../utils/unquote';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-const defaults = require('../../../data/defaults.json');
+import defaults from '../../../data/defaults.json';
 
 /**
  * Removes suffix from string '100Mb' and return number.
@@ -34,27 +35,27 @@ const defaults = require('../../../data/defaults.json');
  *
  * @returns {Number} number
  */
-const removeSuffix = (str) => {
+const removeSuffix = (str: number | string): number | false => {
     if (typeof str === 'number') return str;
     const match = str.match(/^(\d+)/);
     return match ? parseInt(match[0], 10) : false;
 };
 
-module.exports = {
+const profileMap = {
 
     // Adapt_Profile (Request)
     'ltm profile request-adapt': {
         class: 'Adapt_Profile',
 
         keyValueRemaps: {
-            internalService: (key, val) => returnEmptyObjIfNone(val, {
+            internalService: (key: string, val: any) => returnEmptyObjIfNone(val, {
                 internalService: handleObjectRef(val)
             })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: Record<string, any>, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
 
             rootObj.messageType = 'request';
             GlobalObject.addProperty(globalPath, 'messageType', loc.original, { messageType: null });
@@ -69,14 +70,14 @@ module.exports = {
         class: 'Adapt_Profile',
 
         keyValueRemaps: {
-            internalService: (key, val) => returnEmptyObjIfNone(val, {
+            internalService: (key: string, val: any) => returnEmptyObjIfNone(val, {
                 internalService: handleObjectRef(val)
             })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: Record<string, any>, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
 
             rootObj.messageType = 'response';
             GlobalObject.addProperty(globalPath, 'messageType', loc.original, { messageType: null });
@@ -91,7 +92,7 @@ module.exports = {
         class: 'Analytics_Profile',
 
         keyValueRemaps: {
-            countriesForStatCollection: (key, val) => {
+            countriesForStatCollection: (key: string, val: any) => {
                 if (Array.isArray(val)) {
                     return { countriesForStatCollection: val };
                 }
@@ -99,17 +100,17 @@ module.exports = {
                 // if there is an entry quoted with spaces then list not converted to array by parser
                 // example from parser - "{ Ecuador "Falkland Islands (Malvinas)" }""
                 val = val.match(/\w+|"[^"]+"/g);
-                return { countriesForStatCollection: val.map((x) => unquote(x)) };
+                return { countriesForStatCollection: val.map((x: string) => unquote(x)) };
             },
 
-            externalLoggingPublisher: (key, val) => returnEmptyObjIfNone(val, {
+            externalLoggingPublisher: (key: string, val: any) => returnEmptyObjIfNone(val, {
                 externalLoggingPublisher: handleObjectRef(val)
             })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: Record<string, any>, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
 
             rootObj.captureFilter = {};
             // nested_property
@@ -164,7 +165,7 @@ module.exports = {
         class: 'Analytics_TCP_Profile',
 
         keyValueRemaps: {
-            externalLoggingPublisher: (key, val) => returnEmptyObjIfNone(val, {
+            externalLoggingPublisher: (key: string, val: any) => returnEmptyObjIfNone(val, {
                 externalLoggingPublisher: handleObjectRef(val)
             })
         }
@@ -175,18 +176,18 @@ module.exports = {
         class: 'Capture_Filter',
 
         keyValueRemaps: {
-            nodeAddresses: (key, val) => {
+            nodeAddresses: (key: string, val: any) => {
                 if (typeof val === 'object') {
                     return { nodeAddresses: Object.keys(val) };
                 }
                 return { nodeAddresses: val };
             },
 
-            requestContentFilterSearchString: (key, val) => ({ requestContentFilterSearchString: val }),
+            requestContentFilterSearchString: (key: string, val: any) => ({ requestContentFilterSearchString: val }),
 
-            responseContentFilterSearchString: (key, val) => ({ responseContentFilterSearchString: val }),
+            responseContentFilterSearchString: (key: string, val: any) => ({ responseContentFilterSearchString: val }),
 
-            userAgentSubstrings: (key, val) => {
+            userAgentSubstrings: (key: string, val: any) => {
                 if (Array.isArray(val)) {
                     return { userAgentSubstrings: val };
                 }
@@ -194,10 +195,10 @@ module.exports = {
                 // if there is an entry quoted with spaces then list not converted to array by parser
                 // example from parser - "{ "Mozilla (01" "Mozilla (02" "Mozilla (03" }""
                 val = val.match(/\w+|"[^"]+"/g);
-                return { userAgentSubstrings: val.map((x) => unquote(x)) };
+                return { userAgentSubstrings: val.map((x: string) => unquote(x)) };
             },
 
-            virtualServers: (key, val) => {
+            virtualServers: (key: string, val: any) => {
                 if (typeof val === 'object') {
                     return { virtualServers: Object.keys(val) };
                 }
@@ -211,13 +212,13 @@ module.exports = {
         class: 'Classification_Profile',
 
         keyValueRemaps: {
-            parentProfile: (key, val) => ({ parentProfile: handleObjectRef(val) }),
+            parentProfile: (key: string, val: any) => ({ parentProfile: handleObjectRef(val) }),
 
-            logPublisher: (key, val) => ({ logPublisher: handleObjectRef(val) }),
+            logPublisher: (key: string, val: any) => ({ logPublisher: handleObjectRef(val) }),
 
-            preset: (key, val) => ({ preset: handleObjectRef(val) }),
+            preset: (key: string, val: any) => ({ preset: handleObjectRef(val) }),
 
-            statisticsPublisher: (key, val) => ({ statisticsPublisher: handleObjectRef(val) })
+            statisticsPublisher: (key: string, val: any) => ({ statisticsPublisher: handleObjectRef(val) })
         }
     },
 
@@ -226,15 +227,15 @@ module.exports = {
         class: 'DNS_Profile',
 
         keyValueRemaps: {
-            cache: (key, val) => returnEmptyObjIfNone(val, { cache: { bigip: val } }),
+            cache: (key: string, val: any) => returnEmptyObjIfNone(val, { cache: { bigip: val } }),
 
-            dns64Prefix: (key, val) => ({ dns64Prefix: val === 'any6' ? '0:0:0:0:0:0:0:0' : val }),
+            dns64Prefix: (key: string, val: any) => ({ dns64Prefix: val === 'any6' ? '0:0:0:0:0:0:0:0' : val }),
 
-            loggingProfile: (key, val) => returnEmptyObjIfNone(val, { loggingProfile: { bigip: val } }),
+            loggingProfile: (key: string, val: any) => returnEmptyObjIfNone(val, { loggingProfile: { bigip: val } }),
 
-            parentProfile: (key, val) => ({ parentProfile: handleObjectRef(val) }),
+            parentProfile: (key: string, val: any) => ({ parentProfile: handleObjectRef(val) }),
 
-            securityProfile: (key, val) => returnEmptyObjIfNone(val, { securityProfile: { bigip: val } })
+            securityProfile: (key: string, val: any) => returnEmptyObjIfNone(val, { securityProfile: { bigip: val } })
 
         }
     },
@@ -244,7 +245,7 @@ module.exports = {
         class: 'L4_Profile',
 
         keyValueRemaps: {
-            keepAliveInterval: (key, val) => ({ keepAliveInterval: val !== 'disabled' ? val : 0 })
+            keepAliveInterval: (key: string, val: any) => ({ keepAliveInterval: val !== 'disabled' ? val : 0 })
         }
     },
 
@@ -253,19 +254,19 @@ module.exports = {
         class: 'FIX_Profile',
 
         keyValueRemaps: {
-            fullLogonParsingEnabled: (key, val) => ({ fullLogonParsingEnabled: val === 'true' }),
+            fullLogonParsingEnabled: (key: string, val: any) => ({ fullLogonParsingEnabled: val === 'true' }),
 
-            messageLogPublisher: (key, val) => returnEmptyObjIfNone(val, { messageLogPublisher: handleObjectRef(val) }),
+            messageLogPublisher: (key: string, val: any) => returnEmptyObjIfNone(val, { messageLogPublisher: handleObjectRef(val) }),
 
-            parentProfile: (key, val) => ({ parentProfile: handleObjectRef(val) }),
+            parentProfile: (key: string, val: any) => ({ parentProfile: handleObjectRef(val) }),
 
-            quickParsingEnabled: (key, val) => ({ quickParsingEnabled: val === 'true' }),
+            quickParsingEnabled: (key: string, val: any) => ({ quickParsingEnabled: val === 'true' }),
 
-            responseParsingEnabled: (key, val) => ({ responseParsingEnabled: val === 'true' }),
+            responseParsingEnabled: (key: string, val: any) => ({ responseParsingEnabled: val === 'true' }),
 
-            reportLogPublisher: (key, val) => returnEmptyObjIfNone(val, { reportLogPublisher: handleObjectRef(val) }),
+            reportLogPublisher: (key: string, val: any) => returnEmptyObjIfNone(val, { reportLogPublisher: handleObjectRef(val) }),
 
-            senderTagMappingList: (key, val) => {
+            senderTagMappingList: (key: string, val: any) => {
                 if (val === 'none') return {};
                 return {
                     senderTagMappingList: Object.keys(val).map((x) => ({
@@ -284,9 +285,9 @@ module.exports = {
         keyValueRemaps: {
             allowFtps: () => ({ }),
 
-            algLogProfile: (key, val) => returnEmptyObjIfNone(val, { algLogProfile: handleObjectRef(val) }),
+            algLogProfile: (key: string, val: any) => returnEmptyObjIfNone(val, { algLogProfile: handleObjectRef(val) }),
 
-            logPublisher: (key, val) => returnEmptyObjIfNone(val, { logPublisher: handleObjectRef(val) })
+            logPublisher: (key: string, val: any) => returnEmptyObjIfNone(val, { logPublisher: handleObjectRef(val) })
         }
     },
 
@@ -300,9 +301,9 @@ module.exports = {
         class: 'Radius_Profile',
 
         keyValueRemaps: {
-            parentProfile: (key, val) => ({ parentProfile: handleObjectRef(val) }),
+            parentProfile: (key: string, val: any) => ({ parentProfile: handleObjectRef(val) }),
 
-            protocolProfile: (key, val) => ({ protocolProfile: handleObjectRef(val) })
+            protocolProfile: (key: string, val: any) => ({ protocolProfile: handleObjectRef(val) })
         }
     },
 
@@ -310,8 +311,8 @@ module.exports = {
     'ltm profile html': {
         class: 'HTML_Profile',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: Record<string, any>, loc: any) => {
+            const newObj: Record<string, any> = {};
 
             if (rootObj.rules) {
                 const rules = [];
@@ -333,16 +334,16 @@ module.exports = {
         class: 'HTTP_Acceleration_Profile',
 
         keyValueRemaps: {
-            cacheSize: (key, val) => ({ cacheSize: removeSuffix(val) }),
+            cacheSize: (key: string, val: any) => ({ cacheSize: removeSuffix(val) }),
 
-            metadataMaxSize: (key, val) => ({ metadataMaxSize: removeSuffix(val) }),
+            metadataMaxSize: (key: string, val: any) => ({ metadataMaxSize: removeSuffix(val) }),
 
-            parentProfile: (key, val) => ({ parentProfile: handleObjectRef(val) })
+            parentProfile: (key: string, val: any) => ({ parentProfile: handleObjectRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: Record<string, any>, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
 
             if (rootObj.cacheSize === false) {
                 delete rootObj.cacheSize;
@@ -363,29 +364,29 @@ module.exports = {
         class: 'HTTP_Compress',
 
         keyValueRemaps: {
-            contentTypeExclude: (key, val) => ({ contentTypeExcludes: val }),
+            contentTypeExclude: (key: string, val: any) => ({ contentTypeExcludes: val }),
 
-            contentTypeInclude: (key, val) => ({ contentTypeIncludes: val }),
+            contentTypeInclude: (key: string, val: any) => ({ contentTypeIncludes: val }),
 
-            gzipMemory: (key, val) => ({ gzipMemory: removeSuffix(val) }),
+            gzipMemory: (key: string, val: any) => ({ gzipMemory: removeSuffix(val) }),
 
-            gzipWindowSize: (key, val) => ({ gzipWindowSize: removeSuffix(val) }),
+            gzipWindowSize: (key: string, val: any) => ({ gzipWindowSize: removeSuffix(val) }),
 
-            uriExclude: (key, val) => ({ uriExcludes: val }),
+            uriExclude: (key: string, val: any) => ({ uriExcludes: val }),
 
-            uriInclude: (key, val) => ({ uriIncludes: val })
+            uriInclude: (key: string, val: any) => ({ uriIncludes: val })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: Record<string, any>, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
 
             // Parse string like: '{ text/ "application/(xml|x-javascript)" }'
             if (rootObj.contentTypeIncludes && rootObj.contentTypeIncludes.includes('{')) {
-                rootObj.contentTypeIncludes = rootObj.contentTypeIncludes.split(' ').slice(1, -1).map((x) => unquote(x));
+                rootObj.contentTypeIncludes = rootObj.contentTypeIncludes.split(' ').slice(1, -1).map((x: string) => unquote(x));
             }
             if (rootObj.contentTypeExcludes && rootObj.contentTypeExcludes.includes('{')) {
-                rootObj.contentTypeExcludes = rootObj.contentTypeExcludes.split(' ').slice(1, -1).map((x) => unquote(x));
+                rootObj.contentTypeExcludes = rootObj.contentTypeExcludes.split(' ').slice(1, -1).map((x: string) => unquote(x));
             }
 
             if (rootObj.gzipMemory === false) {
@@ -409,24 +410,24 @@ module.exports = {
         prependProps: ['hsts'],
 
         keyValueRemaps: {
-            cookiePassphrase: (key, val) => ({ cookiePassphrase: buildProtectedObj(val) }),
+            cookiePassphrase: (key: string, val: any) => ({ cookiePassphrase: buildProtectedObj(val) }),
 
-            encryptCookies: (key, val) => returnEmptyObjIfNone(val, { encryptCookies: val }),
+            encryptCookies: (key: string, val: any) => returnEmptyObjIfNone(val, { encryptCookies: val }),
 
-            fallbackRedirect: (key, val) => returnEmptyObjIfNone(val, { fallbackRedirect: val }),
+            fallbackRedirect: (key: string, val: any) => returnEmptyObjIfNone(val, { fallbackRedirect: val }),
 
-            insertHeader: (key, val) => {
+            insertHeader: (key: string, val: any) => {
                 if (val === 'none') return {};
                 return { insertHeader: convertToNameValueObj(val) };
             },
 
-            rewriteRedirects: (key, val) => ({ rewriteRedirects: (val === 'nodes' ? 'addresses' : val) }),
+            rewriteRedirects: (key: string, val: any) => ({ rewriteRedirects: (val === 'nodes' ? 'addresses' : val) }),
 
-            whiteOutHeader: (key, val) => returnEmptyObjIfNone(val, { whiteOutHeader: val })
+            whiteOutHeader: (key: string, val: any) => returnEmptyObjIfNone(val, { whiteOutHeader: val })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: Record<string, any>, loc: any) => {
+            const newObj: Record<string, any> = {};
 
             // HTTP_Profile Explicit
             if (rootObj.resolver) rootObj.resolver = { bigip: rootObj.resolver };
@@ -449,9 +450,9 @@ module.exports = {
     'ltm profile websocket': {
         class: 'HTTP_Profile',
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: Record<string, any>, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
 
             rootObj.webSocketsEnabled = true;
             GlobalObject.addProperty(
@@ -468,7 +469,7 @@ module.exports = {
         class: 'HTTP2_Profile',
 
         keyValueRemaps: {
-            activationMode: (key, val) => {
+            activationMode: (key: string, val: any) => {
                 let newVal = val;
                 if (Array.isArray(val)) {
                     newVal = val[0];
@@ -485,7 +486,7 @@ module.exports = {
         class: 'IP_Other_Profile',
 
         keyValueRemaps: {
-            parentProfile: (key, val) => ({ parentProfile: handleObjectRef(val) })
+            parentProfile: (key: string, val: any) => ({ parentProfile: handleObjectRef(val) })
         }
     },
 
@@ -494,9 +495,9 @@ module.exports = {
         class: 'Multiplex_Profile',
 
         keyValueRemaps: {
-            idleTimeoutOverride: (key, val) => ({ idleTimeoutOverride: (val === 'disabled' ? 0 : val) }),
+            idleTimeoutOverride: (key: string, val: any) => ({ idleTimeoutOverride: (val === 'disabled' ? 0 : val) }),
 
-            sourceMask: (key, val) => (val === 'any' ? {} : { sourceMask: val })
+            sourceMask: (key: string, val: any) => (val === 'any' ? {} : { sourceMask: val })
         }
     },
 
@@ -505,44 +506,44 @@ module.exports = {
         class: 'Traffic_Log_Profile',
 
         keyValueRemaps: {
-            parentProfile: (key, val) => ({ parentProfile: handleObjectRef(val) }),
+            parentProfile: (key: string, val: any) => ({ parentProfile: handleObjectRef(val) }),
 
-            proxyResponse: (key, val) => returnEmptyObjIfNone(val, { proxyResponse: unquote(val) }),
+            proxyResponse: (key: string, val: any) => returnEmptyObjIfNone(val, { proxyResponse: unquote(val) }),
 
-            requestErrorPool: (key, val) => returnEmptyObjIfNone(val, { requestErrorPool: handleObjectRef(val) }),
+            requestErrorPool: (key: string, val: any) => returnEmptyObjIfNone(val, { requestErrorPool: handleObjectRef(val) }),
 
-            requestErrorProtocol: (key, val) => returnEmptyObjIfNone(val, { requestErrorProtocol: val }),
+            requestErrorProtocol: (key: string, val: any) => returnEmptyObjIfNone(val, { requestErrorProtocol: val }),
 
-            requestErrorTemplate: (key, val) => returnEmptyObjIfNone(val, { requestErrorTemplate: unquote(val) }),
+            requestErrorTemplate: (key: string, val: any) => returnEmptyObjIfNone(val, { requestErrorTemplate: unquote(val) }),
 
-            remark: (key, val) => returnEmptyObjIfNone(val, { remark: val }),
+            remark: (key: string, val: any) => returnEmptyObjIfNone(val, { remark: val }),
 
-            requestPool: (key, val) => returnEmptyObjIfNone(val, { requestPool: handleObjectRef(val) }),
+            requestPool: (key: string, val: any) => returnEmptyObjIfNone(val, { requestPool: handleObjectRef(val) }),
 
-            requestProtocol: (key, val) => returnEmptyObjIfNone(val, { requestProtocol: val }),
+            requestProtocol: (key: string, val: any) => returnEmptyObjIfNone(val, { requestProtocol: val }),
 
-            requestTemplate: (key, val) => returnEmptyObjIfNone(val, { requestTemplate: unquote(val) }),
+            requestTemplate: (key: string, val: any) => returnEmptyObjIfNone(val, { requestTemplate: unquote(val) }),
 
-            responseErrorPool: (key, val) => returnEmptyObjIfNone(val, { responseErrorPool: handleObjectRef(val) }),
+            responseErrorPool: (key: string, val: any) => returnEmptyObjIfNone(val, { responseErrorPool: handleObjectRef(val) }),
 
-            responseErrorProtocol: (key, val) => returnEmptyObjIfNone(val, { responseErrorProtocol: val }),
+            responseErrorProtocol: (key: string, val: any) => returnEmptyObjIfNone(val, { responseErrorProtocol: val }),
 
-            responseErrorTemplate: (key, val) => returnEmptyObjIfNone(val, { responseErrorTemplate: val }),
+            responseErrorTemplate: (key: string, val: any) => returnEmptyObjIfNone(val, { responseErrorTemplate: val }),
 
-            responsePool: (key, val) => returnEmptyObjIfNone(val, { responsePool: handleObjectRef(val) }),
+            responsePool: (key: string, val: any) => returnEmptyObjIfNone(val, { responsePool: handleObjectRef(val) }),
 
-            responseProtocol: (key, val) => returnEmptyObjIfNone(val, { responseProtocol: val }),
+            responseProtocol: (key: string, val: any) => returnEmptyObjIfNone(val, { responseProtocol: val }),
 
-            responseTemplate: (key, val) => returnEmptyObjIfNone(val, { responseTemplate: val })
+            responseTemplate: (key: string, val: any) => returnEmptyObjIfNone(val, { responseTemplate: val })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: Record<string, any>, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             const rootKeys = Object.keys(rootObj);
 
             // requestSettings
-            const req = {};
+            const req: Record<string, any> = {};
             GlobalObject.addProperty(
                 globalPath, 'requestSettings', loc.original, { requestSettings: null }
             );
@@ -566,7 +567,7 @@ module.exports = {
             }
 
             // responseSettings
-            const res = {};
+            const res: Record<string, any> = {};
             GlobalObject.addProperty(
                 globalPath, 'responseSettings', loc.original, { responseSettings: null }
             );
@@ -600,27 +601,27 @@ module.exports = {
         class: 'Rewrite_Profile',
 
         keyValueRemaps: {
-            certificate: (key, val) => {
+            certificate: (key: string, val: any) => {
                 if (defaults.includes(val)) return {};
                 return { certificate: val.replace(/\.crt$/g, '') };
             },
 
             defaultsFrom: () => ({}),
 
-            javaCaFile: (key, val) => ({ javaCaFile: handleObjectRef(val) }),
+            javaCaFile: (key: string, val: any) => ({ javaCaFile: handleObjectRef(val) }),
 
             javaCrl: () => ({}),
 
             javaSignKey: () => ({}),
 
-            setCookieRules: (key, val) => ({ setCookieRules: Object.keys(val).map((x) => val[x]) }),
+            setCookieRules: (key: string, val: any) => ({ setCookieRules: Object.keys(val).map((x) => val[x]) }),
 
-            uriRules: (key, val) => ({ uriRules: Object.keys(val).map((x) => val[x]) })
+            uriRules: (key: string, val: any) => ({ uriRules: Object.keys(val).map((x) => val[x]) })
         },
 
-        customHandling: (rootObj, loc, file) => {
+        customHandling: (rootObj: Record<string, any>, loc: any, file: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             const orig = file[loc.original];
             const rootKeys = Object.keys(rootObj);
 
@@ -631,7 +632,7 @@ module.exports = {
             }
 
             // rootObj.requestSettings
-            const req = {};
+            const req: Record<string, any> = {};
 
             // insertXforwardedForEnabled -> requestSettings.insertXforwardedForEnabled
             if (rootKeys.includes('insertXforwardedForEnabled')) req.insertXforwardedForEnabled = rootObj.insertXforwardedForEnabled;
@@ -646,7 +647,7 @@ module.exports = {
             delete rootObj.insertXforwardedProtoEnabled;
 
             // rootObj.responseSettings
-            const res = {};
+            const res: Record<string, any> = {};
 
             // rewriteContentEnabled -> responseSettings.rewriteContentEnabled
             if (rootKeys.includes('rewriteContentEnabled')) res.rewriteContentEnabled = rootObj.rewriteContentEnabled;
@@ -710,7 +711,7 @@ module.exports = {
         class: 'Stream_Profile',
 
         keyValueRemaps: {
-            parentProfile: (key, val) => ({ parentProfile: handleObjectRef(val) })
+            parentProfile: (key: string, val: any) => ({ parentProfile: handleObjectRef(val) })
         }
     },
 
@@ -718,8 +719,8 @@ module.exports = {
     'ltm profile tcp': {
         class: 'TCP_Profile',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: Record<string, any>, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             if (rootObj.idleTimeout === -1) {
                 GlobalObject.deleteProperty(globalPath, 'idleTimeout', 'RenamedProperty');
@@ -727,10 +728,10 @@ module.exports = {
             }
             if (rootObj.tcpOptions) {
                 let split = rootObj.tcpOptions.match(/{.+?}/g);
-                split = split.map((x) => x.replace('{', '').replace('}', ''));
-                const newOptions = [];
-                split.forEach((value, index) => {
-                    const newOption = {};
+                split = split.map((x: string) => x.replace('{', '').replace('}', ''));
+                const newOptions: any[] = [];
+                split.forEach((value: string, index: number) => {
+                    const newOption: Record<string, any> = {};
                     if (value.includes('first')) {
                         value = value.replace('first', '');
                         newOption.when = 'first';
@@ -753,28 +754,28 @@ module.exports = {
         },
 
         keyValueRemaps: {
-            closeWaitTimeout: (key, val) => ({ closeWaitTimeout: val === 4294967295 ? -1 : val }),
+            closeWaitTimeout: (key: string, val: any) => ({ closeWaitTimeout: val === 4294967295 ? -1 : val }),
 
-            finWaitTimeout: (key, val) => ({ finWaitTimeout: val === 4294967295 ? -1 : val }),
+            finWaitTimeout: (key: string, val: any) => ({ finWaitTimeout: val === 4294967295 ? -1 : val }),
 
-            finWait2Timeout: (key, val) => ({ finWait2Timeout: val === 4294967295 ? -1 : val }),
+            finWait2Timeout: (key: string, val: any) => ({ finWait2Timeout: val === 4294967295 ? -1 : val }),
 
-            idleTimeout: (key, val) => ({ idleTimeout: val === 4294967295 ? -1 : val }),
+            idleTimeout: (key: string, val: any) => ({ idleTimeout: val === 4294967295 ? -1 : val }),
 
-            md5SignaturePassphrase: (key, val) => returnEmptyObjIfNone(
+            md5SignaturePassphrase: (key: string, val: any) => returnEmptyObjIfNone(
                 val,
                 { md5SignaturePassphrase: buildProtectedObj(val) }
             ),
 
-            mptcp: (key, val) => ({ mptcp: enabledToEnable(val) }),
+            mptcp: (key: string, val: any) => ({ mptcp: enabledToEnable(val) }),
 
-            nagle: (key, val) => ({ nagle: enabledToEnable(val) }),
+            nagle: (key: string, val: any) => ({ nagle: enabledToEnable(val) }),
 
-            tcpOptions: (key, val) => returnEmptyObjIfNone(val, { tcpOptions: val }),
+            tcpOptions: (key: string, val: any) => returnEmptyObjIfNone(val, { tcpOptions: val }),
 
-            timeWaitTimeout: (key, val) => ({ timeWaitTimeout: val === 'indefinite' ? -1 : val }),
+            timeWaitTimeout: (key: string, val: any) => ({ timeWaitTimeout: val === 'indefinite' ? -1 : val }),
 
-            zeroWindowTimeout: (key, val) => ({ zeroWindowTimeout: val === 4294967295 ? -1 : val })
+            zeroWindowTimeout: (key: string, val: any) => ({ zeroWindowTimeout: val === 4294967295 ? -1 : val })
         }
     },
 
@@ -782,9 +783,9 @@ module.exports = {
     'ltm profile server-ssl': {
         class: 'TLS_Client',
 
-        customHandling: (rootObj, loc, file) => {
+        customHandling: (rootObj: Record<string, any>, loc: any, file: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
 
             if (rootObj.clientCertificate === '/Common/default.crt') {
                 const certName = 'certificate_default';
@@ -852,17 +853,17 @@ module.exports = {
         },
 
         keyValueRemaps: {
-            authenticationFrequency: (key, val) => ({ authenticationFrequency: val === 'once' ? 'one-time' : 'every-time' }),
+            authenticationFrequency: (key: string, val: any) => ({ authenticationFrequency: val === 'once' ? 'one-time' : 'every-time' }),
 
-            c3dCACertificate: (key, val) => returnEmptyObjIfNone(val, { c3dCACertificate: val }),
+            c3dCACertificate: (key: string, val: any) => returnEmptyObjIfNone(val, { c3dCACertificate: val }),
 
-            c3dCAKey: (key, val) => returnEmptyObjIfNone(val, { c3dCAKey: val }),
+            c3dCAKey: (key: string, val: any) => returnEmptyObjIfNone(val, { c3dCAKey: val }),
 
-            crlFile: (key, val) => returnEmptyObjIfNone(val, { crlFile: val }),
+            crlFile: (key: string, val: any) => returnEmptyObjIfNone(val, { crlFile: val }),
 
-            trustCA: (key, val) => returnEmptyObjIfNone(val, { trustCA: val === '/Common/ca-bundle.crt' ? 'generic' : { use: val } }),
+            trustCA: (key: string, val: any) => returnEmptyObjIfNone(val, { trustCA: val === '/Common/ca-bundle.crt' ? 'generic' : { use: val } }),
 
-            cipherGroup: (key, val) => returnEmptyObjIfNone(val, { cipherGroup: handleObjectRef(val) })
+            cipherGroup: (key: string, val: any) => returnEmptyObjIfNone(val, { cipherGroup: handleObjectRef(val) })
         }
     },
 
@@ -870,10 +871,10 @@ module.exports = {
     'ltm profile client-ssl': {
         class: 'TLS_Server',
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: Record<string, any>, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
-            const certificates = [];
+            const newObj: Record<string, any> = {};
+            const certificates: any[] = [];
 
             const certKeys = Object.keys(rootObj.certificates);
             for (let i = 0; i < certKeys.length; i += 1) {
@@ -882,7 +883,7 @@ module.exports = {
 
                 // handle cert ref
                 let certRef = certConf.cert;
-                let obj = {};
+                let obj: Record<string, any> = {};
                 if (certRef === '/Common/default.crt') {
                     obj = { certificate: 'certificate_default' };
                     newObj.certificate_default = {
@@ -974,19 +975,19 @@ module.exports = {
         },
 
         keyValueRemaps: {
-            authenticationFrequency: (key, val) => ({ authenticationFrequency: val === 'once' ? 'one-time' : 'every-time' }),
+            authenticationFrequency: (key: string, val: any) => ({ authenticationFrequency: val === 'once' ? 'one-time' : 'every-time' }),
 
-            authenticationInviteCA: (key, val) => {
+            authenticationInviteCA: (key: string, val: any) => {
                 if (val === 'none') return {};
                 return { authenticationInviteCA: handleObjectRef(val) };
             },
 
-            authenticationTrustCA: (key, val) => {
+            authenticationTrustCA: (key: string, val: any) => {
                 if (val === 'none') return {};
                 return { authenticationTrustCA: handleObjectRef(val) };
             },
 
-            c3dOCSP: (key, val) => returnEmptyObjIfNone(val, { c3dOCSP: val }),
+            c3dOCSP: (key: string, val: any) => returnEmptyObjIfNone(val, { c3dOCSP: val }),
 
             proxyCaCert: () => ({}),
 
@@ -994,13 +995,13 @@ module.exports = {
 
             proxyCaPassphrase: () => ({}),
 
-            cipherGroup: (key, val) => returnEmptyObjIfNone(val, { cipherGroup: handleObjectRef(val) }),
+            cipherGroup: (key: string, val: any) => returnEmptyObjIfNone(val, { cipherGroup: handleObjectRef(val) }),
 
-            crlFile: (key, val) => returnEmptyObjIfNone(val, { crlFile: val }),
+            crlFile: (key: string, val: any) => returnEmptyObjIfNone(val, { crlFile: val }),
 
             enabled: () => ({}),
 
-            forwardProxyBypassAllowlist: (key, val) => returnEmptyObjIfNone(
+            forwardProxyBypassAllowlist: (key: string, val: any) => returnEmptyObjIfNone(
                 val,
                 { forwardProxyBypassAllowlist: handleObjectRef(val) }
             ),
@@ -1014,7 +1015,10 @@ module.exports = {
         class: 'UDP_Profile',
 
         keyValueRemaps: {
-            idleTimeout: (key, val) => ({ idleTimeout: val === 'indefinite' ? -1 : val })
+            idleTimeout: (key: string, val: any) => ({ idleTimeout: val === 'indefinite' ? -1 : val })
         }
     }
 };
+
+export default profileMap;
+module.exports = profileMap;

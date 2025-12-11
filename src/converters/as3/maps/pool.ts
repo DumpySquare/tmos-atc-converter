@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const assert = require('assert');
-const handleObjectRef = require('../../../utils/handleObjectRef');
-const hyphensToCamel = require('../../../utils/hyphensToCamel');
-const ipUtils = require('../../../utils/ipUtils');
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
-const constants = require('../../../constants');
+import assert from 'assert';
+import handleObjectRef from '../../../utils/handleObjectRef';
+import hyphensToCamel from '../../../utils/hyphensToCamel';
+import ipUtils from '../../../utils/ipUtils';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
+import constants from '../../../constants';
 
 // custom diff func w/ concept of allowlist
-const customDiff = (obj1, obj2, allowlist) => {
+const customDiff = (obj1: any, obj2: any, allowlist: string[]) => {
     const obj1Props = Object.keys(obj1);
     for (let i = 0; i < obj1Props.length; i += 1) {
         const prop = obj1Props[i];
@@ -47,8 +48,8 @@ const customDiff = (obj1, obj2, allowlist) => {
     return true;
 };
 
-const dedupe = (arr, propsToMerge, membersPath) => {
-    const newArr = [];
+const dedupe = (arr: any[], propsToMerge: string[], membersPath: string) => {
+    const newArr: any[] = [];
     //  we need to keep track of number of merged members
     // otherwise indexing goes wrong and we delete wrong items
     let deletedCount = 0;
@@ -104,7 +105,7 @@ const dedupe = (arr, propsToMerge, membersPath) => {
  * @param {object} newObj
  * @param {string} newPath
  */
-function moveRenameAndConvertToInt(memberName, oldObj, tmshPath, oldProp, newObj, newPath) {
+function moveRenameAndConvertToInt(memberName: string, oldObj: any, tmshPath: string, oldProp: string, newObj: any, newPath: string) {
     if (oldObj[oldProp]) {
         const newProp = hyphensToCamel(oldProp);
         newObj[newProp] = parseInt(oldObj[oldProp], 10);
@@ -112,30 +113,30 @@ function moveRenameAndConvertToInt(memberName, oldObj, tmshPath, oldProp, newObj
     }
 }
 
-module.exports = {
+const poolMap: Record<string, any> = {
 
     // Pool
     'ltm pool': {
         class: 'Pool',
 
-        customHandling: (rootObj, loc, file) => {
+        customHandling: (rootObj: any, loc: any, file: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
-            const members = [];
+            const newObj: Record<string, any> = {};
+            const members: any[] = [];
 
             // find if 'minimumMonitors' or 'monitor' attached to pool
             const origObj = file[loc.original];
             const minMonitor = Object.keys(origObj).filter((x) => x.includes('monitor min'))[0];
-            let monitorsTmshPath;
+            let monitorsTmshPath: any;
             if (origObj.monitor) {
-                rootObj.monitors = origObj.monitor.split(' and ').map((m) => handleObjectRef(m));
+                rootObj.monitors = origObj.monitor.split(' and ').map((m: string) => handleObjectRef(m));
                 monitorsTmshPath = { monitor: null };
                 // there is "monitors" property already in object, so first we delete it
                 GlobalObject.deleteProperty(globalPath, 'monitors', 'RenamedProperty');
                 GlobalObject.addProperty(globalPath, 'monitors', loc.original, monitorsTmshPath, []);
             } else if (minMonitor) {
                 rootObj.minimumMonitors = parseInt(minMonitor.split(' ')[2], 10);
-                rootObj.monitors = origObj[minMonitor].map((m) => handleObjectRef(m));
+                rootObj.monitors = origObj[minMonitor].map((m: string) => handleObjectRef(m));
                 monitorsTmshPath = { [minMonitor]: null };
                 GlobalObject.addProperty(globalPath, 'minimumMonitors', loc.original, monitorsTmshPath);
                 GlobalObject.addProperty(globalPath, 'monitors', loc.original, monitorsTmshPath, []);
@@ -169,7 +170,7 @@ module.exports = {
                 for (let i = 0; i < keys.length; i += 1) {
                     const poolMemberPath = keys[i];
                     const poolMember = rootObj.members[poolMemberPath];
-                    const memberJson = {};
+                    const memberJson: Record<string, any> = {};
 
                     /* Athough memberJson is attached at the end of the loop,
                         since we use addProperty for the shadow object,
@@ -228,16 +229,16 @@ module.exports = {
                     // handle members with directly-attached monitors
                     // parse  'monitor min 1 of': [ '/Common/http' ]
                     const membMinMon = Object.keys(poolMember).filter((x) => x.includes('monitor min'))[0];
-                    let memberMonitorsTmshPath;
+                    let memberMonitorsTmshPath: any;
                     if (poolMember.monitor) {
-                        memberJson.monitors = poolMember.monitor.split(' and ').map((m) => handleObjectRef(m));
+                        memberJson.monitors = poolMember.monitor.split(' and ').map((m: string) => handleObjectRef(m));
                         memberMonitorsTmshPath = { members: { [poolMemberPath]: { monitor: null } } };
                         // there is "monitors" property already in object, so first we delete it
                         GlobalObject.deleteProperty(singleMemberDestPath, 'monitors');
                         GlobalObject.addProperty(singleMemberDestPath, 'monitors', loc.original, memberMonitorsTmshPath, []);// nested_property
                     } else if (membMinMon) {
                         memberJson.minimumMonitors = parseInt(membMinMon.split(' ')[2], 10);
-                        memberJson.monitors = poolMember[membMinMon].map((m) => handleObjectRef(m));
+                        memberJson.monitors = poolMember[membMinMon].map((m: string) => handleObjectRef(m));
                         memberMonitorsTmshPath = { members: { [poolMemberPath]: { [membMinMon]: null } } };
                         GlobalObject.addProperty(singleMemberDestPath, 'minimumMonitors', loc.original, memberMonitorsTmshPath, []);
                         GlobalObject.addProperty(singleMemberDestPath, 'monitors', loc.original, memberMonitorsTmshPath, []);
@@ -290,3 +291,6 @@ module.exports = {
         }
     }
 };
+
+export default poolMap;
+module.exports = poolMap;

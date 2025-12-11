@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const range = require('lodash/range');
-const handleObjectRef = require('../../../utils/handleObjectRef');
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import range from 'lodash/range';
+import handleObjectRef from '../../../utils/handleObjectRef';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-const splitRate = (str) => {
+const splitRate = (str: string) => {
     let i;
     for (i = 0; i < str.length; i += 1) {
         const char = str[i];
@@ -36,7 +37,7 @@ const splitRate = (str) => {
     };
 };
 
-const factorUnits = (int) => {
+const factorUnits = (int: number) => {
     if (int % 1000000000 === 0) return { unit: 'Gpps', value: int / 1000000000 };
     if (int % 1000000 === 0) return { unit: 'Mpps', value: int / 1000000 };
     if (int % 1000 === 0) return { unit: 'Kpps', value: int / 1000000 };
@@ -51,12 +52,12 @@ const factorUnits = (int) => {
  *
  * @returns {Array<string>} array of strings, each of which is either a range of ports or a single port
  */
-function rollupPorts(intArray) {
+function rollupPorts(intArray: number[]) {
     if (intArray.length < 2) {
         return intArray.slice();
     }
 
-    function portRange(start, end) {
+    function portRange(start: number, end: number) {
         return start === end
             ? `${intArray[start]}`
             : `${intArray[start]}-${intArray[end]}`;
@@ -74,16 +75,16 @@ function rollupPorts(intArray) {
     return rollup;
 }
 
-module.exports = {
+const networkMap = {
 
     // Net_Address_List
     'net address-list': {
         class: 'Net_Address_List',
 
         keyValueRemaps: {
-            addresses: (key, val) => ({ addresses: Object.keys(val) }),
+            addresses: (key: string, val: any) => ({ addresses: Object.keys(val) }),
 
-            addressLists: (key, val) => ({ addressLists: Object.keys(val).map((x) => handleObjectRef(x)) })
+            addressLists: (key: string, val: any) => ({ addressLists: Object.keys(val).map((x) => handleObjectRef(x)) })
         }
     },
 
@@ -92,17 +93,17 @@ module.exports = {
         class: 'Bandwidth_Control_Policy',
 
         keyValueRemaps: {
-            logPublisher: (key, val) => ({ logPublisher: handleObjectRef(val) })
+            logPublisher: (key: string, val: any) => ({ logPublisher: handleObjectRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             // categories
             if (rootObj.categories) {
                 rootObj.categories = Object.keys(rootObj.categories).map((x, index) => {
                     const catObj = rootObj.categories[x];
-                    const obj = {};
+                    const obj: Record<string, any> = {};
 
                     if (x !== 'undefined') {
                         obj.name = x;
@@ -203,7 +204,7 @@ module.exports = {
     'net port-list': {
         class: 'Net_Port_List',
         keyValueRemaps: {
-            ports: (key, val) => {
+            ports: (key: string, val: any) => {
                 const portList = Object.keys(val)
                     .map((x) => {
                         // if we have port range '55-58'
@@ -225,3 +226,6 @@ module.exports = {
         }
     }
 };
+
+export default networkMap;
+module.exports = networkMap;

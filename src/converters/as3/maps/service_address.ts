@@ -14,27 +14,28 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const enabledToEnable = require('../../../utils/enabledToEnable');
-const ipUtils = require('../../../utils/ipUtils');
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import enabledToEnable from '../../../utils/enabledToEnable';
+import ipUtils from '../../../utils/ipUtils';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-module.exports = {
+const serviceAddressMap = {
 
     // Service_Address
     'ltm virtual-address': {
         class: 'Service_Address',
 
         keyValueRemaps: {
-            icmpEcho: (key, val) => ({ icmpEcho: enabledToEnable(val) }),
+            icmpEcho: (key: string, val: any) => ({ icmpEcho: enabledToEnable(val) }),
 
-            routeAdvertisement: (key, val) => ({ routeAdvertisement: enabledToEnable(val) })
+            routeAdvertisement: (key: string, val: any) => ({ routeAdvertisement: enabledToEnable(val) })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             // netmask
             if (rootObj.netmask && rootObj.netmask !== '255.255.255.255') {
                 const cidr = ipUtils.getCidrFromNetmask(rootObj.netmask);
@@ -48,3 +49,6 @@ module.exports = {
         }
     }
 };
+
+export default serviceAddressMap;
+module.exports = serviceAddressMap;

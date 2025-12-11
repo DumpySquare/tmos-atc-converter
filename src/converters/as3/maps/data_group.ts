@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const unquote = require('../../../utils/unquote');
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import unquote from '../../../utils/unquote';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-module.exports = {
+const dataGroupMap = {
 
     // Data_Group
     'ltm data-group internal': {
         class: 'Data_Group',
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
 
             // don't generate AS3-request/declaration Data_Groups
             if (loc.profile.includes('appsvcs')) return {};
@@ -66,13 +67,13 @@ module.exports = {
         class: 'Data_Group',
 
         keyValueRemaps: {
-            dataGroupFile: (key, val) => ({ dataGroupFile: { bigip: val } })
+            dataGroupFile: (key: string, val: any) => ({ dataGroupFile: { bigip: val } })
 
         },
 
-        customHandling: (rootObj, loc, origObj) => {
+        customHandling: (rootObj: any, loc: any, origObj: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.storageType = 'external';
             GlobalObject.addProperty(globalPath, 'storageType', loc.original, { storageType: null });
 
@@ -96,3 +97,6 @@ module.exports = {
         }
     }
 };
+
+export default dataGroupMap;
+module.exports = dataGroupMap;

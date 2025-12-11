@@ -14,28 +14,31 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
+
 'use strict';
 
-const uuid = require('uuid').v4;
-const handleObjectRef = require('../../../utils/handleObjectRef');
-const hyphensToCamel = require('../../../utils/hyphensToCamel');
-const unquote = require('../../../utils/unquote');
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import { v4 as uuid } from 'uuid';
+import handleObjectRef from '../../../utils/handleObjectRef';
+import hyphensToCamel from '../../../utils/hyphensToCamel';
+import unquote from '../../../utils/unquote';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-module.exports = {
+const firewallMap: Record<string, any> = {
 
     // Firewall_Address_List
     'security firewall address-list': {
         class: 'Firewall_Address_List',
 
         keyValueRemaps: {
-            addressLists: (key, val) => ({ addressLists: Object.keys(val).map((x) => handleObjectRef(x)) }),
+            addressLists: (key: string, val: any) => ({ addressLists: Object.keys(val).map((x) => handleObjectRef(x)) }),
 
-            addresses: (key, val) => ({ addresses: Object.keys(val) }),
+            addresses: (key: string, val: any) => ({ addresses: Object.keys(val) }),
 
-            fqdns: (key, val) => ({ fqdns: Object.keys(val) }),
+            fqdns: (key: string, val: any) => ({ fqdns: Object.keys(val) }),
 
-            geo: (key, val) => ({ geo: Object.keys(val) })
+            geo: (key: string, val: any) => ({ geo: Object.keys(val) })
         }
     },
 
@@ -43,8 +46,8 @@ module.exports = {
     'security firewall policy': {
         class: 'Firewall_Policy',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             const rulesProperty = 'rules';
             const irules = 'iRule';
@@ -123,9 +126,9 @@ module.exports = {
         class: 'Firewall_Port_List',
 
         keyValueRemaps: {
-            portLists: (key, val) => ({ portLists: Object.keys(val).map((x) => handleObjectRef(x)) }),
+            portLists: (key: string, val: any) => ({ portLists: Object.keys(val).map((x) => handleObjectRef(x)) }),
 
-            ports: (key, val) => ({
+            ports: (key: string, val: any) => ({
                 ports: Object.keys(val).map(
                     (x) => (parseInt(x, 10) && !x.includes('-') ? parseInt(x, 10) : unquote(x))
                 )
@@ -137,9 +140,9 @@ module.exports = {
     'security firewall rule-list': {
         class: 'Firewall_Rule_List',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
-            const rules = [];
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
+            const rules: any[] = [];
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             const rulePropName = 'rules';
             if (rootObj.rules) {
@@ -219,7 +222,7 @@ module.exports = {
                             // Add vlans in firewall if they were used
                             const vlans = ruleObj[property].vlans;
                             if (vlans) {
-                                const bigip = (str) => ({ bigip: str });
+                                const bigip = (str: string) => ({ bigip: str });
                                 ruleObj[property].vlans = Object.keys(vlans).map((x) => bigip(x));
                                 GlobalObject.addProperty(
                                     `${rulePath}/${property}`,
@@ -279,3 +282,6 @@ module.exports = {
         }
     }
 };
+
+export default firewallMap;
+module.exports = firewallMap;

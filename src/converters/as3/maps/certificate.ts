@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
+
 'use strict';
 
-const buildProtectedObj = require('../../../utils/buildProtectedObj');
-const loadCertsAndKeys = require('../../../utils/loadCertsAndKeys');
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import buildProtectedObj from '../../../utils/buildProtectedObj';
+import loadCertsAndKeys from '../../../utils/loadCertsAndKeys';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-module.exports = {
+const certificateMap: Record<string, any> = {
 
     // Certificate and CA_Bundle
     'sys file ssl-cert': {
         class: 'UNCERTAIN_CERT',
 
-        customHandling: (rootObj, loc, file) => {
+        customHandling: (rootObj: any, loc: any, file: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
 
             const split = loc.original.split(' ');
             const path = split.at(-1);
@@ -85,8 +88,8 @@ module.exports = {
     'ltm profile ocsp-stapling-params': {
         class: 'Certificate_Validator_OCSP',
 
-        customHandling: (rootObj, loc, file) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any, file: any) => {
+            const newObj: Record<string, any> = {};
             const orig = file[loc.original];
 
             if (orig['dns-resolver']) rootObj.dnsResolver = { bigip: orig['dns-resolver'] };
@@ -103,3 +106,6 @@ module.exports = {
         noDirectMap: true
     }
 };
+
+export default certificateMap;
+module.exports = certificateMap;

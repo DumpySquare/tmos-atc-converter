@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const handleObjectRef = require('../../../utils/handleObjectRef');
-const ipUtils = require('../../../utils/ipUtils');
-const returnEmptyObjIfNone = require('../../../utils/returnEmptyObjIfNone');
-const unquote = require('../../../utils/unquote');
+import handleObjectRef from '../../../utils/handleObjectRef';
+import ipUtils from '../../../utils/ipUtils';
+import returnEmptyObjIfNone from '../../../utils/returnEmptyObjIfNone';
+import unquote from '../../../utils/unquote';
 
-module.exports = {
+const gslbMap = {
 
     // GSLB Monitor External
     'gtm monitor external': {
         class: 'GSLB_Monitor',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'external';
             newObj[loc.profile] = rootObj;
             return newObj;
@@ -39,8 +40,8 @@ module.exports = {
     'gtm monitor http': {
         class: 'GSLB_Monitor',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'http';
             newObj[loc.profile] = rootObj;
             return newObj;
@@ -52,13 +53,13 @@ module.exports = {
         class: 'GSLB_Monitor',
 
         keyValueRemaps: {
-            clientCertificate: (key, val) => ({ clientCertificate: val.replace('.crt', '') }),
+            clientCertificate: (key: string, val: any) => ({ clientCertificate: val.replace('.crt', '') }),
 
-            receive: (key, val) => returnEmptyObjIfNone(val, { receive: unquote(val) })
+            receive: (key: string, val: any) => returnEmptyObjIfNone(val, { receive: unquote(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'https';
             newObj[loc.profile] = rootObj;
             return newObj;
@@ -69,8 +70,8 @@ module.exports = {
     'gtm monitor gateway-icmp': {
         class: 'GSLB_Monitor',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'gateway-icmp';
             newObj[loc.profile] = rootObj;
             return newObj;
@@ -81,8 +82,8 @@ module.exports = {
     'gtm monitor tcp': {
         class: 'GSLB_Monitor',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'tcp';
             newObj[loc.profile] = rootObj;
             return newObj;
@@ -93,8 +94,8 @@ module.exports = {
     'gtm monitor udp': {
         class: 'GSLB_Monitor',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'udp';
             newObj[loc.profile] = rootObj;
             return newObj;
@@ -108,7 +109,7 @@ module.exports = {
         keyValueRemaps: {
             metadata: () => ({}),
 
-            proberPool: (key, val) => ({ proberPool: handleObjectRef(unquote(val)) })
+            proberPool: (key: string, val: any) => ({ proberPool: handleObjectRef(unquote(val)) })
         }
     },
 
@@ -116,8 +117,8 @@ module.exports = {
     'gtm prober-pool': {
         class: 'GSLB_Prober_Pool',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
 
             // members
             if (rootObj.members) {
@@ -139,8 +140,8 @@ module.exports = {
     'gtm rule': {
         class: 'GSLB_iRule',
 
-        customHandling: (rootObj, loc, file) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any, file: any) => {
+            const newObj: Record<string, any> = {};
             let irule = file[loc.original];
             irule = irule.replace(/\/Common/g, '/Common/Shared');
             rootObj.iRule = { base64: Buffer.from(irule).toString('base64') };
@@ -154,13 +155,13 @@ module.exports = {
         class: 'GSLB_Server',
 
         keyValueRemaps: {
-            dataCenter: (key, val) => ({ dataCenter: handleObjectRef(val) }),
+            dataCenter: (key: string, val: any) => ({ dataCenter: handleObjectRef(val) }),
 
             metadata: () => ({})
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
 
             // devices
             if (rootObj.devices) {
@@ -194,8 +195,8 @@ module.exports = {
     'gtm region': {
         class: 'GSLB_Topology_Region',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const newMembers = [];
 
             if (rootObj.members) {
@@ -207,7 +208,7 @@ module.exports = {
                         words.shift();
                     }
                     if (words.length >= 2) {
-                        const newMember = {};
+                        const newMember: Record<string, any> = {};
                         let matchValue = '';
                         newMember.matchType = words[0];
                         newMember.matchOperator = matchOperator;
@@ -230,15 +231,15 @@ module.exports = {
     'gtm topology': {
         class: 'GSLB_Topology_Records',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const newRecords = [];
 
             if (rootObj.records) {
                 Object.keys(rootObj.records).forEach((topology) => {
-                    let newRecord = {};
-                    let newSource = {};
-                    let newDestination = {};
+                    let newRecord: Record<string, any> = {};
+                    let newSource: Record<string, any> = {};
+                    let newDestination: Record<string, any> = {};
                     let newWeight = 1;
                     if (topology === 'longest-match-enabled') {
                         if (rootObj.records[topology] === 'true') {
@@ -320,13 +321,13 @@ module.exports = {
         class: 'GSLB_Domain',
 
         keyValueRemaps: {
-            aliases: (key, val) => ({ aliases: Object.keys(val).map((x) => x.replace(/\\/g, '')) }),
+            aliases: (key: string, val: any) => ({ aliases: Object.keys(val).map((x) => x.replace(/\\/g, '')) }),
 
-            iRules: (key, val) => ({ iRules: Object.keys(val) })
+            iRules: (key: string, val: any) => ({ iRules: Object.keys(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             rootObj.resourceRecordType = 'A';
             rootObj.domainName = loc.original.split('/').pop();
 
@@ -350,13 +351,13 @@ module.exports = {
         class: 'GSLB_Domain',
 
         keyValueRemaps: {
-            aliases: (key, val) => ({ aliases: Object.keys(val).map((x) => x.replace(/\\/g, '')) }),
+            aliases: (key: string, val: any) => ({ aliases: Object.keys(val).map((x) => x.replace(/\\/g, '')) }),
 
-            iRules: (key, val) => ({ iRules: Object.keys(val) })
+            iRules: (key: string, val: any) => ({ iRules: Object.keys(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             rootObj.resourceRecordType = 'AAAA';
             rootObj.domainName = loc.original.split('/').pop();
 
@@ -380,13 +381,13 @@ module.exports = {
         class: 'GSLB_Domain',
 
         keyValueRemaps: {
-            aliases: (key, val) => ({ aliases: Object.keys(val).map((x) => x.replace(/\\/g, '')) }),
+            aliases: (key: string, val: any) => ({ aliases: Object.keys(val).map((x) => x.replace(/\\/g, '')) }),
 
-            iRules: (key, val) => ({ iRules: Object.keys(val) })
+            iRules: (key: string, val: any) => ({ iRules: Object.keys(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             rootObj.resourceRecordType = 'CNAME';
             rootObj.domainName = loc.original.split('/').pop();
 
@@ -410,13 +411,13 @@ module.exports = {
         class: 'GSLB_Domain',
 
         keyValueRemaps: {
-            aliases: (key, val) => ({ aliases: Object.keys(val).map((x) => x.replace(/\\/g, '')) }),
+            aliases: (key: string, val: any) => ({ aliases: Object.keys(val).map((x) => x.replace(/\\/g, '')) }),
 
-            iRules: (key, val) => ({ iRules: Object.keys(val) })
+            iRules: (key: string, val: any) => ({ iRules: Object.keys(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             rootObj.resourceRecordType = 'MX';
             rootObj.domainName = loc.original.split('/').pop();
 
@@ -439,8 +440,8 @@ module.exports = {
     'gtm pool a': {
         class: 'GSLB_Pool',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const rootKeys = Object.keys(rootObj);
             rootObj.resourceRecordType = 'A';
 
@@ -494,8 +495,8 @@ module.exports = {
     'gtm pool aaaa': {
         class: 'GSLB_Pool',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const rootKeys = Object.keys(rootObj);
             rootObj.resourceRecordType = 'AAAA';
 
@@ -550,8 +551,8 @@ module.exports = {
     'gtm pool cname': {
         class: 'GSLB_Pool',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const rootKeys = Object.keys(rootObj);
             rootObj.resourceRecordType = 'CNAME';
 
@@ -564,7 +565,7 @@ module.exports = {
                     // domain
                     if (keySplit.length !== 2) {
                         if (Object.keys(member).includes('static-target')) {
-                            const tmpObj = {
+                            const tmpObj: Record<string, any> = {
                                 domainName: keySplit[0],
                                 isDomainNameStatic: member['static-target'] === 'yes',
                                 ratio: parseInt(member.ratio, 10)
@@ -573,7 +574,7 @@ module.exports = {
                             return tmpObj;
                         }
 
-                        const tmpObj = {
+                        const tmpObj: Record<string, any> = {
                             domainName: keySplit[0],
                             ratio: parseInt(member.ratio, 10)
                         };
@@ -581,7 +582,7 @@ module.exports = {
                         return tmpObj;
                     }
 
-                    const tmpObj = {
+                    const tmpObj: Record<string, any> = {
                         ratio: parseInt(member.ratio, 10),
                         server: handleObjectRef(keySplit[0]),
                         virtualServer: keySplit[1]
@@ -611,8 +612,8 @@ module.exports = {
     'gtm pool mx': {
         class: 'GSLB_Pool',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const rootKeys = Object.keys(rootObj);
             rootObj.resourceRecordType = 'MX';
 
@@ -663,3 +664,6 @@ module.exports = {
         }
     }
 };
+
+export default gslbMap;
+module.exports = gslbMap;

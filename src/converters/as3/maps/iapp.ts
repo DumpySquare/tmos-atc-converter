@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-module.exports = {
+const iappMap = {
 
     // Service Discovery iApps
     'sys application service': {
@@ -26,13 +27,13 @@ module.exports = {
         // class: 'Service_Discovery_Azure',
         class: 'Pool',
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             // Support only service discovery iapp
             if (rootObj.template !== '/Common/f5.service_discovery') return {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             const members = [];
-            const member = {};
+            const member: Record<string, any> = {};
             const tags = rootObj.variables;
             const sourceInfo = GlobalObject.getTmshInfoWrapper(globalPath, 'variables');
             const sourcePath = `${globalPath}/variables`;
@@ -198,3 +199,6 @@ module.exports = {
         }
     }
 };
+
+export default iappMap;
+module.exports = iappMap;

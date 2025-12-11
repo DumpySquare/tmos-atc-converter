@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
+
 'use strict';
 
-const handleObjectRef = require('../../../utils/handleObjectRef');
+import handleObjectRef from '../../../utils/handleObjectRef';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
-
-module.exports = {
+const logConfigMap: Record<string, any> = {
 
     // Log_Destination (remote-high-speed-log)
     'sys log-config destination remote-high-speed-log': {
         class: 'Log_Destination',
 
         keyValueRemaps: {
-            pool: (key, val) => ({ pool: handleObjectRef(val) })
+            pool: (key: string, val: any) => ({ pool: handleObjectRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             rootObj.type = 'remote-high-speed-log';
 
@@ -46,11 +48,11 @@ module.exports = {
         class: 'Log_Destination',
 
         keyValueRemaps: {
-            remoteHighSpeedLog: (key, val) => ({ remoteHighSpeedLog: handleObjectRef(val) })
+            remoteHighSpeedLog: (key: string, val: any) => ({ remoteHighSpeedLog: handleObjectRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             rootObj.type = 'remote-syslog';
             GlobalObject.addProperty(globalPath, 'type', loc.original, { type: null });
@@ -63,8 +65,8 @@ module.exports = {
     'sys log-config publisher': {
         class: 'Log_Publisher',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             rootObj.destinations = rootObj.destinations
                 ? Object.keys(rootObj.destinations).map((x) => handleObjectRef(x))
@@ -76,3 +78,6 @@ module.exports = {
         }
     }
 };
+
+export default logConfigMap;
+module.exports = logConfigMap;

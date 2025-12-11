@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-module.exports = {
+const snatPoolMap = {
 
     // SNAT_Pool
     'ltm snatpool': {
         class: 'SNAT_Pool',
 
         keyValueRemaps: {
-            members: (key, val, _, path) => {
+            members: (key: string, val: any, _: any, path: string) => {
                 const snatAddresses = Object.keys(val).map((addr) => addr.split('/').at(-1));
                 GlobalObject.moveProperty(path, key, path, 'snatAddresses');
                 return {
@@ -40,3 +41,6 @@ module.exports = {
         noDirectMap: true
     }
 };
+
+export default snatPoolMap;
+module.exports = snatPoolMap;

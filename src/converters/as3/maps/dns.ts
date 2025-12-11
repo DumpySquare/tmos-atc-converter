@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const buildProtectedObj = require('../../../utils/buildProtectedObj');
-const handleObjectRef = require('../../../utils/handleObjectRef');
+import buildProtectedObj from '../../../utils/buildProtectedObj';
+import handleObjectRef from '../../../utils/handleObjectRef';
 
-module.exports = {
+const dnsMap = {
 
     // DNS_TSIG_Key
     'ltm dns tsig-key': {
         class: 'DNS_TSIG_Key',
 
         keyValueRemaps: {
-            secret: (key, val) => ({ secret: buildProtectedObj(val) })
+            secret: (key: string, val: any) => ({ secret: buildProtectedObj(val) })
         }
     },
 
@@ -37,7 +38,7 @@ module.exports = {
         keyValueRemaps: {
             routeDomain: () => ({}),
 
-            tsigKey: (key, val) => ({ tsigKey: handleObjectRef(val) })
+            tsigKey: (key: string, val: any) => ({ tsigKey: handleObjectRef(val) })
         }
     },
 
@@ -46,16 +47,16 @@ module.exports = {
         class: 'DNS_Zone',
 
         keyValueRemaps: {
-            serverTsigKey: (key, val) => ({ serverTsigKey: handleObjectRef(val) }),
+            serverTsigKey: (key: string, val: any) => ({ serverTsigKey: handleObjectRef(val) }),
 
-            transferClients: (key, val) => ({ transferClients: Object.keys(val).map((x) => handleObjectRef(x)) })
+            transferClients: (key: string, val: any) => ({ transferClients: Object.keys(val).map((x) => handleObjectRef(x)) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
 
             // manually remap dnsExpress
-            const dns = {};
+            const dns: Record<string, any> = {};
 
             // dnsExpressAllowNotify -> dnsExpress.allowNotifyFrom
             if (rootObj.dnsExpressAllowNotify) dns.allowNotifyFrom = rootObj.dnsExpressAllowNotify;
@@ -90,30 +91,33 @@ module.exports = {
         class: 'DNS_Cache',
 
         keyValueRemaps: {
-            localZones: (key, val) => ({
-                localZones: Object.assign(...Object.keys(val).map((z) => ({
+            localZones: (key: string, val: any) => ({
+                localZones: Object.assign({}, ...Object.keys(val).map((z) => ({
                     [val[z].name]: {
                         type: 'transparent',
                         records: (val[z].records || '')
                             .replace('{', '').replace('}', '').trim()
                             .split(' "')
-                            .map((x) => x.replace(/"/g, ''))
-                            .filter((x) => x)
+                            .map((x: string) => x.replace(/"/g, ''))
+                            .filter((x: string) => x)
                     }
                 })))
             }),
 
-            messageCacheSize: (key, val) => ({ messageCacheSize: parseInt(val, 10) }),
+            messageCacheSize: (key: string, val: any) => ({ messageCacheSize: parseInt(val, 10) }),
 
-            recordCacheSize: (key, val) => ({ recordCacheSize: parseInt(val, 10) })
+            recordCacheSize: (key: string, val: any) => ({ recordCacheSize: parseInt(val, 10) })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             rootObj.type = 'transparent';
 
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             newObj[loc.profile] = rootObj;
             return newObj;
         }
     }
 };
+
+export default dnsMap;
+module.exports = dnsMap;

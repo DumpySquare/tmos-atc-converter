@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const buildProtectedObj = require('../../../utils/buildProtectedObj');
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import buildProtectedObj from '../../../utils/buildProtectedObj';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-const iruleRef = (val) => {
+const iruleRef = (val: string): string => {
     const split = val.split('/').slice(1);
     if (split[0] === 'Common' && split[1] !== 'Shared') {
         return `/Common/Shared/${split[1]}`;
@@ -27,27 +28,27 @@ const iruleRef = (val) => {
     return val;
 };
 
-module.exports = {
+const persistMap = {
 
     // Persist (cookie)
     'ltm persistence cookie': {
         class: 'Persist',
 
         keyValueRemaps: {
-            cookieName: (key, val) => ({ cookieName: (val === 'none' ? '' : val) }),
+            cookieName: (key: string, val: any) => ({ cookieName: (val === 'none' ? '' : val) }),
 
-            count: (key, val, options, path) => {
+            count: (key: string, val: any, options: any, path: string) => {
                 GlobalObject.moveProperty(path, key, path, 'hashCount');
                 return { hashCount: val };
             },
 
-            duration: (key, val) => ({ duration: val === 'indefinite' ? 0 : val }),
+            duration: (key: string, val: any) => ({ duration: val === 'indefinite' ? 0 : val }),
 
-            iRule: (key, val) => ({ iRule: iruleRef(val) }),
+            iRule: (key: string, val: any) => ({ iRule: iruleRef(val) }),
 
-            passphrase: (key, val) => ({ passphrase: buildProtectedObj(val) }),
+            passphrase: (key: string, val: any) => ({ passphrase: buildProtectedObj(val) }),
 
-            ttl: (key, val) => {
+            ttl: (key: string, val: any) => {
                 if (typeof val === 'string' && val.includes(':')) {
                     const split = val.split(':');
                     const hours = parseInt(split[0], 10) * 3600 * 7;
@@ -60,8 +61,8 @@ module.exports = {
             }
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             rootObj.persistenceMethod = 'cookie';
             GlobalObject.addProperty(globalPath, 'persistenceMethod', loc.original, { persistenceMethod: null });
@@ -75,15 +76,15 @@ module.exports = {
         class: 'Persist',
 
         keyValueRemaps: {
-            addressMask: (key, val) => ({ addressMask: val === 'none' ? '' : val }),
+            addressMask: (key: string, val: any) => ({ addressMask: val === 'none' ? '' : val }),
 
-            duration: (key, val) => ({ duration: val === 'indefinite' ? 0 : val }),
+            duration: (key: string, val: any) => ({ duration: val === 'indefinite' ? 0 : val }),
 
-            iRule: (key, val) => ({ iRule: iruleRef(val) })
+            iRule: (key: string, val: any) => ({ iRule: iruleRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             rootObj.persistenceMethod = 'destination-address';
             GlobalObject.addProperty(globalPath, 'persistenceMethod', loc.original, { persistenceMethod: null });
@@ -97,15 +98,15 @@ module.exports = {
         class: 'Persist',
 
         keyValueRemaps: {
-            endPattern: (key, val) => ({ endPattern: val.replace(/\\\\/g, '\\').replace(/\\\?/g, '?') }),
+            endPattern: (key: string, val: any) => ({ endPattern: val.replace(/\\\\/g, '\\').replace(/\\\?/g, '?') }),
 
-            iRule: (key, val) => ({ iRule: iruleRef(val) }),
+            iRule: (key: string, val: any) => ({ iRule: iruleRef(val) }),
 
-            startPattern: (key, val) => ({ startPattern: val.replace(/\\\\/g, '\\') })
+            startPattern: (key: string, val: any) => ({ startPattern: val.replace(/\\\\/g, '\\') })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             rootObj.persistenceMethod = 'hash';
             GlobalObject.addProperty(globalPath, 'persistenceMethod', loc.original, { persistenceMethod: null });
@@ -119,11 +120,11 @@ module.exports = {
         class: 'Persist',
 
         keyValueRemaps: {
-            iRule: (key, val) => ({ iRule: iruleRef(val) })
+            iRule: (key: string, val: any) => ({ iRule: iruleRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             rootObj.persistenceMethod = 'msrdp';
             GlobalObject.addProperty(globalPath, 'persistenceMethod', loc.original, { persistenceMethod: null });
@@ -137,11 +138,11 @@ module.exports = {
         class: 'Persist',
 
         keyValueRemaps: {
-            iRule: (key, val) => ({ iRule: iruleRef(val) })
+            iRule: (key: string, val: any) => ({ iRule: iruleRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             rootObj.persistenceMethod = 'sip-info';
             GlobalObject.addProperty(globalPath, 'persistenceMethod', loc.original, { persistenceMethod: null });
@@ -155,15 +156,15 @@ module.exports = {
         class: 'Persist',
 
         keyValueRemaps: {
-            addressMask: (key, val) => ({ addressMask: val === 'none' ? '' : val }),
+            addressMask: (key: string, val: any) => ({ addressMask: val === 'none' ? '' : val }),
 
-            duration: (key, val) => ({ duration: val === 'indefinite' ? 0 : val }),
+            duration: (key: string, val: any) => ({ duration: val === 'indefinite' ? 0 : val }),
 
-            iRule: (key, val) => ({ iRule: iruleRef(val) })
+            iRule: (key: string, val: any) => ({ iRule: iruleRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             rootObj.persistenceMethod = 'source-address';
             GlobalObject.addProperty(globalPath, 'persistenceMethod', loc.original, { persistenceMethod: null });
@@ -177,11 +178,11 @@ module.exports = {
         class: 'Persist',
 
         keyValueRemaps: {
-            iRule: (key, val) => ({ iRule: iruleRef(val) })
+            iRule: (key: string, val: any) => ({ iRule: iruleRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             rootObj.persistenceMethod = 'tls-session-id';
             GlobalObject.addProperty(globalPath, 'persistenceMethod', loc.original, { persistenceMethod: null });
@@ -195,11 +196,11 @@ module.exports = {
         class: 'Persist',
 
         keyValueRemaps: {
-            iRule: (key, val) => ({ iRule: iruleRef(val) })
+            iRule: (key: string, val: any) => ({ iRule: iruleRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             rootObj.persistenceMethod = 'universal';
             GlobalObject.addProperty(globalPath, 'persistenceMethod', loc.original, { persistenceMethod: null });
@@ -208,3 +209,6 @@ module.exports = {
         }
     }
 };
+
+export default persistMap;
+module.exports = persistMap;

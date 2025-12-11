@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-module.exports = {
+const iruleMap = {
 
     // iRule
     'ltm rule': {
         class: 'iRule',
 
-        customHandling: (rootObj, loc, file) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any, file: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             let irule = file[loc.original];
             // That RegEx replaces all occurrences of /Common/ - either partition name either something else,
@@ -38,3 +39,6 @@ module.exports = {
         }
     }
 };
+
+export default iruleMap;
+module.exports = iruleMap;

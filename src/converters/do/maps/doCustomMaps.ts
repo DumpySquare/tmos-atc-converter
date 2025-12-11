@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
 // DO classes must be listed here for the converter to attempt a conversion
 // if namedClass is true, then multiple instances can exist (with their own names)
 // the 'properties' option will add to the configItems.json file (avoids upstream changes)
 // keyValueRemaps allows both the key and value of a property to be manipulated
 
-const portDict = require('../../../data/portDict.json');
-const unquote = require('../../../utils/unquote');
-const recursiveCamelize = require('../../../utils/recursiveCamelize');
+import portDict from '../../../data/portDict.json';
+import unquote from '../../../utils/unquote';
+import recursiveCamelize from '../../../utils/recursiveCamelize';
 
-module.exports = {
+const doCustomMaps: Record<string, any> = {
     Analytics: {},
 
     Authentication: {
@@ -52,10 +53,10 @@ module.exports = {
         ],
         namedClass: true,
         keyValueRemaps: {
-            autoSync: (val) => ({ autoSync: val === 'enabled' }),
-            members: (val) => ({ members: Object.keys(val).map((x) => x.replace('/Common/', '')) })
+            autoSync: (val: any) => ({ autoSync: val === 'enabled' }),
+            members: (val: any) => ({ members: Object.keys(val).map((x: string) => x.replace('/Common/', '')) })
         },
-        customHandling: (rootObj, className, name, currentDevice) => {
+        customHandling: (rootObj: any, className: string, name: string, currentDevice: string) => {
             const ind = rootObj.members.indexOf(currentDevice);
             rootObj.owner = (ind !== -1) ? `/Common/${name}/members/${ind}` : `/Common/${name}/members/0`;
 
@@ -72,14 +73,14 @@ module.exports = {
     DNS_Resolver: {
         namedClass: true,
         keyValueRemaps: {
-            forwardZones: (val) => ({
-                forwardZones: Object.keys(val).map((v) => ({
+            forwardZones: (val: any) => ({
+                forwardZones: Object.keys(val).map((v: string) => ({
                     name: v,
-                    nameservers: Object.keys(val[v].nameservers).map((x) => x.replace('domain', '53'))
+                    nameservers: Object.keys(val[v].nameservers).map((x: string) => x.replace('domain', '53'))
                 }))
             }),
 
-            routeDomain: (val) => ({ routeDomain: val.replace('/Common/', '') })
+            routeDomain: (val: string) => ({ routeDomain: val.replace('/Common/', '') })
         }
     },
 
@@ -89,9 +90,9 @@ module.exports = {
 
     FailoverUnicast: {
         namedClass: true,
-        customHandling: (rootObj, className) => {
+        customHandling: (rootObj: any, className: string) => {
             if (rootObj.addressPorts) {
-                rootObj.addressPorts = Object.keys(rootObj.addressPorts).map((key) => {
+                rootObj.addressPorts = Object.keys(rootObj.addressPorts).map((key: string) => {
                     const tmpObj = rootObj.addressPorts[key];
                     return { address: tmpObj['effective-ip'], port: parseInt(tmpObj['effective-port'], 10) };
                 });
@@ -104,7 +105,7 @@ module.exports = {
     FirewallAddressList: {
         namedClass: true,
         keyValueRemaps: {
-            addresses: (val) => ({ addresses: Object.keys(val) })
+            addresses: (val: any) => ({ addresses: Object.keys(val) })
         }
     },
 
@@ -115,21 +116,21 @@ module.exports = {
             { id: 'rules' }
         ],
 
-        customHandling: (rootObj, className) => {
+        customHandling: (rootObj: any, className: string) => {
             const cRoot = recursiveCamelize(rootObj);
 
-            cRoot.rules = Object.keys(cRoot.rules).map((r) => {
+            cRoot.rules = Object.keys(cRoot.rules).map((r: string) => {
                 const rule = cRoot.rules[r];
 
-                const newObj = {
+                const newObj: Record<string, any> = {
                     destination: {},
                     source: {}
                 };
 
-                Object.keys(newObj).forEach((i) => {
-                    ['addressLists', 'portLists', 'vlans'].forEach((p) => {
+                Object.keys(newObj).forEach((i: string) => {
+                    ['addressLists', 'portLists', 'vlans'].forEach((p: string) => {
                         if (rule[i][p]) {
-                            newObj[i][p] = Object.keys(rule[i][p]).map((ref) => `/Common/${ref}`);
+                            newObj[i][p] = Object.keys(rule[i][p]).map((ref: string) => `/Common/${ref}`);
                         }
                     });
                 });
@@ -152,7 +153,7 @@ module.exports = {
     FirewallPortList: {
         namedClass: true,
         keyValueRemaps: {
-            ports: (val) => ({ ports: Object.keys(val) })
+            ports: (val: any) => ({ ports: Object.keys(val) })
         }
     },
 
@@ -161,11 +162,11 @@ module.exports = {
     },
 
     GSLBGlobals: {
-        customHandling: (rootObj, className) => {
-            const general = {};
+        customHandling: (rootObj: any, className: string) => {
+            const general: Record<string, any> = {};
             Object.keys(rootObj)
-                .filter((k) => k !== 'class')
-                .forEach((k) => {
+                .filter((k: string) => k !== 'class')
+                .forEach((k: string) => {
                     general[k] = rootObj[k];
                     delete rootObj[k];
                 });
@@ -181,9 +182,9 @@ module.exports = {
             { id: 'members' }
         ],
         keyValueRemaps: {
-            members: (val) => {
-                const members = Object.keys(val).map((key) => {
-                    const tempObj = {};
+            members: (val: any) => {
+                const members = Object.keys(val).map((key: string) => {
+                    const tempObj: Record<string, any> = {};
                     if (val[key].description) tempObj.remark = unquote(val[key].description);
                     tempObj.server = key;
                     return tempObj;
@@ -200,7 +201,7 @@ module.exports = {
             { id: 'defaultsFrom' }
         ],
         keyValueRemaps: {
-            defaultsFrom: (val) => ({ monitorType: val.split('/').pop().replace('_', '-') })
+            defaultsFrom: (val: string) => ({ monitorType: val.split('/').pop()?.replace('_', '-') })
         }
     },
 
@@ -210,9 +211,9 @@ module.exports = {
             { id: 'devices' }
         ],
         keyValueRemaps: {
-            devices: (val) => {
-                const devices = Object.keys(val).map((key) => {
-                    const tempObj = {};
+            devices: (val: any) => {
+                const devices = Object.keys(val).map((key: string) => {
+                    const tempObj: Record<string, any> = {};
                     tempObj.address = Object.keys(val[key].addresses)[0];
                     if (val[key].description) tempObj.remark = unquote(val[key].description);
                     tempObj.addressTranslation = val[key].addresses[tempObj.address].translation;
@@ -222,13 +223,13 @@ module.exports = {
                 return { devices };
             },
 
-            monitors: (val) => ({ monitors: val.split('and').map((item) => item.trim()) })
+            monitors: (val: string) => ({ monitors: val.split('and').map((item: string) => item.trim()) })
         }
     },
 
     HTTPD: {
         keyValueRemaps: {
-            sslCiphersuite: (val) => ({ sslCiphersuite: val.split(':') })
+            sslCiphersuite: (val: string) => ({ sslCiphersuite: val.split(':') })
         }
     },
 
@@ -236,7 +237,7 @@ module.exports = {
 
     ManagementIp: {
         namedClass: true,
-        customHandling: (rootObj, className, objName) => {
+        customHandling: (rootObj: any, className: string, objName: string) => {
             rootObj.address = objName;
             return { [className]: rootObj };
         }
@@ -247,21 +248,21 @@ module.exports = {
             { id: 'rules' }
         ],
 
-        customHandling: (rootObj, className) => {
+        customHandling: (rootObj: any, className: string) => {
             const cRoot = recursiveCamelize(rootObj);
 
-            cRoot.rules = Object.keys(cRoot.rules).map((r) => {
+            cRoot.rules = Object.keys(cRoot.rules).map((r: string) => {
                 const rule = cRoot.rules[r];
 
-                const newObj = {
+                const newObj: Record<string, any> = {
                     destination: {},
                     source: {}
                 };
 
-                Object.keys(newObj).forEach((i) => {
-                    ['addressLists', 'portLists'].forEach((p) => {
+                Object.keys(newObj).forEach((i: string) => {
+                    ['addressLists', 'portLists'].forEach((p: string) => {
                         if (rule[i][p]) {
-                            newObj[i][p] = Object.keys(rule[i][p]).map((ref) => `/Common/${ref}`);
+                            newObj[i][p] = Object.keys(rule[i][p]).map((ref: string) => `/Common/${ref}`);
                         }
                     });
                 });
@@ -298,11 +299,11 @@ module.exports = {
 
         reduceTmshPath: true,
 
-        customHandling: (rootObj, className) => {
+        customHandling: (rootObj: any, className: string) => {
             // returns multiple DO stanzas from one tmsh object
             const cRoot = recursiveCamelize(rootObj);
 
-            const roles = Object.keys(cRoot.roleInfo).map((r) => {
+            const roles = Object.keys(cRoot.roleInfo).map((r: string) => {
                 if (cRoot.roleInfo[r].lineOrder) {
                     cRoot.roleInfo[r].lineOrder = parseInt(cRoot.roleInfo[r].lineOrder, 10);
                 }
@@ -311,7 +312,7 @@ module.exports = {
                 cRoot.roleInfo[r].class = className;
                 return { [r]: cRoot.roleInfo[r] };
             });
-            return Object.assign(...roles);
+            return Object.assign({}, ...roles);
         }
     },
 
@@ -323,11 +324,11 @@ module.exports = {
         namedClass: true,
 
         keyValueRemaps: {
-            vlans: (val) => ({ vlans: Object.keys(val) }),
-            routingProtocols: (val) => ({ routingProtocols: Object.keys(val) })
+            vlans: (val: any) => ({ vlans: Object.keys(val) }),
+            routingProtocols: (val: any) => ({ routingProtocols: Object.keys(val) })
         },
 
-        customHandling: (rootObj, className) => {
+        customHandling: (rootObj: any, className: string) => {
             // Don't convert default rd0
             if (rootObj.id === 0) return {};
             return { [className]: rootObj };
@@ -342,10 +343,10 @@ module.exports = {
         ],
 
         keyValueRemaps: {
-            entries(val) {
+            entries(val: any) {
                 const cVal = recursiveCamelize(val);
                 return {
-                    entries: Object.keys(cVal).map((key) => {
+                    entries: Object.keys(cVal).map((key: string) => {
                         cVal[key].name = key;
                         return cVal[key];
                     })
@@ -363,16 +364,16 @@ module.exports = {
         ],
 
         keyValueRemaps: {
-            addressFamilies(val) {
+            addressFamilies(val: any) {
                 const cVal = recursiveCamelize(val);
 
                 const addressFamilies = Object.keys(cVal)
-                    .filter((key) => Object.keys(cVal[key]).length > 0)
-                    .map((key) => {
+                    .filter((key: string) => Object.keys(cVal[key]).length > 0)
+                    .map((key: string) => {
                         cVal[key].internetProtocol = key;
 
                         if (cVal[key].redistribute) {
-                            cVal[key].redistributionList = Object.keys(cVal[key].redistribute).map((item) => ({
+                            cVal[key].redistributionList = Object.keys(cVal[key].redistribute).map((item: string) => ({
                                 routeMap: cVal[key].redistribute[item].routeMap,
                                 routingProtocol: item
                             }));
@@ -385,7 +386,7 @@ module.exports = {
                 return { addressFamilies };
             },
 
-            gracefulRestart(val) {
+            gracefulRestart(val: any) {
                 const cVal = recursiveCamelize(val);
                 if (cVal.gracefulReset) {
                     cVal.gracefulResetEnabled = cVal.gracefulReset === 'enabled';
@@ -400,9 +401,9 @@ module.exports = {
                 return { gracefulRestart: cVal };
             },
 
-            neighbor(val) {
+            neighbor(val: any) {
                 const cVal = recursiveCamelize(val);
-                const neighbors = Object.keys(cVal).map((key) => ({
+                const neighbors = Object.keys(cVal).map((key: string) => ({
                     address: key,
                     ebgpMultihop: parseInt(cVal[key].ebgpMultihop, 10),
                     peerGroup: cVal[key].peerGroup
@@ -411,13 +412,13 @@ module.exports = {
                 return { neighbors };
             },
 
-            peerGroup(val) {
+            peerGroup(val: any) {
                 const cVal = recursiveCamelize(val);
 
-                const peerGroups = Object.keys(cVal).map((key) => {
+                const peerGroups = Object.keys(cVal).map((key: string) => {
                     const addressFamilies = Object.keys(cVal[key].addressFamily)
-                        .filter((item) => Object.keys(cVal[key].addressFamily[item]).length > 1)
-                        .map((item) => ({
+                        .filter((item: string) => Object.keys(cVal[key].addressFamily[item]).length > 1)
+                        .map((item: string) => ({
                             internetProtocol: item,
                             routeMap: cVal[key].addressFamily[item].routeMap,
                             softReconfigurationInboundEnabled: cVal[key].addressFamily[item].softReconfigurationInbound === 'enabled'
@@ -443,9 +444,9 @@ module.exports = {
         ],
 
         keyValueRemaps: {
-            entries(val) {
+            entries(val: any) {
                 const cVal = recursiveCamelize(val);
-                const entries = Object.keys(cVal).map((key) => {
+                const entries = Object.keys(cVal).map((key: string) => {
                     cVal[key].name = parseInt(key, 10);
 
                     if (cVal[key].exactMatch) {
@@ -468,8 +469,8 @@ module.exports = {
         ],
 
         keyValueRemaps: {
-            entries(val) {
-                const entries = Object.keys(val).map((key) => {
+            entries(val: any) {
+                const entries = Object.keys(val).map((key: string) => {
                     val[key].name = parseInt(key, 10);
                     val[key].regex = unquote(val[key].regex);
                     delete val[key].action;
@@ -489,9 +490,9 @@ module.exports = {
         ],
 
         keyValueRemaps: {
-            entries(val) {
+            entries(val: any) {
                 const cVal = recursiveCamelize(val);
-                const entries = Object.keys(cVal).map((key) => {
+                const entries = Object.keys(cVal).map((key: string) => {
                     cVal[key].name = parseInt(key, 10);
 
                     if (cVal[key].prefixLenRange) {
@@ -510,15 +511,15 @@ module.exports = {
         namedClass: true,
 
         keyValueRemaps: {
-            allowService: (val) => {
-                const newObj = { allowService: typeof (val) === 'object' ? Object.keys(val) : val };
+            allowService: (val: any) => {
+                const newObj: Record<string, any> = { allowService: typeof (val) === 'object' ? Object.keys(val) : val };
                 if (newObj.allowService[0] === 'default') return { allowService: 'default' };
                 return newObj;
             },
-            trafficGroup: (val) => ({ trafficGroup: val.split('/Common/').pop() })
+            trafficGroup: (val: string) => ({ trafficGroup: val.split('/Common/').pop() })
         },
 
-        customHandling: (rootObj, className) => {
+        customHandling: (rootObj: any, className: string) => {
             if (rootObj.allowService === undefined) rootObj.allowService = 'none';
             return { [className]: rootObj };
         }
@@ -535,10 +536,10 @@ module.exports = {
 
         reduceTmshPath: true,
 
-        customHandling: (rootObj) => {
+        customHandling: (rootObj: any) => {
             // returns multiple DO stanzas from one tmsh object
             if (rootObj.communities) {
-                const communities = Object.keys(rootObj.communities).map((s) => {
+                const communities = Object.keys(rootObj.communities).map((s: string) => {
                     if (s === 'comm-public') return {};
                     rootObj.communities[s].class = rootObj.class;
 
@@ -558,7 +559,7 @@ module.exports = {
                     return { [s]: rootObj.communities[s] };
                 });
 
-                return Object.assign(...communities);
+                return Object.assign({}, ...communities);
             }
             return {};
         }
@@ -573,10 +574,10 @@ module.exports = {
 
         reduceTmshPath: true,
 
-        customHandling: (rootObj) => {
+        customHandling: (rootObj: any) => {
             if (rootObj.traps) {
                 const cRoot = recursiveCamelize(rootObj);
-                const traps = Object.keys(cRoot.traps).map((s) => {
+                const traps = Object.keys(cRoot.traps).map((s: string) => {
                     const trap = cRoot.traps[s];
                     trap.class = rootObj.class;
 
@@ -609,7 +610,7 @@ module.exports = {
                     return { [s]: trap };
                 });
 
-                return Object.assign(...traps);
+                return Object.assign({}, ...traps);
             }
             return {};
         }
@@ -624,12 +625,12 @@ module.exports = {
 
         reduceTmshPath: true,
 
-        customHandling: (rootObj, className) => {
+        customHandling: (rootObj: any, className: string) => {
             if (rootObj.users) {
                 const cRoot = recursiveCamelize(rootObj);
-                const users = Object.keys(cRoot.users).map((s) => {
+                const users = Object.keys(cRoot.users).map((s: string) => {
                     const user = cRoot.users[s];
-                    const usrObj = { class: className };
+                    const usrObj: Record<string, any> = { class: className };
 
                     if (user.access) usrObj.access = user.access;
 
@@ -652,7 +653,7 @@ module.exports = {
                     return { [s]: usrObj };
                 });
 
-                return Object.assign(...users);
+                return Object.assign({}, ...users);
             }
             return {};
         }
@@ -660,11 +661,11 @@ module.exports = {
 
     SSHD: {
         keyValueRemaps: {
-            banner: (val, conf) => ({ banner: unquote(conf.bannerText) }),
+            banner: (val: any, conf: any) => ({ banner: unquote(conf.bannerText) }),
 
-            include: (val) => {
-                const newObj = {};
-                val.trim().split('\n').forEach((v) => {
+            include: (val: string) => {
+                const newObj: Record<string, any> = {};
+                val.trim().split('\n').forEach((v: string) => {
                     let strKey = v.split(' ')[0];
                     if (strKey === 'MACs') {
                         strKey = 'MACS';
@@ -672,7 +673,7 @@ module.exports = {
                         strKey = strKey[0].toLowerCase() + strKey.slice(1);
                     }
 
-                    let strVal = v.split(' ')[1];
+                    let strVal: string | string[] | number = v.split(' ')[1];
                     if (strVal.includes(',')) strVal = strVal.split(',');
                     if (!Array.isArray(strVal) && parseInt(strVal, 10)) {
                         strVal = parseInt(strVal, 10);
@@ -685,24 +686,24 @@ module.exports = {
     },
 
     SyslogRemoteServer: {
-        customHandling: (rootObj, className) => {
+        customHandling: (rootObj: any, className: string) => {
             // returns multiple DO stanzas from one tmsh object
             const cRoot = recursiveCamelize(rootObj);
-            const servers = Object.keys(cRoot.remoteServers).map((s) => {
+            const servers = Object.keys(cRoot.remoteServers).map((s: string) => {
                 cRoot.remoteServers[s].class = className;
                 if (cRoot.remoteServers[s].remotePort) {
-                    cRoot.remoteServers[s].remotePort = portDict[cRoot.remoteServers[s].remotePort];
+                    cRoot.remoteServers[s].remotePort = (portDict as Record<string, number>)[cRoot.remoteServers[s].remotePort];
                 }
                 return { [s]: cRoot.remoteServers[s] };
             });
 
-            return Object.assign(...servers);
+            return Object.assign({}, ...servers);
         }
     },
 
     System: {
         keyValueRemaps: {
-            mgmtDhcpEnabled: (val) => ({ mgmtDhcpEnabled: Boolean(val) })
+            mgmtDhcpEnabled: (val: any) => ({ mgmtDhcpEnabled: Boolean(val) })
         }
     },
 
@@ -712,7 +713,7 @@ module.exports = {
         namedClass: true,
 
         keyValueRemaps: {
-            haOrder: (val) => ({ haOrder: Object.keys(val) })
+            haOrder: (val: any) => ({ haOrder: Object.keys(val) })
         }
     },
 
@@ -720,7 +721,7 @@ module.exports = {
         namedClass: true,
 
         keyValueRemaps: {
-            interfaces: (val) => ({ interfaces: Object.keys(val) })
+            interfaces: (val: any) => ({ interfaces: Object.keys(val) })
         }
     },
 
@@ -737,8 +738,8 @@ module.exports = {
             { id: 'interfaces' }
         ],
         keyValueRemaps: {
-            interfaces: (val) => ({
-                interfaces: Object.keys(val).map((name) => ({
+            interfaces: (val: any) => ({
+                interfaces: Object.keys(val).map((name: string) => ({
                     name,
                     tagged: Object.keys(val[name])[0] === 'tagged'
                 }))
@@ -746,3 +747,6 @@ module.exports = {
         }
     }
 };
+
+export default doCustomMaps;
+module.exports = doCustomMaps;

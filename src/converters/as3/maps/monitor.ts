@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const buildProtectedObj = require('../../../utils/buildProtectedObj');
-const convertToNumberArray = require('../../../utils/convertToNumberArray');
-const handleObjectRef = require('../../../utils/handleObjectRef');
-const loadCertsAndKeys = require('../../../utils/loadCertsAndKeys');
-const returnEmptyObjIfNone = require('../../../utils/returnEmptyObjIfNone');
-const unquote = require('../../../utils/unquote');
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import buildProtectedObj from '../../../utils/buildProtectedObj';
+import convertToNumberArray from '../../../utils/convertToNumberArray';
+import handleObjectRef from '../../../utils/handleObjectRef';
+import loadCertsAndKeys from '../../../utils/loadCertsAndKeys';
+import returnEmptyObjIfNone from '../../../utils/returnEmptyObjIfNone';
+import unquote from '../../../utils/unquote';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-const mapAdaptiveDivergence = (rootObj, loc) => {
+const mapAdaptiveDivergence = (rootObj: any, loc: any) => {
     const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
     if (rootObj.adaptive) {
         if (rootObj.adaptiveDivergenceType === undefined) {
@@ -42,7 +43,7 @@ const mapAdaptiveDivergence = (rootObj, loc) => {
     return rootObj;
 };
 
-const mapTargetAddressPort = (rootObj, loc) => {
+const mapTargetAddressPort = (rootObj: any, loc: any) => {
     const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
     if (rootObj.destination) {
         let split = rootObj.destination.split(':');
@@ -58,15 +59,15 @@ const mapTargetAddressPort = (rootObj, loc) => {
     return rootObj;
 };
 
-module.exports = {
+const monitorMap: Record<string, any> = {
 
     // Monitor (DNS)
     'ltm monitor dns': {
         class: 'Monitor',
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'dns';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
             rootObj = mapTargetAddressPort(rootObj, loc);
@@ -94,9 +95,9 @@ module.exports = {
     'ltm monitor external': {
         class: 'Monitor',
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'external';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
 
@@ -118,14 +119,14 @@ module.exports = {
         class: 'Monitor',
 
         keyValueRemaps: {
-            passphrase: (key, val) => ({ passphrase: buildProtectedObj(val) }),
+            passphrase: (key: string, val: any) => ({ passphrase: buildProtectedObj(val) }),
 
-            protocol: (key, val) => ({ mode: val })
+            protocol: (key: string, val: any) => ({ mode: val })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'ftp';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
             // destination
@@ -141,18 +142,18 @@ module.exports = {
         class: 'Monitor',
 
         keyValueRemaps: {
-            passphrase: (key, val) => ({ passphrase: buildProtectedObj(val) }),
+            passphrase: (key: string, val: any) => ({ passphrase: buildProtectedObj(val) }),
 
-            receive: (key, val) => ({ receive: (val === 'none') ? '' : unquote(val) }),
+            receive: (key: string, val: any) => ({ receive: (val === 'none') ? '' : unquote(val) }),
 
-            receiveDown: (key, val) => returnEmptyObjIfNone(val, { receiveDown: unquote(val) }),
+            receiveDown: (key: string, val: any) => returnEmptyObjIfNone(val, { receiveDown: unquote(val) }),
 
-            send: (key, val) => ({ send: val === 'none' ? '' : unquote(val) })
+            send: (key: string, val: any) => ({ send: val === 'none' ? '' : unquote(val) })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'http';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
             rootObj = mapAdaptiveDivergence(rootObj, loc);
@@ -167,20 +168,20 @@ module.exports = {
         class: 'Monitor',
 
         keyValueRemaps: {
-            clientTLS: (key, val) => returnEmptyObjIfNone(val, { clientTLS: handleObjectRef(val) }),
+            clientTLS: (key: string, val: any) => returnEmptyObjIfNone(val, { clientTLS: handleObjectRef(val) }),
 
-            passphrase: (key, val) => ({ passphrase: buildProtectedObj(val) }),
+            passphrase: (key: string, val: any) => ({ passphrase: buildProtectedObj(val) }),
 
-            receive: (key, val) => ({ receive: (val === 'none') ? '' : unquote(val) }),
+            receive: (key: string, val: any) => ({ receive: (val === 'none') ? '' : unquote(val) }),
 
-            receiveDown: (key, val) => returnEmptyObjIfNone(val, { receiveDown: unquote(val) }),
+            receiveDown: (key: string, val: any) => returnEmptyObjIfNone(val, { receiveDown: unquote(val) }),
 
-            send: (key, val) => ({ send: val === 'none' ? '' : unquote(val) })
+            send: (key: string, val: any) => ({ send: val === 'none' ? '' : unquote(val) })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'http2';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
 
@@ -197,20 +198,20 @@ module.exports = {
         class: 'Monitor',
 
         keyValueRemaps: {
-            clientTLS: (key, val) => returnEmptyObjIfNone(val, { clientTLS: handleObjectRef(val) }),
+            clientTLS: (key: string, val: any) => returnEmptyObjIfNone(val, { clientTLS: handleObjectRef(val) }),
 
-            passphrase: (key, val) => ({ passphrase: buildProtectedObj(val) }),
+            passphrase: (key: string, val: any) => ({ passphrase: buildProtectedObj(val) }),
 
-            receive: (key, val) => ({ receive: (val === 'none') ? '' : unquote(val) }),
+            receive: (key: string, val: any) => ({ receive: (val === 'none') ? '' : unquote(val) }),
 
-            receiveDown: (key, val) => returnEmptyObjIfNone(val, { receiveDown: unquote(val) }),
+            receiveDown: (key: string, val: any) => returnEmptyObjIfNone(val, { receiveDown: unquote(val) }),
 
-            send: (key, val) => ({ send: val === 'none' ? '' : unquote(val) })
+            send: (key: string, val: any) => ({ send: val === 'none' ? '' : unquote(val) })
         },
 
-        customHandling: (rootObj, loc, file) => {
+        customHandling: (rootObj: any, loc: any, file: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'https';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
 
@@ -247,9 +248,9 @@ module.exports = {
     'ltm monitor gateway-icmp': {
         class: 'Monitor',
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'icmp';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
 
@@ -279,17 +280,17 @@ module.exports = {
         class: 'Monitor',
 
         keyValueRemaps: {
-            codesUp: (key, val, options, path) => {
+            codesUp: (key: string, val: any, options: any, path: string) => {
                 GlobalObject.moveProperty(path, key, path, 'filter');
                 return { filter: val };
             },
 
-            passphrase: (key, val) => ({ passphrase: buildProtectedObj(val) })
+            passphrase: (key: string, val: any) => ({ passphrase: buildProtectedObj(val) })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'ldap';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
             // destination
@@ -305,16 +306,16 @@ module.exports = {
         class: 'Monitor',
 
         keyValueRemaps: {
-            passphrase: (key, val) => ({ passphrase: buildProtectedObj(val) }),
+            passphrase: (key: string, val: any) => ({ passphrase: buildProtectedObj(val) }),
 
-            receive: (key, val) => returnEmptyObjIfNone(val, { receive: unquote(val) }),
+            receive: (key: string, val: any) => returnEmptyObjIfNone(val, { receive: unquote(val) }),
 
-            send: (key, val) => ({ send: val === 'none' ? '' : unquote(val) })
+            send: (key: string, val: any) => ({ send: val === 'none' ? '' : unquote(val) })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'mysql';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
             // destination
@@ -330,12 +331,12 @@ module.exports = {
         class: 'Monitor',
 
         keyValueRemaps: {
-            passphrase: (key, val) => ({ passphrase: buildProtectedObj(val) })
+            passphrase: (key: string, val: any) => ({ passphrase: buildProtectedObj(val) })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'postgresql';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
 
@@ -351,14 +352,14 @@ module.exports = {
         class: 'Monitor',
 
         keyValueRemaps: {
-            passphrase: (key, val) => ({ passphrase: buildProtectedObj(val) }),
+            passphrase: (key: string, val: any) => ({ passphrase: buildProtectedObj(val) }),
 
-            secret: (key, val) => ({ secret: buildProtectedObj(val) })
+            secret: (key: string, val: any) => ({ secret: buildProtectedObj(val) })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'radius';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
 
@@ -373,9 +374,9 @@ module.exports = {
     'ltm monitor sip': {
         class: 'Monitor',
 
-        customHandling: (rootObj, loc, file) => {
+        customHandling: (rootObj: any, loc: any, file: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'sip';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
 
@@ -392,11 +393,11 @@ module.exports = {
         },
 
         keyValueRemaps: {
-            codesUp: (key, val) => ({ codesUp: convertToNumberArray(unquote(val)) }),
+            codesUp: (key: string, val: any) => ({ codesUp: convertToNumberArray(unquote(val)) }),
 
-            codesDown: (key, val) => ({ codesDown: convertToNumberArray(unquote(val)) }),
+            codesDown: (key: string, val: any) => ({ codesDown: convertToNumberArray(unquote(val)) }),
 
-            headers: (key, val) => ({ headers: unquote(val).replace(/\\/g, '') })
+            headers: (key: string, val: any) => ({ headers: unquote(val).replace(/\\/g, '') })
         }
     },
 
@@ -404,9 +405,9 @@ module.exports = {
     'ltm monitor smtp': {
         class: 'Monitor',
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'smtp';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
 
@@ -428,16 +429,16 @@ module.exports = {
         class: 'Monitor',
 
         keyValueRemaps: {
-            receive: (key, val) => ({ receive: val === 'none' ? '' : unquote(val) }),
+            receive: (key: string, val: any) => ({ receive: val === 'none' ? '' : unquote(val) }),
 
-            receiveDown: (key, val) => ({ receiveDown: val === 'none' ? '' : unquote(val) }),
+            receiveDown: (key: string, val: any) => ({ receiveDown: val === 'none' ? '' : unquote(val) }),
 
-            send: (key, val) => ({ send: val === 'none' ? '' : unquote(val) })
+            send: (key: string, val: any) => ({ send: val === 'none' ? '' : unquote(val) })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'tcp';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
 
@@ -468,9 +469,9 @@ module.exports = {
     'ltm monitor tcp-half-open': {
         class: 'Monitor',
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'tcp-half-open';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
 
@@ -493,16 +494,16 @@ module.exports = {
         class: 'Monitor',
 
         keyValueRemaps: {
-            receive: (key, val) => ({ receive: val === 'none' ? '' : unquote(val) }),
+            receive: (key: string, val: any) => ({ receive: val === 'none' ? '' : unquote(val) }),
 
-            receiveDown: (key, val) => ({ receiveDown: val === 'none' ? '' : unquote(val) }),
+            receiveDown: (key: string, val: any) => ({ receiveDown: val === 'none' ? '' : unquote(val) }),
 
-            send: (key, val) => ({ send: val === 'none' ? '' : unquote(val) })
+            send: (key: string, val: any) => ({ send: val === 'none' ? '' : unquote(val) })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
             rootObj.monitorType = 'udp';
             GlobalObject.addProperty(globalPath, 'monitorType', loc.original, { monitorType: null });
 
@@ -530,3 +531,6 @@ module.exports = {
         }
     }
 };
+
+export default monitorMap;
+module.exports = monitorMap;

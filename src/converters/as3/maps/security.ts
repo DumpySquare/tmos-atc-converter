@@ -14,45 +14,46 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const buildProtectedObj = require('../../../utils/buildProtectedObj');
-const handleObjectRef = require('../../../utils/handleObjectRef');
-const hyphensToCamel = require('../../../utils/hyphensToCamel');
-const ipUtils = require('../../../utils/ipUtils');
-const returnEmptyObjIfNone = require('../../../utils/returnEmptyObjIfNone');
-const unquote = require('../../../utils/unquote');
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import buildProtectedObj from '../../../utils/buildProtectedObj';
+import handleObjectRef from '../../../utils/handleObjectRef';
+import hyphensToCamel from '../../../utils/hyphensToCamel';
+import ipUtils from '../../../utils/ipUtils';
+import returnEmptyObjIfNone from '../../../utils/returnEmptyObjIfNone';
+import unquote from '../../../utils/unquote';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
 
-const reparse = (str) => str.replace(/{/g, '').replace(/}/g, '')
+const reparse = (str: string): string[] => str.replace(/{/g, '').replace(/}/g, '')
     .split('"')
-    .map((x) => x.trim())
-    .filter((x) => x);
+    .map((x: string) => x.trim())
+    .filter((x: string) => x);
 
-module.exports = {
+const securityMap = {
 
     // DOS_Profile
     'security dos profile': {
         class: 'DOS_Profile',
 
         keyValueRemaps: {
-            applicationAllowlist: (key, val) => {
+            applicationAllowlist: (key: string, val: any) => {
                 if (val === 'none') return {};
                 return { applicationAllowlist: handleObjectRef(val) };
             },
 
-            allowlist: (key, val) => returnEmptyObjIfNone(val, { allowlist: handleObjectRef(val) })
+            allowlist: (key: string, val: any) => returnEmptyObjIfNone(val, { allowlist: handleObjectRef(val) })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
 
             // application
             if (rootObj.application) {
                 const appKeys = Object.keys(rootObj.application);
                 const app = rootObj.application[appKeys[0]];
-                const newApp = {};
+                const newApp: Record<string, any> = {};
 
                 if (app['single-page-application']) {
                     newApp.singlePageApplicationEnabled = app['single-page-application'] === 'enabled';
@@ -98,7 +99,7 @@ module.exports = {
                 // botDefense
                 const botDefense = app['bot-defense'];
                 if (botDefense) {
-                    const botDef = {};
+                    const botDef: Record<string, any> = {};
                     GlobalObject.addProperty(globalPath, 'botDefense', loc.original, { 'bot-defense': null });
                     if (botDefense['cross-domain-requests']) {
                         botDef.crossDomainRequests = botDefense['cross-domain-requests'];
@@ -155,7 +156,7 @@ module.exports = {
                 // botSignatures
                 const botSignatures = app['bot-signatures'];
                 if (botSignatures) {
-                    const botSig = {};
+                    const botSig: Record<string, any> = {};
                     GlobalObject.addProperty(globalPath, 'botSignatures', loc.original, { 'bot-signatures': null });
                     if (botSignatures.check) {
                         botSig.checkingEnabled = botSignatures.check === 'enabled';
@@ -168,7 +169,7 @@ module.exports = {
 
                     if (botSignatures['disabled-signatures']) {
                         botSig.disabledSignatures = Object.keys(botSignatures['disabled-signatures'])
-                            .map((x) => ({ bigip: unquote(x) }));
+                            .map((x: string) => ({ bigip: unquote(x) }));
                         GlobalObject.addProperty(`${globalPath}/botSignatures`, 'disabledSignatures', loc.original, {
                             'bot-signatures': {
                                 'disabled-signatures': null
@@ -179,8 +180,8 @@ module.exports = {
                     // categories
                     if (botSignatures.categories) {
                         const catKeys = Object.keys(botSignatures.categories);
-                        const blocked = [];
-                        const reported = [];
+                        const blocked: Array<{ bigip: string }> = [];
+                        const reported: Array<{ bigip: string }> = [];
                         GlobalObject.addProperty(`${globalPath}/botSignatures`, 'blockedCategories', loc.original, {
                             'bot-signatures': {
                                 blockedCategories: null
@@ -219,7 +220,7 @@ module.exports = {
                 // heavy-urls
                 const heavy = app['heavy-urls'];
                 if (heavy) {
-                    const heavyURL = {};
+                    const heavyURL: Record<string, any> = {};
                     GlobalObject.addProperty(globalPath, 'heavyURLProtection', loc.original, { 'heavy-urls': null });
                     if (heavy.exclude) {
                         heavyURL.excludeList = heavy.exclude;
@@ -239,7 +240,7 @@ module.exports = {
                     }
                     if (heavy['include-list']) {
                         heavyURL.protectList = Object.keys(heavy['include-list'])
-                            .map((x) => ({ url: heavy['include-list'][x].url, threshold: parseInt(x, 10) }));
+                            .map((x: string) => ({ url: heavy['include-list'][x].url, threshold: parseInt(x, 10) }));
                         GlobalObject.addProperty(`${globalPath}/heavyURLProtection`, 'protectList', loc.original, {
                             'heavy-urls': {
                                 'include-list': null
@@ -260,7 +261,7 @@ module.exports = {
                 // mobile-detection
                 const mobileDetect = app['mobile-detection'];
                 if (mobileDetect) {
-                    const mobileDef = {};
+                    const mobileDef: Record<string, any> = {};
                     GlobalObject.addProperty(globalPath, 'mobileDefense', loc.original, { 'mobile-detection': null });
                     if (mobileDetect.enabled) {
                         mobileDef.enabled = mobileDetect.enabled === 'enabled';
@@ -312,7 +313,7 @@ module.exports = {
                     }
                     if (mobileDetect['android-publishers']) {
                         mobileDef.allowAndroidPublishers = Object.keys(mobileDetect['android-publishers'])
-                            .map((x) => handleObjectRef(x));
+                            .map((x: string) => handleObjectRef(x));
                         GlobalObject.addProperty(`${globalPath}/mobileDefense`, 'allowAndroidPublishers', loc.original, {
                             'mobile-detection': {
                                 'android-publishers': null
@@ -327,7 +328,7 @@ module.exports = {
                 // recordTraffic
                 const recordTraffic = app['tcp-dump'];
                 if (recordTraffic) {
-                    const traf = {};
+                    const traf: Record<string, any> = {};
                     GlobalObject.addProperty(globalPath, 'recordTraffic', loc.original, { 'tcp-dump': null });
                     if (recordTraffic['maximum-duration']) {
                         traf.maximumDuration = parseInt(recordTraffic['maximum-duration'], 10);
@@ -364,8 +365,8 @@ module.exports = {
                     if (Object.keys(traf).length) newApp.recordTraffic = traf;
                 }
 
-                const dosProf = (conf, prefix) => {
-                    const obj = {};
+                const dosProf = (conf: any, prefix: string): Record<string, any> => {
+                    const obj: Record<string, any> = {};
                     if (conf[`${prefix}-captcha-challenge`]) {
                         obj.captchaChallengeEnabled = conf[`${prefix}-captcha-challenge`] === 'enabled';
                         GlobalObject.addProperty(`${globalPath}/rateBasedDetection`, 'captchaChallengeEnabled', loc.original, {
@@ -471,7 +472,7 @@ module.exports = {
                 // tps-based -> rateBasedDetection
                 const tps = app['tps-based'];
                 if (tps) {
-                    const rate = {};
+                    const rate: Record<string, any> = {};
                     GlobalObject.addProperty(globalPath, 'rateBasedDetection', loc.original, { 'tps-based': null });
                     if (tps.mode) {
                         rate.operationMode = tps.mode;
@@ -521,7 +522,7 @@ module.exports = {
                 // stress-based -> stressBasedDetection
                 const strs = app['stress-based'];
                 if (strs) {
-                    const stress = {};
+                    const stress: Record<string, any> = {};
                     GlobalObject.addProperty(globalPath, 'stressBasedDetection', loc.original, { 'stress-based': null });
                     stress.thresholdsMode = strs['thresholds-mode'] || 'manual';
                     if (strs.mode) stress.operationMode = strs.mode;
@@ -531,7 +532,7 @@ module.exports = {
                     // badActor
                     const behave = strs.behavioral;
                     if (behave) {
-                        const badActor = {};
+                        const badActor: Record<string, any> = {};
                         GlobalObject.addProperty(`${globalPath}/stressBasedDetection`, 'badActor', loc.original, {
                             'stress-based': {
                                 behavioral: null
@@ -599,7 +600,7 @@ module.exports = {
             // network
             const network = rootObj.network;
             if (rootObj.network) {
-                const net = {};
+                const net: Record<string, any> = {};
                 GlobalObject.addProperty(globalPath, 'network', loc.original, { network: null });
                 const netKey = Object.keys(network)[0];
                 const dynSig = rootObj.network[netKey]['dynamic-signatures'];
@@ -781,7 +782,7 @@ module.exports = {
                             }
                         }
                     });
-                    net.vectors = Object.keys(attVector).map((x) => {
+                    net.vectors = Object.keys(attVector).map((x: string) => {
                         const vector = attVector[x];
                         return {
                             autoDenylistSettings: {
@@ -817,15 +818,15 @@ module.exports = {
                         'dns-query-vector': null
                     }
                 });
-                const vectArr = [];
+                const vectArr: any[] = [];
                 const dnsKeys = Object.keys(protoDNS);
                 for (let i = 0; i < dnsKeys.length; i += 1) {
                     const dnsKey = dnsKeys[i];
                     const keyObj = protoDNS[dnsKey];
                     const vect = keyObj['dns-query-vector'];
                     if (vect) {
-                        const vectObj = Object.keys(vect).map((x, index) => {
-                            const obj = {
+                        const vectObj = Object.keys(vect).map((x: string, index: number) => {
+                            const obj: Record<string, any> = {
                                 type: x,
                                 state: vect[x].state || 'mitigate'
                             };
@@ -921,13 +922,13 @@ module.exports = {
                         'sip-attack-vector': null
                     }
                 });
-                const vectArr = [];
-                Object.keys(protoSIP).forEach((sipKey) => {
+                const vectArr: any[] = [];
+                Object.keys(protoSIP).forEach((sipKey: string) => {
                     const keyObj = protoSIP[sipKey];
                     const vect = keyObj['sip-attack-vector'];
                     if (vect) {
-                        const vectObj = Object.keys(vect).map((x, index) => {
-                            const obj = {
+                        const vectObj = Object.keys(vect).map((x: string, index: number) => {
+                            const obj: Record<string, any> = {
                                 type: x,
                                 state: vect[x].state || 'mitigate'
                             };
@@ -1024,16 +1025,16 @@ module.exports = {
     'security nat policy': {
         class: 'NAT_Policy',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
 
             // rules
             const rules = rootObj.rules;
             if (rules) {
-                rootObj.rules = Object.keys(rules).map((x, index) => {
+                rootObj.rules = Object.keys(rules).map((x: string, index: number) => {
                     const rule = rootObj.rules[x];
-                    const newRule = { name: x };
+                    const newRule: Record<string, any> = { name: x };
                     const rulesPath = `${globalPath}/${rule}/${index}`;
 
                     if (rule['ip-protocol']) {
@@ -1047,29 +1048,29 @@ module.exports = {
                     }
 
                     if (rule.destination) {
-                        const dest = {};
+                        const dest: Record<string, any> = {};
                         if (rule.destination['address-lists']) {
                             dest.addressLists = Object.keys(rule.destination['address-lists'])
-                                .map((y) => handleObjectRef(y));
+                                .map((y: string) => handleObjectRef(y));
                             GlobalObject.addProperty(rulesPath, 'addressLists', loc.original, { [rule]: { [x]: { 'address-lists': null } } });
                         }
                         if (rule.destination['port-lists']) {
                             dest.portLists = Object.keys(rule.destination['port-lists'])
-                                .map((y) => handleObjectRef(y));
+                                .map((y: string) => handleObjectRef(y));
                             GlobalObject.addProperty(rulesPath, 'portLists', loc.original, { [rule]: { [x]: { 'port-lists': null } } });
                         }
                         newRule.destination = dest;
                     }
 
                     if (rule.source) {
-                        const dest = {};
+                        const dest: Record<string, any> = {};
                         if (rule.source['address-lists']) {
                             dest.addressLists = Object.keys(rule.source['address-lists'])
-                                .map((y) => handleObjectRef(y));
+                                .map((y: string) => handleObjectRef(y));
                         }
                         if (rule.source['port-lists']) {
                             dest.portLists = Object.keys(rule.source['port-lists'])
-                                .map((y) => handleObjectRef(y));
+                                .map((y: string) => handleObjectRef(y));
                         }
                         newRule.source = dest;
                     }
@@ -1090,13 +1091,13 @@ module.exports = {
         class: 'NAT_Source_Translation',
 
         keyValueRemaps: {
-            addresses: (key, val) => ({ addresses: Object.keys(val) }),
+            addresses: (key: string, val: any) => ({ addresses: Object.keys(val) }),
 
-            egressInterfaces: (key, val, options, path) => {
+            egressInterfaces: (key: string, val: any, options: any, path: string) => {
                 GlobalObject.moveProperty(path, key, path, 'allowEgressInterfaces');
                 return {
                     allowEgressInterfaces: Object.keys(val)
-                        .map((x) => handleObjectRef(x))
+                        .map((x: string) => handleObjectRef(x))
                 };
             },
 
@@ -1104,11 +1105,11 @@ module.exports = {
 
             egressInterfacesEnabled: () => ({}),
 
-            ports: (key, val) => ({ ports: Object.keys(val) })
+            ports: (key: string, val: any) => ({ ports: Object.keys(val) })
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
 
             // mapping
@@ -1136,7 +1137,7 @@ module.exports = {
 
             // portBlockAllocation
             if (rootObj.patMode === 'pba') {
-                const pba = {};
+                const pba: Record<string, any> = {};
                 GlobalObject.addProperty(globalPath, 'portBlockAllocation', loc.original, { portBlockAllocation: null });
                 if (rootObj.blockIdleTimeout) {
                     pba.blockIdleTimeout = rootObj.blockIdleTimeout;
@@ -1183,12 +1184,12 @@ module.exports = {
             }
 
             // excludeAddresses
-            const excludeArr = [];
+            const excludeArr: any[] = [];
             if (rootObj.excludeAddresses) {
-                Object.keys(rootObj.excludeAddresses).forEach((x) => excludeArr.push(x));
+                Object.keys(rootObj.excludeAddresses).forEach((x: string) => excludeArr.push(x));
             }
             if (rootObj.excludeAddressLists) {
-                Object.keys(rootObj.excludeAddressLists).forEach((x) => excludeArr.push(handleObjectRef(x)));
+                Object.keys(rootObj.excludeAddressLists).forEach((x: string) => excludeArr.push(handleObjectRef(x)));
                 delete rootObj.excludeAddressLists;
             }
             rootObj.excludeAddresses = excludeArr;
@@ -1214,22 +1215,22 @@ module.exports = {
     'security protocol-inspection profile': {
         class: 'Protocol_Inspection_Profile',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
 
             if (rootObj.services) {
                 // services
                 GlobalObject.addProperty(globalPath, 'services', loc.original, { services: null });
-                rootObj.services = Object.keys(rootObj.services).map((x, index) => {
+                rootObj.services = Object.keys(rootObj.services).map((x: string, index: number) => {
                     const origService = rootObj.services[x];
-                    const newService = { type: x.split('/')[2] };
+                    const newService: Record<string, any> = { type: x.split('/')[2] };
 
-                    const parseLtmPolicyChecks = (obj) => {
+                    const parseLtmPolicyChecks = (obj: any): any[] => {
                         if (obj) {
-                            obj = Object.keys(obj).map((c) => {
+                            obj = Object.keys(obj).map((c: string) => {
                                 const origObj = obj[c];
-                                const retObj = { check: c.split('/')[2] };
+                                const retObj: Record<string, any> = { check: c.split('/')[2] };
                                 if (origObj.action) {
                                     retObj.action = origObj.action;
                                 }
@@ -1269,7 +1270,7 @@ module.exports = {
 
                     // ports
                     if (origService.ports) {
-                        newService.ports = Object.keys(origService.ports).map((val) => parseInt(val, 10));
+                        newService.ports = Object.keys(origService.ports).map((val: string) => parseInt(val, 10));
                         GlobalObject.addProperty(`${globalPath}/services/${index}`, 'ports', loc.original, {
                             services: {
                                 [index]: {
@@ -1297,13 +1298,13 @@ module.exports = {
 
         keyValueRemaps: {
 
-            dosApplication: (key, val) => {
+            dosApplication: (key: string, val: any) => {
                 const obj = val[Object.keys(val)[0]];
                 if (Object.keys(obj).length !== 0) {
                     const oldKey = Object.keys(obj)[0];
                     const newKey = hyphensToCamel(oldKey);
                     const ref = obj[oldKey].includes('Common') ? obj[oldKey] : '/Common/'.concat(obj[oldKey]);
-                    const newObj = {};
+                    const newObj: Record<string, any> = {};
                     newObj[newKey] = handleObjectRef(unquote(ref));
                     return { dosApplication: newObj };
                 }
@@ -1311,17 +1312,17 @@ module.exports = {
             }
         },
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             GlobalObject.addProperty(globalPath, 'application', loc.original, { application: null });
             // application
             if (rootObj.application) {
                 const key = Object.keys(rootObj.application)[0];
                 const obj = rootObj.application[key];
-                const search = Object.keys(obj.filter).filter((x) => x.includes('search-'))[0];
+                const search = Object.keys(obj.filter).filter((x: string) => x.includes('search-'))[0];
 
-                const app = {};
+                const app: Record<string, any> = {};
                 if (obj['guarantee-logging']) {
                     app.guaranteeLoggingEnabled = obj['guarantee-logging'] === 'enabled';
                     GlobalObject.addProperty(`${globalPath}/application`, 'guaranteeLoggingEnabled', loc.original, {
@@ -1421,7 +1422,7 @@ module.exports = {
                 }
 
                 if (obj.servers) {
-                    app.servers = Object.keys(obj.servers).map((x) => ipUtils.splitAddress(x));
+                    app.servers = Object.keys(obj.servers).map((x: string) => ipUtils.splitAddress(x));
                     GlobalObject.addProperty(`${globalPath}/application`, 'servers', loc.original, {
                         application: {
                             servers: null
@@ -1434,7 +1435,7 @@ module.exports = {
                 // application.storageFilter
                 if (obj.filter) {
                     const filter = obj.filter;
-                    const storageFilter = {};
+                    const storageFilter: Record<string, any> = {};
                     GlobalObject.addProperty(`${globalPath}/application`, 'storageFilter', loc.original, {
                         application: {
                             storageFilter: null
@@ -1524,7 +1525,7 @@ module.exports = {
                 // application.storageFormat
                 if (obj.format) {
                     const format = obj.format;
-                    const formObj = {};
+                    const formObj: Record<string, any> = {};
                     GlobalObject.addProperty(`${globalPath}/application`, 'storageFormat', loc.original, {
                         application: {
                             format: null
@@ -1558,7 +1559,7 @@ module.exports = {
             if (rootObj.network) {
                 const key = Object.keys(rootObj.network)[0];
                 const obj = rootObj.network[key];
-                const net = {};
+                const net: Record<string, any> = {};
                 GlobalObject.addProperty(globalPath, 'network', loc.original, { network: null });
 
                 if (obj.publisher) {
@@ -1576,7 +1577,7 @@ module.exports = {
                         }
                     });
                     if (obj.format['field-list']) {
-                        net.storageFormat = { fields: obj.format['field-list'].map((x) => x.replace(/_/g, '-')) };
+                        net.storageFormat = { fields: obj.format['field-list'].map((x: string) => x.replace(/_/g, '-')) };
                     }
                     if (obj.format['user-defined']) {
                         net.storageFormat = unquote(obj.format['user-defined']);
@@ -1648,16 +1649,16 @@ module.exports = {
             // botDefense
             if (rootObj.botDefense) {
                 const botDefense = rootObj.botDefense;
-                const botDef = {};
+                const botDef: Record<string, any> = {};
                 GlobalObject.addProperty(globalPath, 'botDefense', loc.original, { botDefense: null });
 
                 const fields = botDefense[Object.keys(botDefense)[0]];
 
-                Object.keys(fields.filter).forEach((filterKey) => {
+                Object.keys(fields.filter).forEach((filterKey: string) => {
                     botDef[hyphensToCamel(filterKey)] = fields.filter[filterKey] === 'enabled';
                 });
 
-                Object.keys(fields).forEach((objKey) => {
+                Object.keys(fields).forEach((objKey: string) => {
                     if (objKey !== 'filter') {
                         botDef[hyphensToCamel(objKey)] = handleObjectRef(fields[objKey]);
                     }
@@ -1675,12 +1676,12 @@ module.exports = {
     'security ssh profile': {
         class: 'SSH_Proxy_Profile',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             // sshProfileDefaultActions
             if (rootObj.sshProfileDefaultActions) {
-                const tempObj = {};
+                const tempObj: Record<string, any> = {};
                 GlobalObject.addProperty(globalPath, 'sshProfileDefaultActions', loc.original, { sshProfileDefaultActions: null });
                 const name = Object.keys(rootObj.sshProfileDefaultActions)[0];
                 const keys = Object.keys(rootObj.sshProfileDefaultActions[name]);
@@ -1697,10 +1698,10 @@ module.exports = {
             // sshProfileRuleSet
             if (rootObj.sshProfileRuleSet) {
                 const keys = Object.keys(rootObj.sshProfileRuleSet);
-                const tempArr = [];
+                const tempArr: any[] = [];
                 GlobalObject.addProperty(globalPath, 'sshProfileRuleSet', loc.original, { sshProfileRuleSet: null });
                 for (let i = 0; i < keys.length; i += 1) {
-                    const tempObj = {};
+                    const tempObj: Record<string, any> = {};
                     const name = keys[i];
                     const obj = rootObj.sshProfileRuleSet[name];
 
@@ -1709,7 +1710,7 @@ module.exports = {
                         const custKey = custKeys[j];
                         const actionKeys = Object.keys(obj.actions[custKey]);
 
-                        const actions = {};
+                        const actions: Record<string, any> = {};
                         for (let k = 0; k < actionKeys.length; k += 1) {
                             const actionKey = actionKeys[k];
                             const newKey = hyphensToCamel(actionKey);
@@ -1770,12 +1771,12 @@ module.exports = {
 
             // sshProfileAuthInfo
             if (rootObj.sshProfileAuthInfo) {
-                const arr = [];
+                const arr: any[] = [];
                 const keys = Object.keys(rootObj.sshProfileAuthInfo);
                 GlobalObject.addProperty(globalPath, 'sshProfileAuthInfo', loc.original, { 'auth-info': null });
 
                 for (let i = 0; i < keys.length; i += 1) {
-                    const tempObj = {};
+                    const tempObj: Record<string, any> = {};
                     const name = keys[i];
                     GlobalObject.addProperty(`${globalPath}/sshProfileAuthInfo/${i}`, 'name', loc.original, {
                         'auth-info': {
@@ -1914,3 +1915,6 @@ module.exports = {
         }
     }
 };
+
+export default securityMap;
+module.exports = securityMap;

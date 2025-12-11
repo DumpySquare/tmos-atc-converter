@@ -14,27 +14,28 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const handleObjectRef = require('../../../utils/handleObjectRef');
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
+import handleObjectRef from '../../../utils/handleObjectRef';
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
+import { CIPHER_SUFFIX } from '../../../constants';
 
 const defaultRules = ['/Common/f5-default', '/Common/f5-secure'];
-const CIPHER_SUFFIX = require('../../../constants').CIPHER_SUFFIX;
 
-module.exports = {
+const cipherMap = {
 
     // Cipher
     'ltm cipher rule': {
         class: 'Cipher_Rule',
 
         keyValueRemaps: {
-            dhGroups: (key, val) => ({ namedGroups: val.split(':') }),
-            cipher: (key, val, options, path) => {
+            dhGroups: (key: string, val: any) => ({ namedGroups: val.split(':') }),
+            cipher: (key: string, val: any, options: any, path: any) => {
                 GlobalObject.moveProperty(path, key, path, 'cipherSuites');
                 return { cipherSuites: val.split(':') };
             },
-            signatureAlgorithms: (key, val) => ({ signatureAlgorithms: val.split(':') })
+            signatureAlgorithms: (key: string, val: any) => ({ signatureAlgorithms: val.split(':') })
         }
     },
 
@@ -43,7 +44,7 @@ module.exports = {
         class: 'Cipher_Group',
 
         keyValueRemaps: {
-            allowCipherRules: (key, val) => ({
+            allowCipherRules: (key: string, val: any) => ({
                 allowCipherRules: Object.keys(val).map((x) => {
                     if (defaultRules.includes(x)) {
                         return handleObjectRef(x);
@@ -52,7 +53,7 @@ module.exports = {
                 })
             }),
 
-            excludeCipherRules: (key, val) => ({
+            excludeCipherRules: (key: string, val: any) => ({
                 excludeCipherRules: Object.keys(val).map((x) => {
                     if (defaultRules.includes(x)) {
                         return handleObjectRef(x);
@@ -61,7 +62,7 @@ module.exports = {
                 })
             }),
 
-            requireCipherRules: (key, val) => ({
+            requireCipherRules: (key: string, val: any) => ({
                 requireCipherRules: Object.keys(val).map((x) => {
                     if (defaultRules.includes(x)) {
                         return handleObjectRef(x);
@@ -72,3 +73,6 @@ module.exports = {
         }
     }
 };
+
+export default cipherMap;
+module.exports = cipherMap;

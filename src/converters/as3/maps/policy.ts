@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
-const handleObjectRef = require('../../../utils/handleObjectRef');
-const hyphensToCamel = require('../../../utils/hyphensToCamel');
-const unquote = require('../../../utils/unquote');
-const { GLOBAL_OBJECT_PATH_SEP } = require('../../../constants');
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
+import handleObjectRef from '../../../utils/handleObjectRef';
+import hyphensToCamel from '../../../utils/hyphensToCamel';
+import unquote from '../../../utils/unquote';
+import { GLOBAL_OBJECT_PATH_SEP } from '../../../constants';
 
-const toCamelCase = (str) => str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+const toCamelCase = (str: string) => str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
 
-module.exports = {
+const policyMap: Record<string, any> = {
 
     // Endpoint_Policy
     'ltm policy': {
         class: 'Endpoint_Policy',
 
         keyValueRemaps: {
-            strategy: (key, val) => ({ strategy: val.replace('/Common/', '') })
+            strategy: (key: string, val: any) => ({ strategy: val.replace('/Common/', '') })
         },
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
 
             // rules
             if (rootObj.rules) {
@@ -44,7 +45,7 @@ module.exports = {
                 GlobalObject.addProperty(globalPath, tempRules, loc.original, { rules: null }, []);
 
                 rootObj.rules = Object.keys(rootObj.rules).map((x, ruleIndex) => {
-                    const newRule = { name: unquote(x) };
+                    const newRule: Record<string, any> = { name: unquote(x) };
                     const origRule = rootObj.rules[x];
 
                     const singleRulePath = globalPath.concat(GLOBAL_OBJECT_PATH_SEP, tempRules, `[${ruleIndex}]`);
@@ -62,7 +63,7 @@ module.exports = {
                         newRule.conditions = Object.keys(origRule.conditions).map((y, conditionIndex) => {
                             const oldCondition = origRule.conditions[y];
                             const oldKeys = Object.keys(oldCondition);
-                            const newCondition = {};
+                            const newCondition: Record<string, any> = {};
 
                             const singleConditionPath = singleRulePath.concat(GLOBAL_OBJECT_PATH_SEP, 'conditions', `[${conditionIndex}]`);
                             GlobalObject.addProperty(singleConditionPath, '', loc.original, { rules: { [x]: { conditions: { [y]: null } } } });
@@ -136,7 +137,7 @@ module.exports = {
                                     }
                                     if (camelTitle === 'port') {
                                         newCondition[camelTitle].values = oldCondition.values
-                                            .map((z) => parseInt(z, 10));
+                                            .map((z: string) => parseInt(z, 10));
                                     }
                                     newCondition[camelTitle].operand = operand;
                                     GlobalObject.addProperty(
@@ -199,7 +200,7 @@ module.exports = {
                         newRule.actions = Object.keys(origRule.actions).map((y, actionIndex) => {
                             const oldAction = origRule.actions[y];
                             const oldKeys = Object.keys(oldAction);
-                            const newAction = {};
+                            const newAction: Record<string, any> = {};
 
                             const singleActionPath = singleRulePath.concat(GLOBAL_OBJECT_PATH_SEP, 'actions', `[${actionIndex}]`);
                             GlobalObject.addProperty(singleActionPath, '', loc.original, { rules: { [x]: { actions: { [y]: null } } } });
@@ -208,7 +209,7 @@ module.exports = {
                             GlobalObject.addProperty(singleActionPath, 'event', loc.original, null);
 
                             // type
-                            const typesMap = {
+                            const typesMap: Record<string, string> = {
                                 'http-uri': toCamelCase('http-uri'),
                                 'http-cookie': toCamelCase('http-cookie'),
                                 'http-header': toCamelCase('http-header'),
@@ -314,8 +315,8 @@ module.exports = {
     'ltm policy-strategy': {
         class: 'Endpoint_Strategy',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
 
             // operands
             if (rootObj.operands) {
@@ -334,7 +335,7 @@ module.exports = {
                  */
                 rootObj.operands = Object.values(rootObj.operands)
                     .map(
-                        (value) => Object.keys(value)
+                        (value: any) => Object.keys(value)
                             .map(hyphensToCamel)
                             .join(' ')
                     );
@@ -349,10 +350,10 @@ module.exports = {
     'net timer-policy': {
         class: 'Idle_Timeout_Policy',
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
-            const rules = [];
+            const newObj: Record<string, any> = {};
+            const rules: any[] = [];
 
             const tempRules = 'tempRules';
             GlobalObject.addProperty(globalPath, tempRules, loc.original, { rules: null }, []);
@@ -365,7 +366,7 @@ module.exports = {
                 const singleRulePath = globalPath.concat(GLOBAL_OBJECT_PATH_SEP, tempRules, `[${i}]`);
                 GlobalObject.addProperty(singleRulePath, '', loc.original, { rules: { [rule]: null } });
 
-                const obj = { name: rule };
+                const obj: Record<string, any> = { name: rule };
 
                 if (ruleConf.description) {
                     obj.remark = unquote(ruleConf.description);
@@ -393,3 +394,6 @@ module.exports = {
         }
     }
 };
+
+export default policyMap;
+module.exports = policyMap;

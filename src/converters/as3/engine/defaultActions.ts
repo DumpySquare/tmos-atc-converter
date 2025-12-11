@@ -100,13 +100,14 @@ async function defaultActionInteger(ctx: PropertyContext): Promise<void> {
  */
 async function defaultActionCustomHandling(ctx: PropertyContext, options?: ConvertOptions, path?: string): Promise<void> {
     if (ctx.convertedPropertyKey !== NO_VALUE && ctx.convertedPropertyValue !== NO_VALUE) {
+        const remapFn = objectUtil.get(
+            ctx.configHandler,
+            ['keyValueRemaps', ctx.convertedPropertyKey],
+            (key: string, value: any) => ({ [key]: value })
+        ) as ((key: string, value: any, options?: ConvertOptions, path?: string) => Record<string, any>);
         Object.assign(
             ctx.convertedData,
-            objectUtil.get(
-                ctx.configHandler,
-                ['keyValueRemaps', ctx.convertedPropertyKey],
-                (key: string, value: any) => ({ [key]: value })
-            )(ctx.convertedPropertyKey, ctx.convertedPropertyValue, options, path)
+            remapFn(ctx.convertedPropertyKey, ctx.convertedPropertyValue, options, path)
         );
     }
 }

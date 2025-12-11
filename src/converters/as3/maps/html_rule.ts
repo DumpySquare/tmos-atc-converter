@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-'use strict';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// @ts-nocheck - Map files use dynamic property access patterns
 
-const GlobalObject = require('../../../utils/globalRenameAndSkippedObject');
-const unquote = require('../../../utils/unquote');
+import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
+import unquote from '../../../utils/unquote';
 
 // APM complicates conversion in few ways.
 //
@@ -47,9 +48,9 @@ const unquote = require('../../../utils/unquote');
 // file arg can be used to handle the 'attributeName' attribute.
 
 // Convert the nested 'match' object
-const mapMatchObj = (rootObj, path) => {
+const mapMatchObj = (rootObj: any, path: string) => {
     // nested_property
-    const match = {};
+    const match: Record<string, any> = {};
     if (rootObj.tagName) {
         match.tagName = rootObj.tagName;
         delete rootObj.tagName;
@@ -71,15 +72,15 @@ const mapMatchObj = (rootObj, path) => {
     return match;
 };
 
-module.exports = {
+const htmlRuleMap = {
 
     // HTML_Rule comment-raise-event
     'ltm html-rule comment-raise-event': {
         class: 'HTML_Rule',
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
 
             rootObj.ruleType = 'comment-raise-event';
             GlobalObject.addProperty(globalPath, 'ruleType', loc.original, { ruleType: null });
@@ -93,9 +94,9 @@ module.exports = {
     'ltm html-rule comment-remove': {
         class: 'HTML_Rule',
 
-        customHandling: (rootObj, loc) => {
+        customHandling: (rootObj: any, loc: any) => {
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
-            const newObj = {};
+            const newObj: Record<string, any> = {};
 
             rootObj.ruleType = 'comment-remove';
             GlobalObject.addProperty(globalPath, 'ruleType', loc.original, { ruleType: null });
@@ -109,8 +110,8 @@ module.exports = {
     'ltm html-rule tag-append-html': {
         class: 'HTML_Rule',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
             rootObj.ruleType = 'tag-append-html';
             GlobalObject.addProperty(globalPath, 'ruleType', loc.original, { ruleType: null });
@@ -134,8 +135,8 @@ module.exports = {
     'ltm html-rule tag-prepend-html': {
         class: 'HTML_Rule',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
 
             rootObj.ruleType = 'tag-prepend-html';
@@ -160,8 +161,8 @@ module.exports = {
     'ltm html-rule tag-raise-event': {
         class: 'HTML_Rule',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
 
             rootObj.ruleType = 'tag-raise-event';
@@ -179,8 +180,8 @@ module.exports = {
     'ltm html-rule tag-remove': {
         class: 'HTML_Rule',
 
-        customHandling: (rootObj, loc) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
 
             rootObj.ruleType = 'tag-remove';
@@ -198,8 +199,8 @@ module.exports = {
     'ltm html-rule tag-remove-attribute': {
         class: 'HTML_Rule',
 
-        customHandling: (rootObj, loc, file) => {
-            const newObj = {};
+        customHandling: (rootObj: any, loc: any, file: any) => {
+            const newObj: Record<string, any> = {};
             const globalPath = `/${loc.tenant}/${loc.app}/${loc.profile}`;
 
             rootObj.ruleType = 'tag-remove-attribute';
@@ -221,3 +222,6 @@ module.exports = {
         }
     }
 };
+
+export default htmlRuleMap;
+module.exports = htmlRuleMap;

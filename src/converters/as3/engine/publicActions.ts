@@ -61,7 +61,7 @@ async function actionExtend(ctx: PropertyContext, actionType: string, tmshPath: 
     if (actionType === 'object') {
         let recurse = await ctx.engine.convert(`${ctx.tmosConfigKey} ${ctx.tmosPropertyKey}`, ctx.tmosPropertyValue, null, tmshPath);
         // determine if remap/prepend props is required
-        if (objectUtil.get(ctx.configHandler, 'prependProps', []).includes(ctx.tmosPropertyKey)) {
+        if ((objectUtil.get(ctx.configHandler, 'prependProps', []) as string[] ?? []).includes(ctx.tmosPropertyKey)) {
             recurse = prependObjProps(recurse, ctx.tmosPropertyKey);
         }
         // attach directly to new object
