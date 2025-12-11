@@ -386,9 +386,206 @@ async function handleValidateAS3({ declaration, strict = true }) {
 }
 ```
 
+## Future: Application-Level Conversion
+
+> **Note:** This section describes planned functionality that requires integration with [f5-corkscrew](https://github.com/f5devcentral/f5-corkscrew).
+
+### The Problem
+
+BIG-IP configs typically contain many applications. The current API converts the entire config at once, which:
+
+- Produces large AS3 declarations with all apps
+- Makes it hard for AI to work with individual applications
+- Requires manual extraction of specific apps from the output
+
+### The Solution
+
+Integration with f5-corkscrew will enable application-level extraction and conversion:
+
+```typescript
+// Future API (planned)
+import * as tmos from 'tmos-converter';
+
+// List all applications in a config
+const apps = await tmos.listApplications(config);
+// Returns: ["/Common/app1_vs", "/Common/app2_vs", "/Prod/web_vs", ...]
+
+// Extract and convert a single application
+const result = await tmos.convertAppToAS3(config, "/Common/app1_vs", options);
+// Returns: AS3 declaration containing only app1_vs and its dependencies
+```
+
+### Application Extraction
+
+An "application" in TMOS is anchored by a virtual server and includes all its dependencies:
+
+```
+Virtual Server (/Common/app1_vs)
+├── destination (10.1.1.100:443)
+├── pool (/Common/app1_pool)
+│   ├── members (10.2.1.10:8080, 10.2.1.11:8080)
+│   │   └── nodes (/Common/server1, /Common/server2)
+│   └── monitors (/Common/app1_http_monitor)
+├── profiles
+│   ├── client-ssl (/Common/app1_clientssl)
+│   ├── server-ssl (/Common/app1_serverssl)
+│   ├── http (/Common/http)
+│   └── tcp (/Common/tcp-wan-optimized)
+├── rules (/Common/app1_irule)
+│   └── referenced pools in iRule code
+├── policies (/Common/app1_policy)
+│   └── referenced pools in policy rules
+├── snat (/Common/app1_snatpool)
+│   └── snatpool members
+└── persistence (/Common/cookie_persist)
+```
+
+### Future MCP Tools
+
+```typescript
+// Tool: List applications in config
+const listAppsTool = {
+    name: 'list_tmos_applications',
+    description: 'List all applications (virtual servers) in a TMOS config',
+    inputSchema: {
+        type: 'object',
+        properties: {
+            config: {
+                type: 'string',
+                description: 'TMOS configuration text'
+            }
+        },
+        required: ['config']
+    },
+    handler: async ({ config }) => {
+        const apps = await tmos.listApplications(config);
+        return {
+            applications: apps.map(app => ({
+                name: app.name,
+                partition: app.partition,
+                destination: app.destination,
+                features: app.features  // SSL, WAF, APM, iRules, etc.
+            }))
+        };
+    }
+};
+
+// Tool: Convert single application
+const convertAppTool = {
+    name: 'convert_tmos_app_to_as3',
+    description: 'Convert a single application from TMOS config to AS3',
+    inputSchema: {
+        type: 'object',
+        properties: {
+            config: {
+                type: 'string',
+                description: 'TMOS configuration text'
+            },
+            appName: {
+                type: 'string',
+                description: 'Full path to virtual server (e.g., /Common/my_app_vs)'
+            },
+            stripRouteDomains: {
+                type: 'boolean',
+                default: false
+            }
+        },
+        required: ['config', 'appName']
+    },
+    handler: async ({ config, appName, stripRouteDomains }) => {
+        const result = await tmos.convertAppToAS3(config, appName, { stripRouteDomains });
+        return {
+            declaration: result.declaration,
+            includedObjects: result.dependencies,
+            unsupported: result.unsupported
+        };
+    }
+};
+```
+
+### Feature Detection (Planned)
+
+Application-level extraction will include feature detection:
+
+```typescript
+const apps = await tmos.listApplications(config);
+
+// Each app includes detected features
+apps[0].features = {
+    ssl: {
+        clientSsl: true,
+        serverSsl: true,
+        certificates: ['/Common/app1.crt']
+    },
+    waf: {
+        asmPolicy: '/Common/app1_waf_policy'
+    },
+    accessControl: {
+        apmProfile: null
+    },
+    loadBalancing: {
+        method: 'round-robin',
+        persistence: 'cookie',
+        healthMonitors: ['http', 'tcp']
+    },
+    customization: {
+        iRules: ['/Common/app1_irule'],
+        policies: ['/Common/app1_policy'],
+        complexity: 'medium'  // simple, medium, complex
+    }
+};
+```
+
+This enables AI to:
+
+1. List all apps and their features
+2. Identify complex apps that may need manual review
+3. Convert apps one at a time
+4. Focus on specific features (e.g., "convert all apps with WAF policies")
+
+### Architecture
+
+The planned architecture separates concerns across projects:
+
+```text
+tmos-parser (extracted from tmos-converter)
+    │
+    │  TMOS text → JSON
+    ↓
+f5-corkscrew
+    │  • App extraction (TmosApp bundles)
+    │  • Feature detection
+    │  • Complexity scoring
+    ↓
+tmos-converter
+    │  • convertAppToAS3(tmosApp)
+    │  • convertAppToDO(tmosApp)
+    │  • validateAS3/validateDO
+    ↓
+AS3/DO declarations
+```
+
+### Ideal MCP Workflow
+
+```text
+1. User provides full bigip.conf
+2. AI calls list_tmos_applications
+3. AI presents app list with features to user
+4. User selects apps to convert (or "all")
+5. For each selected app:
+   a. AI calls convert_tmos_app_to_as3
+   b. AI reviews unsupported features
+   c. AI calls validate_as3
+   d. If errors, AI fixes and re-validates
+6. Return individual AS3 declarations per app
+```
+
+This approach is essential for large configs where converting everything at once is impractical.
+
 ## See Also
 
 - [README.md](README.md) - Full API documentation
 - [src/types.ts](src/types.ts) - TypeScript type definitions
+- [f5-corkscrew](https://github.com/f5devcentral/f5-corkscrew) - TMOS config parsing and app extraction
 - [AS3 Schema Reference](https://clouddocs.f5.com/products/extensions/f5-appsvcs-extension/latest/refguide/schema-reference.html)
 - [DO Schema Reference](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html)
