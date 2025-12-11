@@ -193,6 +193,71 @@ const declaration = tmos.toDO(json, { controls: true });
 
 ---
 
+### validateAS3(declaration, [options])
+
+Validate an AS3 declaration against the AS3 Classic schema. Use this for standalone validation, e.g., after AI modifications in an MCP server.
+
+**Parameters:**
+
+- `declaration` (object) - AS3 declaration to validate
+- `options` (object, optional) - `{ mode: 'lazy' | 'strict' }`
+  - `lazy` (default): Removes invalid properties and returns cleaned declaration
+  - `strict`: Fails on first validation error
+
+**Returns:** Promise - `{ isValid, data, errors, ignoredAttributes }`
+
+**Example:**
+
+```javascript
+// Validate after AI makes changes
+const result = await tmos.validateAS3(declaration);
+if (!result.isValid) {
+    console.error('Validation errors:', result.errors);
+    console.error('Removed properties:', result.ignoredAttributes);
+}
+
+// Strict mode - fail on any error
+const strictResult = await tmos.validateAS3(declaration, { mode: 'strict' });
+```
+
+---
+
+### validateDO(declaration)
+
+Validate a DO declaration against the Declarative Onboarding schema.
+
+**Parameters:**
+
+- `declaration` (object) - DO declaration to validate
+
+**Returns:** Promise - `{ isValid, errors }`
+
+**Example:**
+
+```javascript
+const result = await tmos.validateDO(declaration);
+if (!result.isValid) {
+    console.error('Validation errors:', result.errors);
+}
+```
+
+---
+
+### getAS3SchemaVersion()
+
+Get AS3 schema version information.
+
+**Returns:** Object - `{ latest, earliest }`
+
+**Example:**
+
+```javascript
+const versions = tmos.getAS3SchemaVersion();
+console.log(`Schema: ${versions.latest}`); // e.g., "3.52.0"
+```
+
+---
+
 ## Configuration Options
 
 ### Common Options
@@ -209,12 +274,13 @@ const declaration = tmos.toDO(json, { controls: true });
 {
   controls: false,                // Add AS3 Controls class with trace logging
   skipTMOSConvertProcess: false,  // Skip conversion, run cleanup only
+  stripRouteDomains: false,       // Remove %RD suffixes from IPs
   jsonLogs: false,                // Enable structured JSON logging
   requestContext: { ... }         // Custom logging handlers (advanced)
 }
 ```
 
-**See [OPTIONS.md](OPTIONS.md) for complete options documentation with examples.**
+**TypeScript users:** All options are fully typed with JSDoc comments. See `AS3ConversionOptions` and `DOConversionOptions` types for IDE intellisense.
 
 ---
 
@@ -466,7 +532,7 @@ npm run test:upstream
 ## Documentation
 
 - **[README.md](README.md)** (this file) - Main documentation
-- **[OPTIONS.md](OPTIONS.md)** - Complete API options reference with examples
+- **[src/types.ts](src/types.ts)** - TypeScript types with JSDoc (API options reference)
 - **[EXTRACTION_STATUS.md](EXTRACTION_STATUS.md)** - Project status and statistics
 - **[UPSTREAM_SYNC.md](UPSTREAM_SYNC.md)** - Upstream synchronization strategy
 - **[EXTRACTION_PLAN.md](EXTRACTION_PLAN.md)** - Original extraction plan (historical)
@@ -552,6 +618,38 @@ Contributions welcome! See [EXTRACTION_STATUS.md](EXTRACTION_STATUS.md#-optional
 ---
 
 ## Maintenance
+
+### Bundled Dependencies
+
+This project bundles two F5 packages in the `deps/` directory that are not available on npm:
+
+```text
+deps/
+├── f5-appsvcs-classic-schema-1.4.0.tgz    # AS3 Classic JSON Schema + validator
+└── f5-declarative-onboarding-for-f5-acc-dev-1.43.0.tgz  # DO schema
+```
+
+**What they provide:**
+
+- `f5-appsvcs-classic-schema` - The 37K-line JSON Schema for AS3 Classic validation, plus AJV-based validator with F5-specific formats/keywords
+- `f5-declarative-onboarding` - DO schema and validation
+
+**To update these dependencies:**
+
+1. Obtain the new `.tgz` file from F5 (internal release or upstream f5-acc)
+2. Replace the file in `deps/`
+3. Update the version in `package.json`:
+
+   ```json
+   "@automation-toolchain/f5-appsvcs-classic-schema": "file:deps/f5-appsvcs-classic-schema-X.Y.Z.tgz"
+   ```
+
+4. Run `npm install`
+5. Run `npm test` to verify compatibility
+
+**Why bundled?** These packages are not published to npm. Bundling ensures reproducible builds and version control over schema changes.
+
+---
 
 ### Upstream Synchronization
 

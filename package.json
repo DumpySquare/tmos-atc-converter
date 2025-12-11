@@ -12,6 +12,7 @@
     "test": "TS_NODE_PROJECT=tsconfig.test.json mocha --require ts-node/register 'test/**/*.test.ts' 'test/**/*spec.ts' 'test/**/*spec.js' --recursive --timeout 30000",
     "test:js": "mocha test --recursive --timeout 30000",
     "test:upstream": "mocha test/upstream --recursive --timeout 30000",
+    "test:coverage": "c8 --reporter=text --reporter=html --all --src=src npm test",
     "typecheck": "tsc --noEmit",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json"
   },
@@ -45,6 +46,7 @@
     "chai-as-promised": "^8.0.0",
     "mocha": "^10.8.2",
     "nunjucks": "^3.2.4",
+    "c8": "^10.1.3",
     "sinon": "^21.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"

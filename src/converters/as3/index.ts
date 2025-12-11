@@ -22,6 +22,7 @@ import path from 'path';
 import deepmerge from 'deepmerge';
 
 import as3ClassicCleanUp from './cleanup';
+import cleanupRD from '../../utils/cleanupRD';
 import constants from '../../constants';
 import customDict from './dict';
 
@@ -43,6 +44,7 @@ export interface ConvertConfig {
     requestContext?: any;
     next?: boolean;
     skipTMOSConvertProcess?: boolean;
+    stripRouteDomains?: boolean;
     [key: string]: any;
 }
 
@@ -998,6 +1000,11 @@ async function as3Converter(json: Record<string, any>, config: ConvertConfig): P
         const resultsAS3 = await as3ClassicCleanUp(declaration);
         declaration = resultsAS3.declaration;
         keyClassicNotSupported.push(...resultsAS3.keyClassicNotSupported);
+
+        // Strip route domain suffixes from IP addresses if requested
+        if (config.stripRouteDomains) {
+            declaration = cleanupRD(declaration);
+        }
 
         // count occurrences of unsupported tmsh keys
         const unsupportedStats: Record<string, number> = {};
