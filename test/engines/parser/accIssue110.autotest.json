@@ -1,0 +1,212 @@
+{
+  "ltm virtual /Common/Environmentalportal_vs": {
+    "description": "",
+    "destination": "/Common/0.0.0.0:8443",
+    "ip-intelligence-policy": "/Common/ip-intelligence",
+    "ip-protocol": "tcp",
+    "last-modified-time": "2025-12-08:12:29:26",
+    "mask": "any",
+    "persist": {
+      "/Common/cookie": {
+        "default": "yes"
+      }
+    },
+    "policies": {
+      "/Common/asm_auto_l7_policy__portal_vs": {}
+    },
+    "pool": "/Common/Portal_pool",
+    "profiles": {
+      "/Common/ASM_portal.easa.europa.eu_policy": {},
+      "/Common/EA_DoS": {},
+      "/Common/portal_http": {},
+      "/Common/portal_oneconnect": {},
+      "/Common/portal_tcp-lan-optimized": {
+        "context": "serverside"
+      },
+      "/Common/portal_tcp-wan-optimized": {
+        "context": "clientside"
+      },
+      "/Common/ea_wildcard": {
+        "context": "clientside"
+      },
+      "/Common/portal": {},
+      "/Common/rba": {},
+      "/Common/websecurity": {},
+      "/Common/websso": {}
+    },
+    "rules": {
+      "/Common/EA_IP_Blacklist": "",
+      "/Common/HTTP_Headers": "",
+      "/Common/Portal_Rewrite": "",
+      "/Common/Portal": ""
+    },
+    "security-log-profiles": {
+      "\"/Common/Log illegal requests\"": "",
+      "/Common/Log-Qradar": "",
+      "/Common/log-SIEM": "",
+      "/Common/telemetry_asm_security_log_profile": ""
+    },
+    "serverssl-use-sni": "disabled",
+    "source": "0.0.0.0/0",
+    "source-address-translation": {
+      "type": "automap"
+    },
+    "translate-address": "enabled",
+    "translate-port": "enabled",
+    "vlans": {
+      "/Common/external": ""
+    },
+    "vlans-enabled": ""
+  },
+  "ltm pool /Common/Portal_pool": {
+    "load-balancing-mode": "least-connections-node",
+    "members": {
+      "/Common/10.160.17.21:80": {
+        "address": "10.160.17.21"
+      },
+      "/Common/10.160.17.22:80": {
+        "address": "10.160.17.22"
+      }
+    },
+    "monitor": "/Common/http"
+  },
+  "ltm node /Common/10.160.17.21": {
+    "address": "10.160.17.21"
+  },
+  "ltm node /Common/10.160.17.22": {
+    "address": "10.160.17.22"
+  },
+  "ltm profile http /Common/portal_http": {
+    "app-service": "none",
+    "defaults-from": "/Common/http",
+    "insert-xforwarded-for": "enabled",
+    "redirect-rewrite": "matching"
+  },
+  "ltm profile one-connect /Common/portal_oneconnect": {
+    "app-service": "none",
+    "defaults-from": "/Common/oneconnect",
+    "source-mask": "any"
+  },
+  "ltm profile tcp /Common/portal_tcp-lan-optimized": {
+    "app-service": "none",
+    "defaults-from": "/Common/tcp-lan-optimized",
+    "syn-cookie-enable": "enabled"
+  },
+  "ltm profile tcp /Common/portal_tcp-wan-optimized": {
+    "app-service": "none",
+    "defaults-from": "/Common/tcp-wan-optimized",
+    "syn-cookie-enable": "enabled"
+  },
+  "ltm profile client-ssl /Common/ea_wildcard": {
+    "app-service": "none",
+    "cert": "/Common/Wildcard_Ea_2026",
+    "cert-key-chain": {
+      "Wildcard_Ea_2026_Wildcard_Ea_2026_0": {
+        "cert": "/Common/Wildcard_Ea_2026",
+        "chain": "/Common/Wildcard_Ea_2026",
+        "key": "/Common/Wildcard_Ea_2026"
+      }
+    },
+    "chain": "/Common/Wildcard_Ea_2026",
+    "cipher-group": "none",
+    "ciphers": "DEFAULT:!sslv3:!rc4:!exp:!des:!dhe:!3des:!RSA",
+    "defaults-from": "/Common/clientssl",
+    "inherit-ca-certkeychain": "true",
+    "inherit-certkeychain": "false",
+    "key": "/Common/Wildcard_Easa_2026",
+    "options": [
+      "dont-insert-empty-fragments",
+      "no-ssl",
+      "no-tlsv1.3",
+      "no-tlsv1.1",
+      "single-dh-use",
+      "no-dtlsv1.2",
+      "no-sslv3",
+      "no-tlsv1"
+    ],
+    "passphrase": "none"
+  },
+  "apm profile access undefined /Common/portal": {
+    "accept-languages": [
+      "en"
+    ],
+    "access-policy": "/Common/ecoportal",
+    "app-service": "none",
+    "customization-group": "/Common/portal_logout",
+    "customization-key": "9ce0d8b2038567a36224938b4edd7a50",
+    "default-language": "en",
+    "defaults-from": "/Common/access",
+    "domain-cookie": "none",
+    "domain-groups": {
+      "authdomain0": {
+        "cookie-host": "portal.ea",
+        "persistent-cookie": "true",
+        "sso-name": "/Common/portal_ntlm_sso"
+      },
+      "authdomain1": {
+        "cookie-host": "portal.ea",
+        "persistent-cookie": "true",
+        "sso-name": "/Common/portal_ntlm_sso"
+      }
+    },
+    "domain-mode": "single-domain",
+    "eps-group": "/Common/portal_eps",
+    "errormap-group": "/Common/portal_errormap",
+    "exchange-profile": "none",
+    "framework-installation-group": "/Common/portal_frameworkinstallation",
+    "general-ui-group": "/Common/portal_general_ui",
+    "generation": "35",
+    "generation-action": "noop",
+    "httponly-cookie": "false",
+    "inactivity-timeout": "3600",
+    "log-settings": {
+      "/Common/default-log-setting": ""
+    },
+    "logout-uri-include": [
+      "/_layouts/SignOut.aspx",
+      "/_layouts/15/SignOut.aspx"
+    ],
+    "logout-uri-timeout": "5",
+    "max-in-progress-sessions": "256",
+    "modified-since-last-policy-sync": "true",
+    "named-scope": "none",
+    "oauth-profile": "none",
+    "persistent-cookie": "true",
+    "primary-auth-service": "https://portal.ea",
+    "sandboxes": {
+      "/Common/hosted-content": {
+        "retain-public-access": "true"
+      }
+    },
+    "scope": "profile",
+    "secure-cookie": "true",
+    "sso-name": "/Common/portal_ntlm_sso",
+    "type": "all",
+    "user-identity-method": "http"
+  },
+  "ltm rule /Common/EA_IP_Blacklist": "#when CLIENT_ACCEPTED {\n#    if { [class match [IP::client_addr] equals test-ips] } {\n#        log local0. \"IP: [IP::client_addr] DDoS blacklisted, action: Drop.\"\n#        drop\n#    }\n#}\nwhen ACCESS_SESSION_STARTED {\nif { [class match [IP::client_addr] eq test-ips] || [class match [IP::client_addr] eq ddos-ips-easa-21-09-23] || [class match [IP::client_addr] eq Blocked_IPs]} {\nlog local0. \"Dropped connection: client IP [IP::client_addr] is restricted.\"\nACCESS::session remove\ndrop\n}\n}",
+  "ltm rule /Common/HTTP_Headers": "when HTTP_RESPONSE {\n       foreach mycookie [HTTP::cookie names] {\n                                HTTP::cookie secure $mycookie enable\n                                HTTP::cookie httponly $mycookie enable\n                }\n    if { !([ HTTP::header exists \"X-XSS-Protection\" ])} { HTTP::header insert \"X-XSS-Protection\" \"1; mode=block\" }\n}",
+  "ltm rule /Common/Portal_Rewrite": "when HTTP_REQUEST {\n #log local0. \"URL = [HTTP::host]\"\n   switch [string tolower [HTTP::host]] {\n     \"portal.ea\" { HTTP::redirect \"https://portal.ea[HTTP::uri]\"}\n     \"portal-qa.e\" { HTTP::redirect \"https://portal-qa.ea[HTTP::uri]\"}\n   }\n}",
+  "ltm rule /Common/Portal": "when RULE_INIT {\n    array set static::MSOFBA {\n        ReqHeader \"X-FORMS_BASED_AUTH_REQUIRED\"\n        ReqVal \"/sp-ofba-form\"\n        ReturnHeader \"X-FORMS_BASED_AUTH_RETURN_URL\"\n        ReturnVal \"/sp-ofba-completed\"\n        SizeHeader \"X-FORMS_BASED_AUTH_DIALOG_SIZE\"\n        SizeVal \"1024x768\"\n    }\n   set static::ckname \"MRHSession_SP\"\n   set static::Basic_Realm_Text \"SharePoint Authentication\"\n   # Start of maintenance window in YYYY-mm-dd HH:MM format\n   set static::start_date \"2025-05-22 08:00\"\n   # End of maintenance window in YYYY-mm-dd HH:MM format\n   set static::end_date \"2025-05-22 17:00\"\n   # Convert start/end times to seconds from the epoch for easier date comparisons\n   set static::start [clock scan $static::start_date]\n   set static::end [clock scan $static::end_date]\n}\nwhen HTTP_REQUEST {\n   set apmsessionid [HTTP::cookie value MRHSession]\n   set persist_cookie [HTTP::cookie value $static::ckname]\n   set clientless_mode 0\n   set form_mode 0\n#Start original MsOffice irule\n   # Identify User-Agents type\n   if {[HTTP::header exists \"X-FORMS_BASED_AUTH_ACCEPTED\"] && (([HTTP::header \"X-FORMS_BASED_AUTH_ACCEPTED\"] equals \"t\") || ([HTTP::header \"X-FORMS_BASED_AUTH_ACCEPTED\"] equals \"f\"))} {\n      set clientless_mode 0; set form_mode 1\n   } else {\n      switch -glob [string tolower [HTTP::header \"User-Agent\"]] {\n        \"*microsoft-webdav-miniredir*\" { set clientless_mode 1 }\n         \"*microsoft data access internet publishing provider*\" -\n         \"*office protocol discovery*\" -\n         \"*microsoft office*\" -\n         \"*non-browser*\" -\n         \"*msoffice*\" { set form_mode 1 }\n         \"*mozilla/4.0 (compatible; ms frontpage*\" {\n            if { [ string range [getfield [string tolower [HTTP::header \"User-Agent\"]] \"MS FrontPage \" 2] 0 1]  > 12 } {\n               set form_mode 1\n            } else {\n               set clientless_mode 1\n            }\n         }\n         \"*mozilla*\" -\n         \"*opera*\" { set clientless_mode 0 }\n         default { set clientless_mode 1\n         }\n      }\n   }\n   if { $clientless_mode || $form_mode } {\n      if { [HTTP::cookie exists \"MRHSession\"] } {set apmstatus [ACCESS::session exists -state_allow $apmsessionid]} else {set apmstatus 0}\n      if { !($apmstatus) && [HTTP::cookie exists $static::ckname] } {set apmpersiststatus [ACCESS::session exists -state_allow $persist_cookie]} else {set apmpersiststatus 0}\n      if { ($apmpersiststatus) && !($apmstatus) } {\n         # Add MRHSession cookie for non browser user-agent first request and persistent cookie present\n         if { [catch {HTTP::cookie insert name \"MRHSession\" value $persist_cookie} ] } {log local0. \"[IP::client_addr]:[TCP::client_port] : TCL error on HTTP cookie insert MRHSession : URL : [HTTP::host][HTTP::path] - Headers : [HTTP::request]\"} else {return}\n      }\n   } else { return }\n   if { $clientless_mode && !($apmstatus)} {\n      if { !([HTTP::header Authorization] == \"\") } {\n         set clientless(insert_mode) 1\n         set clientless(username)    [ string tolower [HTTP::username] ]\n         set clientless(password)    [HTTP::password]\n         binary scan [md5 \"$clientless(password)\"] H* clientless(hash)\n         set user_key \"$clientless(username).$clientless(hash)\"\n         set clientless(cookie_list)             [ ACCESS::user getsid $user_key ]\n         if { [ llength $clientless(cookie_list) ] != 0 } {\n            set clientless(cookie) [ ACCESS::user getkey [ lindex $clientless(cookie_list) 0 ] ]\n            if { $clientless(cookie) != \"\" } {\n               HTTP::cookie insert name MRHSession value $clientless(cookie)\n               set clientless(insert_mode) 0\n            }\n         }\n         if { $clientless(insert_mode) } {\n            HTTP::header insert \"clientless-mode\" 1\n            HTTP::header insert \"username\" $clientless(username)\n            HTTP::header insert \"password\" $clientless(password)\n        }\n        unset clientless\n      } else {\n        HTTP::respond 401 WWW-Authenticate \"Basic realm=\\\"$static::Basic_Realm_Text\\\"\" Set-Cookie \"MRHSession=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/\" Connection close\n        return\n      }\n   } elseif {$form_mode && !($apmstatus) && !([HTTP::path] equals $static::MSOFBA(ReqVal))}{\n      HTTP::respond 403 -version \"1.1\" noserver \\\n         $static::MSOFBA(ReqHeader) \"https://[HTTP::host]$static::MSOFBA(ReqVal)\" \\\n         $static::MSOFBA(ReturnHeader) \"https://[HTTP::host]$static::MSOFBA(ReturnVal)\" \\\n         $static::MSOFBA(SizeHeader) $static::MSOFBA(SizeVal) \\\n         \"Connection\" \"Close\"\n      return\n   }\n}\nwhen HTTP_RESPONSE {\n   # Insert persistent cookie for html content type and private session\n   if { [HTTP::header \"Content-Type\" ] contains \"text/html\" } {\n      HTTP::cookie remove $static::ckname\n      HTTP::cookie insert name $static::ckname value $apmsessionid path \"/\"\n      HTTP::cookie expires $static::ckname 1200 relative\n      HTTP::cookie secure $static::ckname enable\n   }\n   # Insert session cookie if session was recovered from persistent cookie\n   if { ([info exists \"apmpersiststatus\"]) && ($apmpersiststatus) } {\n         HTTP::cookie insert name MRHSession value $persist_cookie path \"/\"\n         HTTP::cookie secure MRHSession enable\n   }\n      #remove cookie for NoiseData\n#    if { !($noise_data) } { HTTP::cookie remove \"NoiseData\" }\n}\nwhen ACCESS_SESSION_STARTED {\n    # Get the current time in seconds since the Unix epoch of 0-0-1970\n   set now [clock seconds]\n   # Check if the current time is between the start and end times\n   if {$now > $static::start and $now < $static::end}{\n      #pool MAINT_POOL\n      HTTP::respond 200 content \"[ifile get EA_Maintenance]\" noserver \"Cache-Control\" \"no-store, no-cache\"\n   } else {\n   if {([info exists \"clientless_mode\"])} {\n      ACCESS::session data set session.clientless $clientless_mode\n   }\n   if { [ info exists user_key ] } {\n      ACCESS::session data set \"session.user.uuid\" $user_key\n   }\n   }\n}\nwhen ACCESS_POLICY_COMPLETED {\n   if { ([info exists \"clientless_mode\"]) && ($clientless_mode) && ([ACCESS::policy result] equals \"deny\") } {\n      ACCESS::respond 401 noserver WWW-Authenticate \"Basic realm=$static::Basic_Realm_Text\" Connection close\n      ACCESS::session remove\n   }\n}\nwhen ACCESS_ACL_ALLOWED {\n   switch -glob [string tolower [HTTP::path]] {\n      \"/sp-ofba-form\" {\n         ACCESS::respond 302 noserver Location \"https://[HTTP::host]$static::MSOFBA(ReturnVal)\"\n      }\n      \"/sp-ofba-completed\" {\n         ACCESS::respond 200 content {\n            <html>\n               <head><title>Authenticated</title></head>\n               <body><b>Good Work, you are Authenticated</b></body>\n            </html>\n         } noserver\n      }\n      \"*/signout.aspx\" {\n         # Disconnect session and redirect to APM logout Page\n         ACCESS::respond 302 noserver Location \"/vdesk/hangup.php3\"\n         return\n      }\n      \"/_layouts/accessdenied.aspx\" {\n         # Disconnect session and redirect to APM Logon Page\n         if {[string tolower [URI::query [HTTP::uri] loginasanotheruser]] equals \"true\" } {\n            ACCESS::session remove\n            ACCESS::respond 302 noserver Location \"/\"\n            return\n         }\n      }\n      default {\n         # No Actions\n      }\n   }\n}",
+  "ltm policy /Common/asm_auto_l7_policy__portal_vs": {
+    "controls": [
+      "asm"
+    ],
+    "requires": [
+      "http"
+    ],
+    "rules": {
+      "default": {
+        "actions": {
+          "1": {
+            "asm": "",
+            "enable": "",
+            "policy": "/Commonlportal.ea_policy"
+          }
+        },
+        "ordinal": "1"
+      }
+    },
+    "strategy": "/Common/first-match"
+  }
+}
