@@ -20,6 +20,7 @@
 import range from 'lodash/range';
 import handleObjectRef from '../../../utils/handleObjectRef';
 import GlobalObject from '../../../utils/globalRenameAndSkippedObject';
+import portDict from '../../../data/portDict.json';
 
 const splitRate = (str: string) => {
     let i;
@@ -207,18 +208,19 @@ const networkMap = {
             ports: (key: string, val: any) => {
                 const portList = Object.keys(val)
                     .map((x) => {
-                        // if we have port range '55-58'
+                        // Resolve named ports (http, https, etc.) to integers
+                        if (portDict[x] !== undefined) {
+                            return portDict[x];
+                        }
+                        // Handle port ranges like '55-58'
                         if (x.includes('-')) {
                             const r = x.split('-').map((t) => parseInt(t, 10));
                             return range(r[0], r[1] + 1);
                         }
                         return parseInt(x, 10);
                     })
-                    /* Replace [85, [81, 82]] -> [81, 82, 85]
-                        Not clear if multilayer arrays are allowed for ports of TMSH, so 'flat' might be redundant.
-                        Multilayer arrays are allowed for post lists in AS3 Core schema,
-                        but this is not where ACC converts from. */
                     .flat()
+                    .filter((n) => !isNaN(n))
                     .sort((a, b) => a - b);
 
                 return { ports: rollupPorts(portList) };
