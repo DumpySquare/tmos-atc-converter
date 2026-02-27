@@ -18,12 +18,6 @@
 import assignDefaults from 'lodash/defaultsDeep';
 import cloneDeep from 'lodash/cloneDeep';
 
-const f5AppSvcsSchema = require('@automation-toolchain/f5-appsvcs-classic-schema') as {
-    SchemaValidator: new () => SchemaValidatorInstance;
-    getVersion: () => string;
-    getSchemaVersion: () => SchemaVersionInfo;
-};
-
 interface SchemaValidatorInstance {
     compile: () => Promise<void>;
     validate: (declaration: any, options: ValidateOptions) => Promise<ValidationResult>;
@@ -43,6 +37,27 @@ export interface SchemaVersionInfo {
     earliest: string;
 }
 
+// Lazy-load the heavy classic-schema validation chain only when actually needed
+let _f5AppSvcsSchema: {
+    SchemaValidator: new () => SchemaValidatorInstance;
+    getVersion: () => string;
+    getSchemaVersion: () => SchemaVersionInfo;
+} | null = null;
+
+function getSchema(): NonNullable<typeof _f5AppSvcsSchema> {
+    if (!_f5AppSvcsSchema) {
+        try {
+            _f5AppSvcsSchema = require('@automation-toolchain/f5-appsvcs-classic-schema');
+        } catch {
+            throw new Error(
+                'AS3 schema validation requires @automation-toolchain/f5-appsvcs-classic-schema. '
+                + 'This package is not available in bundled/extension mode.'
+            );
+        }
+    }
+    return _f5AppSvcsSchema!;
+}
+
 class ClassicValidator {
     #validator: SchemaValidatorInstance | null = null;
 
@@ -50,7 +65,7 @@ class ClassicValidator {
      * Compile JSON Schema
      */
     async compile(): Promise<void> {
-        this.#validator = new f5AppSvcsSchema.SchemaValidator();
+        this.#validator = new (getSchema().SchemaValidator)();
         await this.#validator.compile();
     }
 
@@ -89,7 +104,7 @@ const classicValidatorInstance = new ClassicValidator();
  * @returns version
  */
 function getPkgVersion(): string {
-    return f5AppSvcsSchema.getVersion();
+    return getSchema().getVersion();
 }
 
 /**
@@ -98,7 +113,7 @@ function getPkgVersion(): string {
  * @returns latest and earliest supported versions
  */
 function getSchemaVersion(): SchemaVersionInfo {
-    return f5AppSvcsSchema.getSchemaVersion();
+    return getSchema().getSchemaVersion();
 }
 
 export { getPkgVersion, getSchemaVersion };

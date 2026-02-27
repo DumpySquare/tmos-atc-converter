@@ -16,7 +16,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
 
-const AS3Properties = require('@automation-toolchain/f5-appsvcs-classic-schema/properties') as Record<string, PropertyDefinition[]>;
+const AS3Properties = require('../../vendor/f5-appsvcs-classic-schema/lib/properties.json') as Record<string, PropertyDefinition[]>;
 import AS3PropertiesAddtnl from './propertiesCustom.json';
 
 import log from '../../utils/log';

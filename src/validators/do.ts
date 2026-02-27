@@ -16,7 +16,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
 
-const AjvValidator = require('@automation-toolchain/f5-do/validator') as new () => DOValidatorInstance;
+const AjvValidator = require('../vendor/f5-do/validator') as new () => DOValidatorInstance;
 
 interface DOValidatorInstance {
     validate: (declaration: any) => Promise<DOValidationResult>;
