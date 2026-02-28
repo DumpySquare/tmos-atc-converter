@@ -17,7 +17,9 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
 const accPackage = require('../package.json') as { version: string };
-const classicValidator = require('./validators/as3') as { getSchemaVersion: () => { latest: string } };
+const adcSchema = require('./vendor/f5-appsvcs-classic-schema/schema/latest/adc-schema.json') as {
+    properties: { schemaVersion: { anyOf: Array<{ const?: string }> } }
+};
 
 export interface TMOSConstants {
     MAX_NAME_LEN: number;
@@ -80,7 +82,7 @@ const constants: Constants = {
     PACKAGE: {
         VERSION: {
             ACC: accPackage.version,
-            AS3_SCHEMA: classicValidator.getSchemaVersion().latest
+            AS3_SCHEMA: adcSchema.properties.schemaVersion.anyOf[1]?.const ?? '3.52.0'
         }
     },
     SERVICES_WITH_POOL: [
