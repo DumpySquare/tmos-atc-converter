@@ -332,7 +332,7 @@ function parse(files: Record<string, string>): ParsedConfig {
         } else {
             // For other exceptions, include the custom message
             const err = e as Error;
-            err.message = `Error parsing input file. Please open an issue at https://github.com/f5devcentral/f5-automation-config-converter/issues and include the following error:\n${err.message}`;
+            err.message = `Error parsing input file. Please open an issue at https://github.com/f5devcentral/vscode-f5-chariot/issues and include the following error:\n${err.message}`;
             throw err;
         }
     }

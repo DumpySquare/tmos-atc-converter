@@ -15,21 +15,22 @@
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
-import assignDefaults from 'lodash/defaultsDeep';
+import Ajv from 'ajv';
 import cloneDeep from 'lodash/cloneDeep';
 
-interface SchemaValidatorInstance {
-    compile: () => Promise<void>;
-    validate: (declaration: any, options: ValidateOptions) => Promise<ValidationResult>;
-}
+const adcSchema = require('../vendor/f5-appsvcs-classic-schema/schema/latest/adc-schema.json');
 
 export interface ValidateOptions {
     mode?: 'lazy' | 'strict';
 }
 
 export interface ValidationResult {
-    valid: boolean;
-    errors?: any[];
+    valid?: boolean;
+    isValid: boolean;
+    data: any;
+    errors: any[];
+    ignoredAttributes: string[];
+    ignoredAttributesErrors: any[];
 }
 
 export interface SchemaVersionInfo {
@@ -37,75 +38,105 @@ export interface SchemaVersionInfo {
     earliest: string;
 }
 
-// Lazy-load the heavy classic-schema validation chain only when actually needed
-let _f5AppSvcsSchema: {
-    SchemaValidator: new () => SchemaValidatorInstance;
-    getVersion: () => string;
-    getSchemaVersion: () => SchemaVersionInfo;
-} | null = null;
-
-function getSchema(): NonNullable<typeof _f5AppSvcsSchema> {
-    if (!_f5AppSvcsSchema) {
-        try {
-            _f5AppSvcsSchema = require('@automation-toolchain/f5-appsvcs-classic-schema');
-        } catch {
-            throw new Error(
-                'AS3 schema validation requires @automation-toolchain/f5-appsvcs-classic-schema. '
-                + 'This package is not available in bundled/extension mode.'
-            );
-        }
-    }
-    return _f5AppSvcsSchema!;
-}
-
 class ClassicValidator {
-    #validator: SchemaValidatorInstance | null = null;
+    #ajv: Ajv | null = null;
+    #validate: any = null;
 
     /**
      * Compile JSON Schema
      */
     async compile(): Promise<void> {
-        this.#validator = new (getSchema().SchemaValidator)();
-        await this.#validator.compile();
+        this.#ajv = new Ajv({
+            allErrors: true,
+            strict: false,
+            useDefaults: true,
+            validateFormats: false
+        });
+        this.#validate = this.#ajv.compile(adcSchema);
     }
 
     /**
      * Validate a declaration.
      *
-     * For more info about options and return value see official docs.
+     * In 'lazy' mode, removes invalid properties and returns them in ignoredAttributes.
+     * In 'strict' mode, fails on first error.
      *
      * @param aDeclaration - declaration
      * @param anOptions - options
      * @returns validation results
      */
     async validate(aDeclaration: any, anOptions?: ValidateOptions): Promise<ValidationResult> {
-        if (!this.#validator) {
+        if (!this.#validate) {
             await this.compile();
         }
-        const options = assignDefaults(cloneDeep(anOptions ?? {}), {
-            mode: 'lazy'
-        }) as ValidateOptions;
-        return this.#validator!.validate(aDeclaration, options);
+
+        const mode = anOptions?.mode ?? 'lazy';
+        const data = cloneDeep(aDeclaration);
+        const ignoredAttributes: string[] = [];
+        const ignoredAttributesErrors: any[] = [];
+
+        if (mode === 'lazy') {
+            // Iteratively validate and remove invalid properties
+            let maxIterations = 100;
+            while (maxIterations-- > 0) {
+                const valid = this.#validate!(data);
+                if (valid || !this.#validate!.errors?.length) break;
+
+                // Find additionalProperties errors to remove
+                const additionalPropError = this.#validate!.errors.find(
+                    (e: any) => e.keyword === 'additionalProperties'
+                );
+                if (!additionalPropError) break;
+
+                const path = `${additionalPropError.instancePath}/${additionalPropError.params.additionalProperty}`;
+                ignoredAttributes.push(path);
+                ignoredAttributesErrors.push(additionalPropError);
+
+                // Delete the property from data
+                const parts = path.split('/').filter(Boolean);
+                let obj = data;
+                for (let i = 0; i < parts.length - 1; i++) {
+                    obj = obj[parts[i]!];
+                    if (!obj) break;
+                }
+                if (obj && parts.length > 0) {
+                    delete obj[parts[parts.length - 1]!];
+                }
+            }
+
+            const valid = this.#validate!(data);
+            return {
+                valid,
+                isValid: valid,
+                data,
+                errors: valid ? [] : (this.#validate!.errors ?? []),
+                ignoredAttributes,
+                ignoredAttributesErrors
+            };
+        }
+
+        // Strict mode
+        const valid = this.#validate!(data);
+        return {
+            valid,
+            isValid: valid,
+            data,
+            errors: valid ? [] : (this.#validate!.errors ?? []),
+            ignoredAttributes: [],
+            ignoredAttributesErrors: []
+        };
     }
 
     /**
      * Clear the buffers after response is send
      */
     async reset(): Promise<void> {
-        this.#validator = null;
+        this.#ajv = null;
+        this.#validate = null;
     }
 }
 
 const classicValidatorInstance = new ClassicValidator();
-
-/**
- * Get the package' version
- *
- * @returns version
- */
-function getPkgVersion(): string {
-    return getSchema().getVersion();
-}
 
 /**
  * Get the Classic Schema supported versions
@@ -113,7 +144,19 @@ function getPkgVersion(): string {
  * @returns latest and earliest supported versions
  */
 function getSchemaVersion(): SchemaVersionInfo {
-    return getSchema().getSchemaVersion();
+    return {
+        latest: adcSchema.properties.schemaVersion.anyOf[1]?.const ?? '3.52.0',
+        earliest: '3.0.0'
+    };
+}
+
+/**
+ * Get the package version
+ *
+ * @returns version
+ */
+function getPkgVersion(): string {
+    return '1.4.0';
 }
 
 export { getPkgVersion, getSchemaVersion };

@@ -1025,7 +1025,7 @@ async function as3Converter(json: Record<string, any>, config: ConvertConfig): P
             unsupportedStats
         };
     } catch (e) {
-        (e as Error).message = `Error converting input file. Please open an issue at https://github.com/f5devcentral/f5-automation-config-converter/issues and include the following error:\n${(e as Error).message}`;
+        (e as Error).message = `Error converting input file. Please open an issue at https://github.com/f5devcentral/vscode-f5-chariot/issues and include the following error:\n${(e as Error).message}`;
         throw e;
     }
 }
