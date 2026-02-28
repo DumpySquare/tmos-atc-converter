@@ -16,7 +16,7 @@
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 
-const accPackage = require('../package.json') as { version: string };
+const converterPackage = require('../package.json') as { version: string };
 const adcSchema = require('./vendor/f5-appsvcs-classic-schema/schema/latest/adc-schema.json') as {
     properties: { schemaVersion: { anyOf: Array<{ const?: string }> } }
 };
@@ -34,12 +34,8 @@ export interface JSONLogsConstants {
     PROPERTIES_NOT_TO_LOG: string[];
 }
 
-export interface NextConstants {
-    CLASS_NAME_MAX_LEN: number;
-}
-
 export interface PackageVersionConstants {
-    ACC: string;
+    CONVERTER: string;
     AS3_SCHEMA: string;
 }
 
@@ -51,7 +47,6 @@ export interface Constants {
     CIPHER_SUFFIX: string;
     COMMON: CommonConstants;
     JSON_LOGS: JSONLogsConstants;
-    NEXT: NextConstants;
     PACKAGE: PackageConstants;
     SERVICES_WITH_POOL: string[];
     GLOBAL_OBJECT_PATH_SEP: string;
@@ -74,14 +69,9 @@ const constants: Constants = {
             'last-modified-time'
         ]
     },
-    // as3-next only
-    NEXT: {
-        // max len for tenant, app and obj
-        CLASS_NAME_MAX_LEN: 62
-    },
     PACKAGE: {
         VERSION: {
-            ACC: accPackage.version,
+            CONVERTER: converterPackage.version,
             AS3_SCHEMA: adcSchema.properties.schemaVersion.anyOf[1]?.const ?? '3.52.0'
         }
     },
