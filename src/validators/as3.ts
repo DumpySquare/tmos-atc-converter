@@ -25,12 +25,11 @@ export interface ValidateOptions {
 }
 
 export interface ValidationResult {
-    valid?: boolean;
     isValid: boolean;
     data: any;
     errors: any[];
-    ignoredAttributes: string[];
-    ignoredAttributesErrors: any[];
+    ignoredAttributes?: string[];
+    ignoredAttributesErrors?: any[];
 }
 
 export interface SchemaVersionInfo {
@@ -49,7 +48,7 @@ class ClassicValidator {
         this.#ajv = new Ajv({
             allErrors: true,
             strict: false,
-            useDefaults: true,
+            useDefaults: false,
             validateFormats: false
         });
         this.#validate = this.#ajv.compile(adcSchema);
@@ -106,7 +105,6 @@ class ClassicValidator {
 
             const valid = this.#validate!(data);
             return {
-                valid,
                 isValid: valid,
                 data,
                 errors: valid ? [] : (this.#validate!.errors ?? []),
@@ -118,12 +116,9 @@ class ClassicValidator {
         // Strict mode
         const valid = this.#validate!(data);
         return {
-            valid,
             isValid: valid,
             data,
-            errors: valid ? [] : (this.#validate!.errors ?? []),
-            ignoredAttributes: [],
-            ignoredAttributesErrors: []
+            errors: valid ? [] : (this.#validate!.errors ?? [])
         };
     }
 

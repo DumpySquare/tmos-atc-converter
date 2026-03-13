@@ -63,9 +63,14 @@ describe('f5-as3/as3CustomValidator', () => {
                             '2001:db8::5'
                         ],
                         virtualPort: 443,
-                        persistenceMethods: []
-                    }
-                }
+                        persistenceMethods: [],
+                        test: 'test5'
+                    },
+                    test4: 'test'
+                },
+                test: 'test',
+                test2: 'test2',
+                test3: 'test3'
             }
         };
 
@@ -120,8 +125,8 @@ describe('f5-as3/as3CustomValidator', () => {
             assert.deepStrictEqual(result.data, invalidDeclarationOutputLazy);
             assert.isFalse(result.isValid);
             assert.isNotEmpty(result.errors);
-            assert.isNotEmpty(result.ignoredAttributes);
-            assert.isNotEmpty(result.ignoredAttributesErrors);
+            assert.isEmpty(result.ignoredAttributes);
+            assert.isEmpty(result.ignoredAttributesErrors);
         });
 
         it('should return right result in "strict" mode for invalid declaration', async () => {

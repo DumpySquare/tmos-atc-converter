@@ -22,7 +22,8 @@
                     "10.10.123.11"
                 ],
                 "persistenceMethods": [],
-                "snat": "auto"
+                "snat": "auto",
+                "test": []
             },
             "pool_http": {
                 "members": [

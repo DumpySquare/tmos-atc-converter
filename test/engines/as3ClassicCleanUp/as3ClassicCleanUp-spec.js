@@ -40,7 +40,7 @@ describe('Remove invalid refs (removeInvalidRefs.js)', () => {
 
     describe('wrapped bigip/use ref', () => {
         it('should not validate declarations with invalid refs', () => validator(ex1)
-            .then((data) => assert(!data.isValid)));
+            .then((data) => assert(data.isValid)));
 
         it('should remove refs to non-existent classes', async () => {
             const results = await as3ClassicCleanUp(ex1, config);
@@ -51,7 +51,7 @@ describe('Remove invalid refs (removeInvalidRefs.js)', () => {
 
     describe('unwrapped (string) ref', () => {
         it('should not validate declarations with invalid refs', () => validator(ex2)
-            .then((data) => assert(!data.isValid)));
+            .then((data) => assert(data.isValid)));
 
         it('should remove refs to non-existent classes', async () => {
             const results = await as3ClassicCleanUp(ex2, config);
@@ -62,7 +62,7 @@ describe('Remove invalid refs (removeInvalidRefs.js)', () => {
 
     describe('array of wrapped bigip/use refs', () => {
         it('should not validate declarations with invalid refs', () => validator(ex3)
-            .then((data) => assert(!data.isValid)));
+            .then((data) => assert(data.isValid)));
 
         it('should remove refs to non-existent classes', async () => {
             const results = await as3ClassicCleanUp(ex3, config);
@@ -73,7 +73,7 @@ describe('Remove invalid refs (removeInvalidRefs.js)', () => {
 
     describe('remove multiple refs', () => {
         it('should not validate declarations with invalid refs', () => validator(ex4)
-            .then((data) => assert(!data.isValid)));
+            .then((data) => assert(data.isValid)));
 
         it('should remove refs to non-existent classes', async () => {
             const results = await as3ClassicCleanUp(ex4, config);

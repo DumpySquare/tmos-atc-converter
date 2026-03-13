@@ -72,13 +72,14 @@ function listFiles(aPath, options) {
     const results = [];
     fs.readdirSync(aPath, { withFileTypes: true })
         .forEach((fileInfo) => {
+            const dirPath = fileInfo.parentPath || fileInfo.path;
             if (fileInfo.isDirectory() && !!options?.recursive) {
-                results.push(...listFiles(path.join(fileInfo.path, fileInfo.name), options));
+                results.push(...listFiles(path.join(dirPath, fileInfo.name), options));
             } else {
                 results.push({
                     name: fileInfo.name,
-                    path: fileInfo.path,
-                    fullPath: path.join(fileInfo.path, fileInfo.name)
+                    path: dirPath,
+                    fullPath: path.join(dirPath, fileInfo.name)
                 });
             }
         });

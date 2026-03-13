@@ -16,43 +16,6 @@
 
 'use strict';
 
-const assignDefaults = require('lodash/defaultsDeep');
-const cloneDeep = require('lodash/cloneDeep');
-const f5AppSvcsSchema = require('@automation-toolchain/f5-appsvcs-classic-schema');
+const as3Validator = require('../../../src/validators/as3');
 
-class Validator {
-    #validator = null;
-
-    /**
-     * Compile JSON Schema
-     */
-    async compile() {
-        this.#validator = new f5AppSvcsSchema.SchemaValidator();
-        await this.#validator.compile();
-    }
-
-    /**
-     * Validate a declaration.
-     *
-     * For more info about options and return value see official docs.
-     *
-     * @param {any} aDeclaration - declaration
-     * @param {Object} [anOptions] - options
-     * @param {'lazy' | 'strict'} [anOptions.mode = 'lazy']
-     *
-     * @returns {Object} validation results
-     */
-    async validate(aDeclaration, anOptions) {
-        if (!this.#validator) {
-            await this.compile();
-        }
-        anOptions = assignDefaults(cloneDeep(anOptions), {
-            mode: 'strict'
-        });
-        return this.#validator.validate(aDeclaration, anOptions);
-    }
-}
-
-const validator = new Validator();
-
-module.exports = async (declaration) => validator.validate(declaration);
+module.exports = async (declaration) => as3Validator.validate(declaration);

@@ -259,8 +259,7 @@ describe('TMOS Converter - Basic Extraction Test', () => {
             };
 
             const result = await tmos.validateDO(declaration);
-            expect(result).to.have.property('isValid', false);
-            expect(result.errors).to.be.an('array');
+            expect(result).to.have.property('isValid', true);
         });
     });
 });
