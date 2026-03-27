@@ -9,9 +9,9 @@
   ],
   "scripts": {
     "build": "tsc && npm run copy-vendor",
-    "copy-vendor": "mkdir -p dist/vendor/f5-appsvcs-classic-schema/lib dist/vendor/f5-appsvcs-classic-schema/schema/latest dist/vendor/f5-do/lib && cp src/vendor/f5-appsvcs-classic-schema/lib/properties.json dist/vendor/f5-appsvcs-classic-schema/lib/ && cp src/vendor/f5-appsvcs-classic-schema/schema/latest/adc-schema.json dist/vendor/f5-appsvcs-classic-schema/schema/latest/ && cp src/vendor/f5-do/lib/configItems.json dist/vendor/f5-do/lib/ && cp -r src/vendor/f5-do/schema dist/vendor/f5-do/",
+    "copy-vendor": "node scripts/copy-vendor.js",
     "build:watch": "tsc --watch",
-    "clean": "rm -rf dist",
+    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\"",
     "prepublishOnly": "npm run clean && npm run build",
     "test": "TS_NODE_PROJECT=tsconfig.test.json mocha --require ts-node/register 'test/**/*.test.ts' 'test/**/*spec.ts' 'test/**/*spec.js' --recursive --timeout 30000",
     "test:js": "mocha test --recursive --timeout 30000",
