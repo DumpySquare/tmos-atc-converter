@@ -39,6 +39,7 @@ jobs:
   package-release-publish:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    environment: publishing
     needs: test
     permissions:
       contents: write
@@ -53,7 +54,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          registry-url: https://registry.npmjs.org
 
       - name: install node deps
         run: npm ci
@@ -88,7 +88,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # npm OIDC trusted publishing requires npm >= 11.5.1
+      # Node 20 ships with npm 10.x, so we upgrade
+      # Trusted Publisher -> GitHub Actions -> owner: DumpySquare, repo: tmos-atc-converter, workflow: main.yml, environment: publishing
+      - name: Upgrade npm for OIDC support
+        run: npm install -g npm@latest
+
       - name: publish to npm
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
