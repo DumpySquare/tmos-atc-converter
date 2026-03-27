@@ -1,5 +1,5 @@
 {
-  "name": "tmos-converter",
+  "name": "tmos-atc-converter",
   "version": "1.0.1",
   "description": "Convert F5 TMOS configuration to AS3 Classic and Declarative Onboarding declarations",
   "main": "dist/index.js",

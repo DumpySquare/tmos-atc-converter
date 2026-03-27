@@ -1,5 +1,5 @@
 /**
- * Basic functionality tests for extracted tmos-converter
+ * Basic functionality tests for extracted tmos-atc-converter
  */
 
 import { expect } from 'chai';

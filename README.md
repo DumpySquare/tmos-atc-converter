@@ -24,7 +24,7 @@ Standalone library extracted from [f5-automation-config-converter](https://githu
 ## Installation
 
 ```bash
-npm install tmos-converter
+npm install tmos-atc-converter
 ```
 
 ---
@@ -34,7 +34,7 @@ npm install tmos-converter
 ### Basic AS3 Conversion
 
 ```javascript
-const tmos = require('tmos-converter');
+const tmos = require('tmos-atc-converter');
 
 const config = `
 ltm pool /Common/web_pool {
@@ -59,7 +59,7 @@ console.log(JSON.stringify(result.declaration, null, 2));
 ### Basic DO Conversion
 
 ```javascript
-const tmos = require('tmos-converter');
+const tmos = require('tmos-atc-converter');
 
 const config = `
 net vlan external {
@@ -289,7 +289,7 @@ console.log(`Schema: ${versions.latest}`); // e.g., "3.52.0"
 ### Example 1: Virtual Server with Pool
 
 ```javascript
-const tmos = require('tmos-converter');
+const tmos = require('tmos-atc-converter');
 
 const config = `
 ltm pool /Common/app_pool {
@@ -327,7 +327,7 @@ console.log('Stats:', result.unsupportedStats);
 ### Example 2: Network Configuration (DO)
 
 ```javascript
-const tmos = require('tmos-converter');
+const tmos = require('tmos-atc-converter');
 
 const config = `
 net vlan internal {
@@ -362,7 +362,7 @@ console.log(JSON.stringify(declaration, null, 2));
 ### Example 3: Two-Step Conversion with Options
 
 ```javascript
-const tmos = require('tmos-converter');
+const tmos = require('tmos-atc-converter');
 
 // Step 1: Parse
 const config = `ltm pool /Common/pool1 { members { /Common/10.0.1.10:80 { } } }`;
@@ -386,7 +386,7 @@ console.log(result.declaration.controls);
 ### Example 4: Certificate and SSL Profile
 
 ```javascript
-const tmos = require('tmos-converter');
+const tmos = require('tmos-atc-converter');
 
 const config = `
 sys file ssl-cert /Common/example.crt {
@@ -414,7 +414,7 @@ console.log(result.declaration);
 ### Example 5: iRule Conversion
 
 ```javascript
-const tmos = require('tmos-converter');
+const tmos = require('tmos-atc-converter');
 
 const config = `
 ltm rule /Common/redirect_rule {
@@ -442,7 +442,7 @@ console.log(result.declaration);
 ### Custom Logging (AS3 only)
 
 ```javascript
-const tmos = require('tmos-converter');
+const tmos = require('tmos-atc-converter');
 
 // Create audit log
 const auditLog = [];
@@ -465,7 +465,7 @@ console.log('Audit trail:', auditLog);
 ### Handling Conversion Results
 
 ```javascript
-const tmos = require('tmos-converter');
+const tmos = require('tmos-atc-converter');
 
 const result = await tmos.convertToAS3(config);
 

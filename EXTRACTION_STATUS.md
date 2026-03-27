@@ -117,7 +117,7 @@ All 50+ files updated:
 ## 📁 Final Structure
 
 ```
-tmos-converter/
+tmos-atc-converter/
 ├── src/
 │   ├── converters/
 │   │   ├── as3/               # AS3 Classic converter
@@ -171,14 +171,14 @@ tmos-converter/
 ## 🚀 Quick Start
 
 ```bash
-cd /home/ted/tmos-converter
+cd /home/ted/tmos-atc-converter
 npm install
 npm test  # 413 passing (28s)
 ```
 
 **Example usage:**
 ```javascript
-const tmos = require('tmos-converter');
+const tmos = require('tmos-atc-converter');
 
 const config = `ltm pool /Common/test_pool {
     members {

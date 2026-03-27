@@ -6,7 +6,7 @@
  *
  * @example Basic AS3 conversion
  * ```typescript
- * import * as tmos from 'tmos-converter';
+ * import * as tmos from 'tmos-atc-converter';
  *
  * const config = `ltm pool /Common/web_pool {
  *     members {

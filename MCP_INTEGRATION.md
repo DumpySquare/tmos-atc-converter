@@ -1,6 +1,6 @@
 # MCP Server Integration Guide
 
-This guide covers how to integrate tmos-converter into an MCP (Model Context Protocol) server for AI-assisted F5 BIG-IP configuration management.
+This guide covers how to integrate tmos-atc-converter into an MCP (Model Context Protocol) server for AI-assisted F5 BIG-IP configuration management.
 
 ## Use Cases
 
@@ -11,13 +11,13 @@ This guide covers how to integrate tmos-converter into an MCP (Model Context Pro
 ## Installation
 
 ```bash
-npm install tmos-converter
+npm install tmos-atc-converter
 ```
 
 ## Core Functions for MCP
 
 ```typescript
-import * as tmos from 'tmos-converter';
+import * as tmos from 'tmos-atc-converter';
 
 // Conversion
 await tmos.convertToAS3(config, options);  // TMOS → AS3
@@ -282,7 +282,7 @@ if (declVersion && declVersion < versions.earliest) {
 ## Type Safety (TypeScript)
 
 ```typescript
-import * as tmos from 'tmos-converter';
+import * as tmos from 'tmos-atc-converter';
 import type {
     AS3ConversionOptions,
     AS3ConversionResult,
@@ -290,7 +290,7 @@ import type {
     AS3ValidationResult,
     DOValidationResult,
     ValidationError
-} from 'tmos-converter';
+} from 'tmos-atc-converter';
 
 // Full type safety for options and results
 const options: AS3ValidationOptions = { mode: 'strict' };
@@ -324,7 +324,7 @@ const cleaned = await tmos.validateAS3(declaration, { mode: 'lazy' });
 
 ```typescript
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import * as tmos from 'tmos-converter';
+import * as tmos from 'tmos-atc-converter';
 
 const server = new Server({
     name: 'f5-config-server',
@@ -404,7 +404,7 @@ Integration with f5-corkscrew will enable application-level extraction and conve
 
 ```typescript
 // Future API (planned)
-import * as tmos from 'tmos-converter';
+import * as tmos from 'tmos-atc-converter';
 
 // List all applications in a config
 const apps = await tmos.listApplications(config);
@@ -548,7 +548,7 @@ This enables AI to:
 The planned architecture separates concerns across projects:
 
 ```text
-tmos-parser (extracted from tmos-converter)
+tmos-parser (extracted from tmos-atc-converter)
     │
     │  TMOS text → JSON
     ↓
@@ -557,7 +557,7 @@ f5-corkscrew
     │  • Feature detection
     │  • Complexity scoring
     ↓
-tmos-converter
+tmos-atc-converter
     │  • convertAppToAS3(tmosApp)
     │  • convertAppToDO(tmosApp)
     │  • validateAS3/validateDO

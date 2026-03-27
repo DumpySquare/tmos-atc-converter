@@ -80,14 +80,14 @@ Track changes from upstream f5-automation-config-converter project.
 
 2. **Copy new/updated tests**
    ```bash
-   cp test/engines/parser.test.js /path/to/tmos-converter/test/upstream/
-   cp test/engines/as3Converter.test.js /path/to/tmos-converter/test/upstream/
-   cp test/engines/doConverter.test.js /path/to/tmos-converter/test/upstream/
+   cp test/engines/parser.test.js /path/to/tmos-atc-converter/test/upstream/
+   cp test/engines/as3Converter.test.js /path/to/tmos-atc-converter/test/upstream/
+   cp test/engines/doConverter.test.js /path/to/tmos-atc-converter/test/upstream/
    ```
 
 3. **Run tests against our code**
    ```bash
-   cd /path/to/tmos-converter
+   cd /path/to/tmos-atc-converter
    npm run test:upstream
    ```
 

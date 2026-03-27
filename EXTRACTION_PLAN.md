@@ -77,7 +77,7 @@ Extract three core engines from f5-acc:
 ## Target Structure
 
 ```
-tmos-converter/
+tmos-atc-converter/
 ├── src/
 │   ├── parser/
 │   │   ├── index.js              # Main parser
@@ -165,7 +165,7 @@ module.exports = {
 
 **Usage:**
 ```javascript
-const tmos = require('tmos-converter');
+const tmos = require('tmos-atc-converter');
 
 // Simple conversion
 const as3 = await tmos.convertToAS3(configText);
@@ -181,7 +181,7 @@ const as3 = await tmos.toAS3(json);
 
 ```json
 {
-  "name": "tmos-converter",
+  "name": "tmos-atc-converter",
   "version": "1.0.0",
   "description": "Convert F5 TMOS config to AS3 Classic and DO declarations",
   "main": "index.js",
@@ -215,7 +215,7 @@ const as3 = await tmos.toAS3(json);
 ### Phase 1: Setup (Day 1)
 
 ```bash
-cd /home/ted/tmos-converter
+cd /home/ted/tmos-atc-converter
 
 # Initialize git
 git init
@@ -437,5 +437,5 @@ npm test -- test/upstream/
 ---
 
 *Plan created: 2025-11-13*
-*For: tmos-converter v1.0.0*
+*For: tmos-atc-converter v1.0.0*
 *From: f5-automation-config-converter v1.126.0*
