@@ -6,5 +6,4 @@ coverage/
 *.swp
 *.swo
 .DS_Store
-test_certs/
 dist/
