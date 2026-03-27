@@ -29,6 +29,10 @@
     "declarative-onboarding",
     "config-converter"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DumpySquare/tmos-atc-converter"
+  },
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
